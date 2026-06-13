@@ -335,10 +335,7 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<String, ErrorToken> {
 }
 
 fn invalid_character_callback(lex: &mut Lexer<Token>) -> ErrorToken {
-    ErrorToken::new(
-        ErrorKind::InvalidCharacter,
-        Some(String::from(lex.slice().to_string())),
-    )
+    ErrorToken::new(ErrorKind::InvalidCharacter, Some(lex.slice().to_string()))
 }
 
 fn unmatched_close_comment_callback(_lex: &mut Lexer<Token>) -> Result<logos::Skip, ErrorToken> {
