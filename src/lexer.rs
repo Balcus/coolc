@@ -1,12 +1,22 @@
-use logos::{FilterResult, Lexer, Logos, Skip};
+use logos::{FilterResult, Lexer, Logos};
 use std::collections::HashMap;
 
 const MAX_STR_CONST_LEN: usize = 1024;
 
+#[derive(Default, Debug, PartialEq, Clone)]
+pub struct Span {
+    start: usize,
+    end: usize,
+}
+
+impl Span {
+    pub fn new(start: usize, end: usize) -> Self {
+        Self { start, end }
+    }
+}
+
 #[derive(Default)]
 pub struct LexerExtras {
-    line: usize,
-    column: usize,
     pub s_table: StringTable,
 }
 
@@ -63,11 +73,16 @@ pub enum ErrorKind {
 pub struct ErrorToken {
     kind: ErrorKind,
     message: Option<String>,
+    span: Span,
 }
 
 impl ErrorToken {
-    pub fn new(kind: ErrorKind, message: Option<String>) -> Self {
-        Self { kind, message }
+    pub fn new(kind: ErrorKind, message: Option<String>, span: Span) -> Self {
+        Self {
+            kind,
+            message,
+            span,
+        }
     }
 }
 
@@ -76,8 +91,7 @@ impl ErrorToken {
 #[logos(subpattern digit = r"[0-9]")]
 #[logos(subpattern alphanum = r"(?&alpha)|(?&digit)")]
 #[logos(extras = LexerExtras)]
-#[logos(skip(r"\n", newline_callback))]
-#[logos(skip(r"[ \v\r\t\f]+"))]
+#[logos(skip(r"[ \v\r\t\f\n]+"))]
 #[logos(error = ErrorToken)]
 pub enum Token {
     #[token(".")]
@@ -227,14 +241,10 @@ pub enum Token {
     Err(ErrorToken),
 }
 
-fn newline_callback(lex: &mut Lexer<Token>) -> Skip {
-    lex.extras.line += 1;
-    lex.extras.column = lex.span().end;
-    Skip
-}
-
+// Block comments can be nested so we need a special callback function
+// to manually track and match each '(*' with it's corresponding '*)'
 fn block_comment_callback(lex: &mut Lexer<Token>) -> FilterResult<(), ErrorToken> {
-    let mut depth = 1usize;
+    let mut depth = 1;
     let mut chars = lex.remainder().char_indices().peekable();
 
     while let Some((i, c)) = chars.next() {
@@ -255,10 +265,15 @@ fn block_comment_callback(lex: &mut Lexer<Token>) -> FilterResult<(), ErrorToken
         }
     }
 
+    let start = lex.span().start;
+    let end = lex.span().start + lex.remainder().len();
+
     lex.bump(lex.remainder().len());
+
     FilterResult::Error(ErrorToken::new(
         ErrorKind::EofInComment,
         Some(String::from("EOF in comment")),
+        Span::new(start, end),
     ))
 }
 
@@ -267,33 +282,42 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
     let mut chars = lex.remainder().chars().peekable();
     let mut consumed_bytes = 0;
 
+    let start = lex.span().start;
+
     while let Some(c) = chars.next() {
         consumed_bytes += c.len_utf8();
 
         match c {
             '\0' => {
                 while let Some(&next_c) = chars.peek() {
-                    if next_c == '"' || next_c == '\n' {
-                        if next_c == '"' {
-                            chars.next();
-                            consumed_bytes += next_c.len_utf8();
-                        }
+                    if next_c == '\n' {
+                        break;
+                    }
+                    if next_c == '"' {
+                        chars.next();
+                        consumed_bytes += next_c.len_utf8();
                         break;
                     }
                     chars.next();
                     consumed_bytes += next_c.len_utf8();
                 }
+
+                let end = start + consumed_bytes;
                 lex.bump(consumed_bytes);
                 return Err(ErrorToken::new(
                     ErrorKind::StringContainsNullCharacter,
                     Some(String::from("String contains null character")),
+                    Span::new(start, end),
                 ));
             }
             '\n' => {
-                lex.bump(consumed_bytes - c.len_utf8());
+                let end = start + consumed_bytes - '\n'.len_utf8();
+                lex.bump(consumed_bytes);
+
                 return Err(ErrorToken::new(
                     ErrorKind::UnterminatedStringConstant,
                     Some(String::from("Unterminated string constant")),
+                    Span::new(start, end),
                 ));
             }
             '"' => {
@@ -312,10 +336,12 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
                         _ => result.push(next_c),
                     }
                 } else {
+                    let end = start + consumed_bytes;
                     lex.bump(consumed_bytes);
                     return Err(ErrorToken::new(
                         ErrorKind::EofInString,
                         Some(String::from("EOF in string constant")),
+                        Span::new(start, end),
                     ));
                 }
             }
@@ -336,28 +362,38 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
                 chars.next();
                 consumed_bytes += next_c.len_utf8();
             }
+
+            let end = start + consumed_bytes;
             lex.bump(consumed_bytes);
             return Err(ErrorToken::new(
                 ErrorKind::StringConstantTooLong,
                 Some(String::from("String constant too long")),
+                Span::new(start, end),
             ));
         }
     }
 
+    let end = start + consumed_bytes;
     lex.bump(consumed_bytes);
     Err(ErrorToken::new(
         ErrorKind::EofInString,
         Some(String::from("EOF in string constant")),
+        Span::new(start, end),
     ))
 }
 
 fn invalid_character_callback(lex: &mut Lexer<Token>) -> ErrorToken {
-    ErrorToken::new(ErrorKind::InvalidCharacter, Some(lex.slice().to_string()))
+    ErrorToken::new(
+        ErrorKind::InvalidCharacter,
+        Some(lex.slice().to_string()),
+        Span::new(lex.span().start, lex.span().end),
+    )
 }
 
-fn unmatched_close_comment_callback(_lex: &mut Lexer<Token>) -> Result<logos::Skip, ErrorToken> {
+fn unmatched_close_comment_callback(lex: &mut Lexer<Token>) -> Result<logos::Skip, ErrorToken> {
     Err(ErrorToken::new(
         ErrorKind::UnmatchedCloseComment,
         Some(String::from("Unmatched *)")),
+        Span::new(lex.span().start, lex.span().end),
     ))
 }
