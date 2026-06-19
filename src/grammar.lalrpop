@@ -1,0 +1,21 @@
+use crate::lexer::{Token, ErrorToken};
+
+grammar<'input>;
+
+extern {
+    type Location = usize;
+    type Error = ErrorToken;
+
+    enum Token {
+        "+" => Token::Plus,
+        "-" => Token::Minus,
+        "int" => Token::Integers(<i64>),
+        "(" => Token::LParen,
+        ")" => Token::RParen,
+    }
+}
+
+pub Term: i64 = {
+    <n:"int"> => n,
+    "(" <t:Term> ")" => t,
+}

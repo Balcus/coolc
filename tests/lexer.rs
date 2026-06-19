@@ -1773,7 +1773,7 @@ mod fail_lexing {
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::EofInString,
                 Some(String::from("EOF in string constant")),
-                Span::new(0, 13)
+                Span::new(0, 14)
             ))]
         )
     }
@@ -1787,7 +1787,7 @@ mod fail_lexing {
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::EofInString,
                 Some(String::from("EOF in string constant")),
-                Span::new(0, str.len() - 1)
+                Span::new(0, str.len())
             ))]
         );
     }
@@ -1855,7 +1855,7 @@ mod fail_lexing {
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::StringConstantTooLong,
                 Some("String constant too long".to_string()),
-                Span::new(0, long_string.len() - 1),
+                Span::new(0, long_string.len()),
             ))]
         );
     }
@@ -1869,7 +1869,7 @@ mod fail_lexing {
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::StringContainsNullCharacter,
                 Some("String contains null character".to_string()),
-                Span::new(0, input.len() - 1)
+                Span::new(0, input.len())
             ))]
         );
     }
@@ -1884,7 +1884,7 @@ mod fail_lexing {
             Some(Err(ErrorToken::new(
                 ErrorKind::UnterminatedStringConstant,
                 Some(String::from("Unterminated string constant")),
-                Span::new(0, 24)
+                Span::new(0, 25)
             )))
         );
 

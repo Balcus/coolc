@@ -1,7 +1,35 @@
-use logos::{FilterResult, Lexer, Logos};
+use logos::{FilterResult, Lexer, Logos, SpannedIter};
 use std::collections::HashMap;
 
 const MAX_STR_CONST_LEN: usize = 1024;
+
+pub type Spanned<Tok, Loc, Error> = Result<(Loc, Tok, Loc), Error>;
+
+/// The LexerWrapper is boilerplate used as a workaround for `lalrpop` to accept
+/// external lexing libraries such as `Logos`.
+///
+/// Reference: https://lalrpop.github.io/lalrpop/lexer_tutorial/005_external_lib.html.
+pub struct LexerWrapper<'input> {
+    token_stream: SpannedIter<'input, Token>,
+}
+
+impl<'input> LexerWrapper<'input> {
+    pub fn new(input: &'input str) -> Self {
+        Self {
+            token_stream: Token::lexer(input).spanned(),
+        }
+    }
+}
+
+impl<'input> Iterator for LexerWrapper<'input> {
+    type Item = Spanned<Token, usize, ErrorToken>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.token_stream
+            .next()
+            .map(|(token, span)| Ok((span.start, token?, span.end)))
+    }
+}
 
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct Span {
@@ -9,6 +37,8 @@ pub struct Span {
     end: usize,
 }
 
+// The span is inclusive for start but exclusive for end [start, end)
+// Used to hold location information in case of lexing errors
 impl Span {
     pub fn new(start: usize, end: usize) -> Self {
         Self { start, end }
@@ -69,6 +99,8 @@ pub enum ErrorKind {
     Other,
 }
 
+// Errors are communicated to the parser by returning a special error token
+// called ErrorTokenthe. The lexer does not print anything
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct ErrorToken {
     kind: ErrorKind,
@@ -86,7 +118,7 @@ impl ErrorToken {
     }
 }
 
-#[derive(Logos, Debug, PartialEq)]
+#[derive(Logos, Debug, PartialEq, Clone)]
 #[logos(subpattern alpha = r"[a-zA-Z]")]
 #[logos(subpattern digit = r"[0-9]")]
 #[logos(subpattern alphanum = r"(?&alpha)|(?&digit)")]
@@ -266,7 +298,7 @@ fn block_comment_callback(lex: &mut Lexer<Token>) -> FilterResult<(), ErrorToken
     }
 
     let start = lex.span().start;
-    let end = lex.span().start + lex.remainder().len();
+    let end = lex.span().end + lex.remainder().len();
 
     lex.bump(lex.remainder().len());
 
@@ -302,7 +334,7 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
                     consumed_bytes += next_c.len_utf8();
                 }
 
-                let end = start + consumed_bytes;
+                let end = lex.span().end + consumed_bytes;
                 lex.bump(consumed_bytes);
                 return Err(ErrorToken::new(
                     ErrorKind::StringContainsNullCharacter,
@@ -311,7 +343,7 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
                 ));
             }
             '\n' => {
-                let end = start + consumed_bytes - '\n'.len_utf8();
+                let end = lex.span().end + consumed_bytes - '\n'.len_utf8();
                 lex.bump(consumed_bytes);
 
                 return Err(ErrorToken::new(
@@ -336,7 +368,7 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
                         _ => result.push(next_c),
                     }
                 } else {
-                    let end = start + consumed_bytes;
+                    let end = lex.span().end + consumed_bytes;
                     lex.bump(consumed_bytes);
                     return Err(ErrorToken::new(
                         ErrorKind::EofInString,
@@ -363,7 +395,7 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
                 consumed_bytes += next_c.len_utf8();
             }
 
-            let end = start + consumed_bytes;
+            let end = lex.span().end + consumed_bytes;
             lex.bump(consumed_bytes);
             return Err(ErrorToken::new(
                 ErrorKind::StringConstantTooLong,
@@ -373,7 +405,7 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
         }
     }
 
-    let end = start + consumed_bytes;
+    let end = lex.span().end + consumed_bytes;
     lex.bump(consumed_bytes);
     Err(ErrorToken::new(
         ErrorKind::EofInString,
