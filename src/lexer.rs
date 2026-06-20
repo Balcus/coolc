@@ -1,5 +1,5 @@
+use crate::s_table::StringTable;
 use logos::{FilterResult, Lexer, Logos, SpannedIter};
-use std::collections::HashMap;
 
 const MAX_STR_CONST_LEN: usize = 1024;
 
@@ -9,19 +9,21 @@ pub type Spanned<Tok, Loc, Error> = Result<(Loc, Tok, Loc), Error>;
 /// external lexing libraries such as `Logos`.
 ///
 /// Reference: https://lalrpop.github.io/lalrpop/lexer_tutorial/005_external_lib.html.
-pub struct LexerWrapper<'input> {
+pub struct LexerWrapper<'input, 's: 'input> {
     token_stream: SpannedIter<'input, Token>,
+    _marker: std::marker::PhantomData<&'s ()>,
 }
 
-impl<'input> LexerWrapper<'input> {
-    pub fn new(input: &'input str) -> Self {
+impl<'input, 's: 'input> LexerWrapper<'input, 's> {
+    pub fn new(input: &'input str, s_table: &'s mut StringTable) -> Self {
         Self {
-            token_stream: Token::lexer(input).spanned(),
+            token_stream: Token::lexer_with_extras(input, LexerExtras { s_table }).spanned(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<'input> Iterator for LexerWrapper<'input> {
+impl<'input, 's: 'input> Iterator for LexerWrapper<'input, 's> {
     type Item = Spanned<Token, usize, ErrorToken>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -45,39 +47,16 @@ impl Span {
     }
 }
 
-#[derive(Default)]
-pub struct LexerExtras {
-    pub s_table: StringTable,
+pub struct LexerExtras<'s> {
+    pub s_table: &'s mut StringTable,
 }
 
-#[derive(Default)]
-pub struct StringTable {
-    pub map: HashMap<String, usize>,
-    strings: Vec<String>,
-}
-
-impl StringTable {
-    pub fn new() -> Self {
-        Self {
-            map: HashMap::new(),
-            strings: Vec::new(),
-        }
-    }
-
-    pub fn insert(&mut self, string: String) -> usize {
-        match self.map.get(&string) {
-            Some(id) => *id,
-            None => {
-                let id = self.strings.len();
-                self.map.insert(string.clone(), id);
-                self.strings.push(string);
-                id
-            }
-        }
-    }
-
-    pub fn get(&self, id: usize) -> Option<&String> {
-        self.strings.get(id)
+/// The default constructor for LexerExtras `MUST NOT` be used.
+/// Instead use the `lexer_with_extras`
+/// option when constructing the lexer and pass it a mutable reference to a string table
+impl Default for LexerExtras<'_> {
+    fn default() -> Self {
+        unreachable!("LexerExtras::default() should never be called")
     }
 }
 
@@ -122,7 +101,7 @@ impl ErrorToken {
 #[logos(subpattern alpha = r"[a-zA-Z]")]
 #[logos(subpattern digit = r"[0-9]")]
 #[logos(subpattern alphanum = r"(?&alpha)|(?&digit)")]
-#[logos(extras = LexerExtras)]
+#[logos(extras = LexerExtras<'s>)]
 #[logos(skip(r"[ \v\r\t\f\n]+"))]
 #[logos(error = ErrorToken)]
 pub enum Token {

@@ -1,6 +1,7 @@
 use clap::Parser;
 use coolc::grammar;
 use coolc::lexer::LexerWrapper;
+use coolc::s_table::StringTable;
 use std::fs;
 
 #[derive(Parser)]
@@ -25,6 +26,7 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
     let input = fs::read_to_string(&cli.path).expect(&format!("Failed to read file: {}", cli.path));
-    let _lexer = LexerWrapper::new(&input);
-    let _parser = grammar::TermParser::new();
+    let mut s_table = StringTable::new();
+    let _lexer = LexerWrapper::new(&input, &mut s_table);
+    let _parser = grammar::ProgramParser::new();
 }

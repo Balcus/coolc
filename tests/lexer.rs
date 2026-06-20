@@ -1,10 +1,19 @@
-use coolc::lexer::{ErrorKind, ErrorToken, LexerExtras, Span, Token};
+use coolc::{
+    lexer::{ErrorKind, ErrorToken, LexerExtras, Span, Token},
+    s_table::StringTable,
+};
 use logos::Logos;
 
 fn lex(src: &str) -> Vec<Token> {
-    Token::lexer(src)
-        .map(|r| r.unwrap_or_else(|e| Token::Err(e)))
-        .collect()
+    let mut s_table = StringTable::new();
+    Token::lexer_with_extras(
+        src,
+        LexerExtras {
+            s_table: &mut s_table,
+        },
+    )
+    .map(|r| r.unwrap_or_else(|e| Token::Err(e)))
+    .collect()
 }
 
 mod succeeds_lexing {
@@ -23,7 +32,13 @@ mod succeeds_lexing {
     #[test]
     fn hello_world_string() {
         let src = "\"Hello World!\"";
-        let mut lex = Token::lexer_with_extras(src, LexerExtras::default());
+        let mut s_table = StringTable::new();
+        let mut lex = Token::lexer_with_extras(
+            src,
+            LexerExtras {
+                s_table: &mut s_table,
+            },
+        );
 
         let tok = lex.next().unwrap().unwrap();
         let Token::StringConstant(id) = tok else {
@@ -35,7 +50,13 @@ mod succeeds_lexing {
     #[test]
     fn cool_cl() {
         let src = include_str!("../examples/cool.cl");
-        let mut lexer = Token::lexer_with_extras(src, LexerExtras::default());
+        let mut s_table = StringTable::new();
+        let mut lexer = Token::lexer_with_extras(
+            src,
+            LexerExtras {
+                s_table: &mut s_table,
+            },
+        );
         let tokens: Vec<Token> = lexer.by_ref().map(|t| t.unwrap()).collect();
         let table = &lexer.extras.s_table;
         let expected = vec![
@@ -107,7 +128,13 @@ mod succeeds_lexing {
     #[test]
     fn primes_cl() {
         let src = include_str!("../examples/primes.cl");
-        let mut lexer = Token::lexer_with_extras(src, LexerExtras::default());
+        let mut s_table = StringTable::new();
+        let mut lexer = Token::lexer_with_extras(
+            src,
+            LexerExtras {
+                s_table: &mut s_table,
+            },
+        );
         let tokens: Vec<Token> = lexer.by_ref().map(|t| t.unwrap()).collect();
         let table = &lexer.extras.s_table;
 
@@ -264,7 +291,13 @@ mod succeeds_lexing {
     #[test]
     fn life_cl() {
         let src = include_str!("../examples/life.cl");
-        let mut lexer = Token::lexer_with_extras(src, LexerExtras::default());
+        let mut s_table = StringTable::new();
+        let mut lexer = Token::lexer_with_extras(
+            src,
+            LexerExtras {
+                s_table: &mut s_table,
+            },
+        );
         let tokens: Vec<Token> = lexer.by_ref().map(|t| t.unwrap()).collect();
         let table = &lexer.extras.s_table;
 
@@ -1730,7 +1763,13 @@ mod succeeds_lexing {
     #[test]
     fn hello_world_cl() {
         let src = include_str!("../examples/hello_world.cl");
-        let mut lexer = Token::lexer_with_extras(src, LexerExtras::default());
+        let mut s_table = StringTable::new();
+        let mut lexer = Token::lexer_with_extras(
+            src,
+            LexerExtras {
+                s_table: &mut s_table,
+            },
+        );
         let tokens: Vec<Token> = lexer.by_ref().map(|t| t.unwrap()).collect();
         let table = &lexer.extras.s_table;
 
@@ -1877,7 +1916,13 @@ mod fail_lexing {
     #[test]
     fn unterminated_string_recovery() {
         let src = "\"hello world unterminated\nout_string";
-        let mut lex = Token::lexer_with_extras(src, LexerExtras::default());
+        let mut s_table = StringTable::new();
+        let mut lex = Token::lexer_with_extras(
+            src,
+            LexerExtras {
+                s_table: &mut s_table,
+            },
+        );
 
         assert_eq!(
             lex.next(),
