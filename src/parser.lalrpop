@@ -1,0 +1,223 @@
+/*
+ * Parser Output:
+ * Semantic actions should build an AST
+ * The root of the AST (and only the root) should be of type program
+ * For programs that have errors, the output is the error message
+ * For multi line constructs free to use any line that is part of the construct
+ * Parser needs to work for programs contained in a single file
+ *
+ * Error Handling:
+ * The parser should recover at least in the following situations:
+ * - if error in calss definition but class terminated properly and next class is syntactically correct,
+ * the parser should be able to start from next class definition
+ *
+ * - similarly, parser should recover from errors in features (going on to the next feature),
+ * a let biding (going on to the next variable), and an expression inside a { ... } block
+ *
+ *
+ * Remarks:
+ * - Only use precedence declarations for expressions
+ * - the let construct introduces ambiguity, the manual says let expression extends as far to the right as possible
+ * - Depending on the way your grammar is written, this ambiguity may show up
+ * in your parser as a shift-reduce conflict involving the productions for let. If you run into such a conflict,
+ * you might want to consider solving the problem by using a bison/CUP feature that allows precedence to
+ * be associated with productions (not just operators) ??
+ */
+
+use crate::lexer::{Token, ErrorToken};
+use crate::ast;
+
+grammar<'input>;
+
+extern {
+    type Location = usize;
+    type Error = ErrorToken;
+    enum Token {
+        "+" => Token::Plus,
+        "-" => Token::Minus,
+        "*" => Token::Star,
+        "@" => Token::At,
+        "." => Token::Dot,
+        "~" => Token::Tilde,
+        "/" => Token::Slash,
+        "=>" => Token::FatArrow,
+        "<" => Token::Lt,
+        "<=" => Token::Le,
+        ">" => Token::Gt,
+        ">=" => Token::Ge,
+        ";" => Token::Semicolon,
+        "," => Token::Comma,
+        ":" => Token::Colon,
+        "{" => Token::LBrace,
+        "}" => Token::RBrace,
+        "(" => Token::LParen,
+        ")" => Token::RParen,
+        "=" => Token::Eq,
+        "<-" => Token::Assign,
+        "self" => Token::SelfValue,
+        "SELF_TYPE" => Token::SelfType,
+        "class" => Token::Class,
+        "else" => Token::Else,
+        "fi" => Token::Fi,
+        "if" => Token::If,
+        "in" => Token::In,
+        "inherits" => Token::Inherits,
+        "isvoid" => Token::IsVoid,
+        "let" => Token::Let,
+        "loop" => Token::Loop,
+        "pool" => Token::Pool,
+        "then" => Token::Then,
+        "while" => Token::While,
+        "case" => Token::Case,
+        "esac" => Token::Esac,
+        "new" => Token::New,
+        "of" => Token::Of,
+        "not" => Token::Not,
+        "bool_c" => Token::BoolConst(<bool>),
+        "int_c" => Token::Integers(<i64>),
+        "str_c" => Token::StringConstant(<usize>),
+        "type_id" => Token::TypeIdentifier(<usize>),
+        "obj_id" => Token::ObjectIdentifier(<usize>),
+    }
+}
+
+// Macro for comma separated lists (args in method definition)
+Comma<T>: Vec<T> = {
+    <first: T> <rest: ("," <T>)*> => {
+        let mut v = vec![first];
+        v.extend(rest);
+        v
+    },
+    => vec![],
+};
+
+pub Program: ast::Program = {
+    <classes: Class+> => ast::Program { classes }
+}
+
+Class: ast::Class = {
+    "class" <name: "type_id"> "{" <features: Feature*> "}" ";" =>
+        ast::Class {
+            name,
+            parent: None,
+            features,
+        },
+    "class" <name: "type_id"> "inherits" <parent: "type_id"> "{" <features: Feature*> "}" ";" =>
+        ast::Class {
+            name,
+            parent: Some(parent),
+            features
+        },
+}
+
+Feature: ast::Feature = {
+    // Attribute
+    <name: "obj_id"> ":" <type_dec: "type_id"> ";" =>
+        ast::Feature::Attribute {
+            name,
+            type_dec,
+            init: None
+        },
+    <name: "obj_id"> ":" <type_dec: "type_id"> "<-" <expr: Expr> ";" =>
+        ast::Feature::Attribute {
+            name,
+            type_dec,
+            init: Some(Box::new(expr))
+        },
+
+    // Method
+    <name: "obj_id"> "(" <params: Comma<Formal>> ")" ":" <type_dec: "type_id"> "{" <expr: Expr> "}" ";" =>
+        ast::Feature::Method {
+            name,
+            params,
+            type_dec,
+            body: Box::new(expr),
+        },
+}
+
+Formal: ast::Formal = {
+    <name: "obj_id"> ":" <type_dec: "type_id"> =>
+        ast::Formal {
+            name,
+            type_dec
+        },
+}
+
+Branch: ast::CaseBranch = {
+    <name: "obj_id"> ":" <type_dec: "type_id"> "=>" <expr: Expr> =>
+        ast::CaseBranch {
+            name,
+            type_dec,
+            body: Box::new(expr)
+        },
+}
+
+Paren: ast::Expr = {
+    "(" <e: Expr> ")" => e,
+}
+
+Expr: ast::Expr = {
+    // Constnats & Identifiers
+    #[precedence(level="0")]
+    <n: "int_c"> => ast::Expr::IntConstant(n),
+    <s: "str_c"> => ast::Expr::StringConstant(s),
+    <b: "bool_c"> => ast::Expr::BoolConstant(b),
+    <o: "obj_id"> => ast::Expr::Object(o),
+    <e: Paren> => e,
+
+    // isVoid & negation
+    #[precedence(level="1")]
+    "~" <e: Expr> => ast::Expr::Neg(Box::new(e)),
+    "isvoid" <e: Expr> => ast::Expr::IsVoid(Box::new(e)),
+
+    // Arithmetic
+    #[precedence(level="2")] #[assoc(side="left")]
+    <e1: Expr> "*" <e2: Expr> => ast::Expr::Mul(Box::new(e1), Box::new(e2)),
+    <e1: Expr> "/" <e2: Expr> => ast::Expr::Div(Box::new(e1), Box::new(e2)),
+
+    #[precedence(level="3")] #[assoc(side="left")]
+    <e1: Expr> "+" <e2: Expr> => ast::Expr::Add(Box::new(e1), Box::new(e2)),
+    <e1: Expr> "-" <e2: Expr> => ast::Expr::Sub(Box::new(e1), Box::new(e2)),
+
+    // Comparison
+    #[precedence(level="4")] #[assoc(side="none")]
+    <e1: Expr> ">" <e2: Expr> => ast::Expr::Lt(Box::new(e2), Box::new(e1)),
+    <e1: Expr> ">=" <e2: Expr> => ast::Expr::Le(Box::new(e2), Box::new(e1)),
+    <e1: Expr> "<" <e2: Expr> => ast::Expr::Lt(Box::new(e1), Box::new(e2)),
+    <e1: Expr> "<=" <e2: Expr> => ast::Expr::Le(Box::new(e1), Box::new(e2)),
+    <e1: Expr> "=" <e2: Expr> => ast::Expr::Eq(Box::new(e1), Box::new(e2)),
+
+    // Not
+    #[precedence(level="5")]
+    "not" <e: Expr> => ast::Expr::Not(Box::new(e)),
+
+    // Assignment
+    #[precedence(level="6")] #[assoc(side="right")]
+    <var: "obj_id"> "<-" <expr: Expr> => ast::Expr::Assignment { var, expr: Box::new(expr) },
+
+    // Control flow
+    #[precedence(level="7")]
+    "if" <cond: Expr> "then" <happy_path: Expr> "else" <sad_path: Expr> "fi" =>
+        ast::Expr::Conditional {
+            cond: Box::new(cond),
+            happy_path: Box::new(happy_path),
+            sad_path: Box::new(sad_path)
+        },
+
+    "while" <cond: Expr> "loop" <body: Expr> "pool" =>
+        ast::Expr::Loop {
+            cond: Box::new(cond),
+            body: Box::new(body),
+        },
+
+    "{" <body: (<Expr> ";")+> "}" => ast::Expr::Block(body),
+
+    "case" <cond: Expr> "of" <branches: (<Branch> ";")+> "esac" =>
+        ast::Expr::Case {
+            cond: Box::new(cond),
+            branches
+        },
+
+    // new
+    "new" <t: "type_id"> => ast::Expr::New(t),
+}

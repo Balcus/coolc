@@ -1,6 +1,6 @@
 use clap::Parser;
-use coolc::grammar;
 use coolc::lexer::LexerWrapper;
+use coolc::parser;
 use coolc::s_table::StringTable;
 use std::fs;
 
@@ -28,5 +28,5 @@ fn main() {
     let input = fs::read_to_string(&cli.path).expect(&format!("Failed to read file: {}", cli.path));
     let mut s_table = StringTable::new();
     let _lexer = LexerWrapper::new(&input, &mut s_table);
-    let _parser = grammar::ProgramParser::new();
+    let _parser = parser::ProgramParser::new();
 }

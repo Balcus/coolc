@@ -23,7 +23,7 @@ pub enum Feature {
     Method {
         name: Id,
         params: Vec<Formal>,
-        method_type: Id,
+        type_dec: Id,
         body: Box<Expr>,
     },
 }
@@ -82,9 +82,7 @@ pub enum Expr {
         body: Box<Expr>,
     },
 
-    Block {
-        body: Vec<Expr>,
-    },
+    Block(Vec<Expr>),
 
     Let {
         name: Id,
@@ -98,9 +96,7 @@ pub enum Expr {
         branches: Vec<CaseBranch>,
     },
 
-    New {
-        type_dec: Id,
-    },
+    New(Id),
 
     IsVoid(Box<Expr>),
 
@@ -112,6 +108,6 @@ pub enum Expr {
 
     Lt(Box<Expr>, Box<Expr>),
     Eq(Box<Expr>, Box<Expr>),
-    Leq(Box<Expr>, Box<Expr>),
+    Le(Box<Expr>, Box<Expr>),
     Not(Box<Expr>),
 }
