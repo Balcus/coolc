@@ -28,7 +28,7 @@ mod succeds_parsing {
                 parent: None,
                 features: vec![ast::Feature::Attribute {
                     name: i(&mut s_table, "x"),
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     init: Some(Box::new(ast::Expr::IntConstant(10))),
                 }],
             }],
@@ -62,37 +62,37 @@ mod succeds_parsing {
                 features: vec![
                     ast::Feature::Attribute {
                         name: i(&mut s_table, "x"),
-                        type_dec: i(&mut s_table, "Int"),
+                        type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                         init: Some(Box::new(ast::Expr::IntConstant(10))),
                     },
                     ast::Feature::Attribute {
                         name: i(&mut s_table, "y"),
-                        type_dec: i(&mut s_table, "String"),
+                        type_dec: ast::TypeName::Type(i(&mut s_table, "String")),
                         init: Some(Box::new(ast::Expr::StringConstant(hello_world))),
                     },
                     ast::Feature::Attribute {
                         name: i(&mut s_table, "z"),
-                        type_dec: i(&mut s_table, "Bool"),
+                        type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
                         init: Some(Box::new(ast::Expr::BoolConstant(false))),
                     },
                     ast::Feature::Attribute {
                         name: i(&mut s_table, "a"),
-                        type_dec: i(&mut s_table, "Int"),
+                        type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                         init: None,
                     },
                     ast::Feature::Attribute {
                         name: i(&mut s_table, "b"),
-                        type_dec: i(&mut s_table, "String"),
+                        type_dec: ast::TypeName::Type(i(&mut s_table, "String")),
                         init: None,
                     },
                     ast::Feature::Attribute {
                         name: i(&mut s_table, "c"),
-                        type_dec: i(&mut s_table, "Bool"),
+                        type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
                         init: None,
                     },
                     ast::Feature::Attribute {
                         name: i(&mut s_table, "d"),
-                        type_dec: i(&mut s_table, "IO"),
+                        type_dec: ast::TypeName::Type(i(&mut s_table, "IO")),
                         init: None,
                     },
                 ],
@@ -175,7 +175,7 @@ mod succeds_parsing {
                     parent: None,
                     features: vec![ast::Feature::Attribute {
                         name: i(&mut s_table, "x"),
-                        type_dec: i(&mut s_table, "Int"),
+                        type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                         init: Some(Box::new(ast::Expr::IntConstant(1))),
                     }],
                 },
@@ -184,7 +184,7 @@ mod succeds_parsing {
                     parent: None,
                     features: vec![ast::Feature::Attribute {
                         name: i(&mut s_table, "y"),
-                        type_dec: i(&mut s_table, "Bool"),
+                        type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
                         init: Some(Box::new(ast::Expr::BoolConstant(true))),
                     }],
                 },
@@ -193,7 +193,7 @@ mod succeds_parsing {
                     parent: None,
                     features: vec![ast::Feature::Attribute {
                         name: i(&mut s_table, "z"),
-                        type_dec: string_id,
+                        type_dec: ast::TypeName::Type(string_id),
                         init: Some(Box::new(ast::Expr::StringConstant(string_id))),
                     }],
                 },
@@ -221,7 +221,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "doStuff"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::IntConstant(42)),
                 }],
             }],
@@ -251,7 +251,7 @@ mod succeds_parsing {
                         name: i(&mut s_table, "o"),
                         type_dec: i(&mut s_table, "Object"),
                     }],
-                    type_dec: i(&mut s_table, "Bool"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
                     body: Box::new(ast::Expr::BoolConstant(false)),
                 }],
             }],
@@ -281,7 +281,7 @@ mod succeds_parsing {
                         name: i(&mut s_table, "x"),
                         type_dec: i(&mut s_table, "Int"),
                     }],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::IntConstant(42)),
                 }],
             }],
@@ -318,9 +318,9 @@ mod succeds_parsing {
                             type_dec: i(&mut s_table, "Int"),
                         },
                     ],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Assignment {
-                        var: i(&mut s_table, "from"),
+                        var: ast::Var::Id(i(&mut s_table, "from")),
                         expr: Box::new(ast::Expr::Object(to_id)),
                     }),
                 }],
@@ -348,7 +348,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Conditional {
                         cond: Box::new(ast::Expr::BoolConstant(true)),
                         happy_path: Box::new(ast::Expr::IntConstant(1)),
@@ -379,7 +379,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Loop {
                         cond: Box::new(ast::Expr::BoolConstant(true)),
                         body: Box::new(ast::Expr::IntConstant(1)),
@@ -409,7 +409,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Block(vec![ast::Expr::IntConstant(42)])),
                 }],
             }],
@@ -436,7 +436,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Block(vec![
                         ast::Expr::IntConstant(1),
                         ast::Expr::IntConstant(2),
@@ -467,8 +467,11 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Object"),
-                    body: Box::new(ast::Expr::New(i(&mut s_table, "Object"))),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Object")),
+                    body: Box::new(ast::Expr::New(ast::TypeName::Type(i(
+                        &mut s_table,
+                        "Object",
+                    )))),
                 }],
             }],
         };
@@ -494,7 +497,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Bool"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
                     body: Box::new(ast::Expr::IsVoid(Box::new(ast::Expr::IntConstant(42)))),
                 }],
             }],
@@ -521,7 +524,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Neg(Box::new(ast::Expr::IntConstant(42)))),
                 }],
             }],
@@ -548,7 +551,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Bool"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
                     body: Box::new(ast::Expr::Not(Box::new(ast::Expr::BoolConstant(true)))),
                 }],
             }],
@@ -575,7 +578,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Add(
                         Box::new(ast::Expr::IntConstant(1)),
                         Box::new(ast::Expr::IntConstant(2)),
@@ -605,7 +608,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Sub(
                         Box::new(ast::Expr::IntConstant(5)),
                         Box::new(ast::Expr::IntConstant(3)),
@@ -635,7 +638,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Mul(
                         Box::new(ast::Expr::IntConstant(3)),
                         Box::new(ast::Expr::IntConstant(4)),
@@ -665,7 +668,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Div(
                         Box::new(ast::Expr::IntConstant(10)),
                         Box::new(ast::Expr::IntConstant(2)),
@@ -695,7 +698,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Bool"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
                     body: Box::new(ast::Expr::Lt(
                         Box::new(ast::Expr::IntConstant(1)),
                         Box::new(ast::Expr::IntConstant(2)),
@@ -725,7 +728,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Bool"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
                     body: Box::new(ast::Expr::Le(
                         Box::new(ast::Expr::IntConstant(1)),
                         Box::new(ast::Expr::IntConstant(2)),
@@ -757,7 +760,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: Vec::new(),
-                    type_dec: i(&mut s_table, "Bool"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
                     body: Box::new(ast::Expr::Lt(
                         Box::new(ast::Expr::IntConstant(1)),
                         Box::new(ast::Expr::IntConstant(2)),
@@ -789,7 +792,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: Vec::new(),
-                    type_dec: i(&mut s_table, "Bool"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
                     body: Box::new(ast::Expr::Le(
                         Box::new(ast::Expr::IntConstant(1)),
                         Box::new(ast::Expr::IntConstant(2)),
@@ -819,7 +822,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Bool"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
                     body: Box::new(ast::Expr::Eq(
                         Box::new(ast::Expr::IntConstant(1)),
                         Box::new(ast::Expr::IntConstant(1)),
@@ -849,7 +852,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Case {
                         cond: Box::new(ast::Expr::IntConstant(42)),
                         branches: vec![ast::CaseBranch {
@@ -883,7 +886,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Case {
                         cond: Box::new(ast::Expr::IntConstant(42)),
                         branches: vec![
@@ -924,7 +927,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Add(
                         Box::new(ast::Expr::IntConstant(1)),
                         Box::new(ast::Expr::Mul(
@@ -957,7 +960,7 @@ mod succeds_parsing {
                 features: vec![ast::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: i(&mut s_table, "Int"),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(ast::Expr::Mul(
                         Box::new(ast::Expr::Add(
                             Box::new(ast::Expr::IntConstant(1)),
@@ -972,27 +975,35 @@ mod succeds_parsing {
         assert_eq!(res, expected);
     }
 
-    // TODO: finish the test after implementing dispatch
-    //     #[test]
-    //     fn examples_hello_world_cl() {
-    //         let mut s_table = StringTable::new();
-    //         let input = include_str!("../examples/hello_world.cl");
+    #[test]
+    fn examples_hello_world_cl() {
+        let mut s_table = StringTable::new();
+        let input = include_str!("../examples/hello_world.cl");
 
-    //         assert!(parse(input, &mut s_table).is_ok());
-    //         let _res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table).is_ok());
+        let res = parse(input, &mut s_table).unwrap();
 
-    //         let expected = ast::Program {
-    //             classes: vec![
-    //                 ast::Class {
-    //                     name: i(&mut s_table, "Main"),
-    //                     parent: Some(i(&mut s_table, "IO")),
-    //                     features: vec![
-    //                         ast::Feature::Method { name: i(&mut s_table, "IO"), params: Vec::new(), type_dec: i(&mut s_table, "SELF_TYPE"), body: ast::Expr:: }
-    //                     ]
-    //                 }
-    //             ]
-    //         }
-    //     }
+        let expected = ast::Program {
+            classes: vec![ast::Class {
+                name: i(&mut s_table, "Main"),
+                parent: Some(i(&mut s_table, "IO")),
+                features: vec![ast::Feature::Method {
+                    name: i(&mut s_table, "main"),
+                    params: Vec::new(),
+                    type_dec: ast::TypeName::SelfType,
+                    body: Box::new(ast::Expr::SelfDispatch {
+                        name: i(&mut s_table, "out_string"),
+                        args: vec![ast::Expr::StringConstant(i(
+                            &mut s_table,
+                            "Hello, World.\n",
+                        ))],
+                    }),
+                }],
+            }],
+        };
+
+        assert_eq!(res, expected);
+    }
 }
 
 mod fail_parsing {

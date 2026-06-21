@@ -13,17 +13,29 @@ pub struct Class {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub enum TypeName {
+    SelfType,
+    Type(usize),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Var {
+    Id(Id),
+    SelfValue,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum Feature {
     Attribute {
         name: Id,
-        type_dec: Id,
+        type_dec: TypeName,
         init: Option<Box<Expr>>,
     },
 
     Method {
         name: Id,
         params: Vec<Formal>,
-        type_dec: Id,
+        type_dec: TypeName,
         body: Box<Expr>,
     },
 }
@@ -47,9 +59,10 @@ pub enum Expr {
     IntConstant(i64),
     StringConstant(Id),
     Object(Id),
+    SelfExpr,
 
     Assignment {
-        var: Id,
+        var: Var,
         expr: Box<Expr>,
     },
 
@@ -96,7 +109,7 @@ pub enum Expr {
         branches: Vec<CaseBranch>,
     },
 
-    New(Id),
+    New(TypeName),
 
     IsVoid(Box<Expr>),
 

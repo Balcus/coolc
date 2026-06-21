@@ -112,13 +112,14 @@ Class: ast::Class = {
 
 Feature: ast::Feature = {
     // Attribute
-    <name: "obj_id"> ":" <type_dec: "type_id"> ";" =>
+    <name: "obj_id"> ":" <type_dec: Type> ";" =>
         ast::Feature::Attribute {
             name,
             type_dec,
             init: None
         },
-    <name: "obj_id"> ":" <type_dec: "type_id"> "<-" <expr: Expr> ";" =>
+
+    <name: "obj_id"> ":" <type_dec: Type> "<-" <expr: Expr> ";" =>
         ast::Feature::Attribute {
             name,
             type_dec,
@@ -126,7 +127,7 @@ Feature: ast::Feature = {
         },
 
     // Method
-    <name: "obj_id"> "(" <params: Comma<Formal>> ")" ":" <type_dec: "type_id"> "{" <expr: Expr> "}" ";" =>
+    <name: "obj_id"> "(" <params: Comma<Formal>> ")" ":" <type_dec: Type> "{" <expr: Expr> "}" ";" =>
         ast::Feature::Method {
             name,
             params,
@@ -156,6 +157,11 @@ Paren: ast::Expr = {
     "(" <e: Expr> ")" => e,
 }
 
+Type: ast::TypeName = {
+    <t: "type_id"> => ast::TypeName::Type(t),
+    "SELF_TYPE" => ast::TypeName::SelfType,
+}
+
 Expr: ast::Expr = {
     // Constnats & Identifiers
     #[precedence(level="0")]
@@ -163,6 +169,7 @@ Expr: ast::Expr = {
     <s: "str_c"> => ast::Expr::StringConstant(s),
     <b: "bool_c"> => ast::Expr::BoolConstant(b),
     <o: "obj_id"> => ast::Expr::Object(o),
+    "self" => ast::Expr::SelfExpr,
     <e: Paren> => e,
 
     // isVoid & negation
@@ -193,7 +200,8 @@ Expr: ast::Expr = {
 
     // Assignment
     #[precedence(level="6")] #[assoc(side="right")]
-    <var: "obj_id"> "<-" <expr: Expr> => ast::Expr::Assignment { var, expr: Box::new(expr) },
+    <var: "obj_id"> "<-" <expr: Expr> => ast::Expr::Assignment { var: ast::Var::Id(var) , expr: Box::new(expr) },
+    "self" "<-" <expr: Expr> => ast::Expr::Assignment { var: ast::Var::SelfValue, expr: Box::new(expr) },
 
     // Control flow
     #[precedence(level="7")]
@@ -218,6 +226,28 @@ Expr: ast::Expr = {
             branches
         },
 
-    // new
-    "new" <t: "type_id"> => ast::Expr::New(t),
+    // New
+    "new" <type_dec: Type> => ast::Expr::New(type_dec),
+
+    // Dispatch
+    <expr: Expr> "." <name: "obj_id"> "(" <args: Comma<Expr>> ")" =>
+        ast::Expr::Dispatch {
+            expr: Box::new(expr),
+            name,
+            args
+        },
+
+    <name: "obj_id"> "(" <args: Comma<Expr>> ")" =>
+        ast::Expr::SelfDispatch {
+            name,
+            args
+        },
+
+    <expr: Expr> "@" <type_dec: "type_id"> "." <name: "obj_id"> "(" <args: Comma<Expr>> ")" =>
+        ast::Expr::StaticDispatch {
+            name,
+            expr: Box::new(expr),
+            type_dec,
+            args
+        }
 }
