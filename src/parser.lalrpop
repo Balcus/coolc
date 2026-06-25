@@ -91,6 +91,14 @@ Comma<T>: Vec<T> = {
     => vec![],
 };
 
+// Helper type for a single binding (x: Type or x: Type <- y)
+Binding: (ast::Id, ast::Id, Option<Box<ast::Expr>>) = {
+    <n: "obj_id"> ":" <t: "type_id"> =>
+        (n, t, None),
+    <n: "obj_id"> ":" <t: "type_id"> "<-" <e: Expr> =>
+        (n, t, Some(Box::new(e))),
+}
+
 pub Program: ast::Program = {
     <classes: Class+> => ast::Program { classes }
 }
@@ -172,6 +180,28 @@ Expr: ast::Expr = {
     "self" => ast::Expr::SelfExpr,
     <e: Paren> => e,
 
+    // Dispatch
+    <expr: Expr> "." <name: "obj_id"> "(" <args: Comma<Expr>> ")" =>
+        ast::Expr::Dispatch {
+            expr: Box::new(expr),
+            name,
+            args
+        },
+
+    <name: "obj_id"> "(" <args: Comma<Expr>> ")" =>
+        ast::Expr::SelfDispatch {
+            name,
+            args
+        },
+
+    <expr: Expr> "@" <type_dec: "type_id"> "." <name: "obj_id"> "(" <args: Comma<Expr>> ")" =>
+        ast::Expr::StaticDispatch {
+            name,
+            expr: Box::new(expr),
+            type_dec,
+            args
+        },
+
     // isVoid & negation
     #[precedence(level="1")]
     "~" <e: Expr> => ast::Expr::Neg(Box::new(e)),
@@ -229,25 +259,18 @@ Expr: ast::Expr = {
     // New
     "new" <type_dec: Type> => ast::Expr::New(type_dec),
 
-    // Dispatch
-    <expr: Expr> "." <name: "obj_id"> "(" <args: Comma<Expr>> ")" =>
-        ast::Expr::Dispatch {
-            expr: Box::new(expr),
-            name,
-            args
-        },
+    #[precedence(level="8")]
+    "let" <first: Binding> <rest: ("," <Binding>)*> "in" <body: Expr> => {
+        let mut bindings = vec![first];
+        bindings.extend(rest);
 
-    <name: "obj_id"> "(" <args: Comma<Expr>> ")" =>
-        ast::Expr::SelfDispatch {
-            name,
-            args
-        },
-
-    <expr: Expr> "@" <type_dec: "type_id"> "." <name: "obj_id"> "(" <args: Comma<Expr>> ")" =>
-        ast::Expr::StaticDispatch {
-            name,
-            expr: Box::new(expr),
-            type_dec,
-            args
-        }
+        bindings.into_iter().rev().fold(body, |inner_body, (name, type_dec, init)| {
+            ast::Expr::Let {
+                name,
+                type_dec,
+                init,
+                body: Box::new(inner_body),
+            }
+        })
+    },
 }
