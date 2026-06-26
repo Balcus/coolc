@@ -170,6 +170,22 @@ Type: ast::TypeName = {
     "SELF_TYPE" => ast::TypeName::SelfType,
 }
 
+LetExpr: ast::Expr = {
+    "let" <first: Binding> <rest: ("," <Binding>)*> "in" <body: Expr> => {
+        let mut bindings = vec![first];
+        bindings.extend(rest);
+
+        bindings.into_iter().rev().fold(body, |inner_body, (name, type_dec, init)| {
+            ast::Expr::Let {
+                name,
+                type_dec,
+                init,
+                body: Box::new(inner_body),
+            }
+        })
+    },
+}
+
 Expr: ast::Expr = {
     // Constnats & Identifiers
     #[precedence(level="0")]
@@ -260,17 +276,5 @@ Expr: ast::Expr = {
     "new" <type_dec: Type> => ast::Expr::New(type_dec),
 
     #[precedence(level="8")]
-    "let" <first: Binding> <rest: ("," <Binding>)*> "in" <body: Expr> => {
-        let mut bindings = vec![first];
-        bindings.extend(rest);
-
-        bindings.into_iter().rev().fold(body, |inner_body, (name, type_dec, init)| {
-            ast::Expr::Let {
-                name,
-                type_dec,
-                init,
-                body: Box::new(inner_body),
-            }
-        })
-    },
+    <e: LetExpr> => e,
 }
