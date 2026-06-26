@@ -10,6 +10,7 @@ fn i(s_table: &mut StringTable, s: &str) -> usize {
 
 mod succeds_parsing {
     use super::*;
+    use test_case::test_case;
 
     #[test]
     fn one_class_one_constant_attribute() {
@@ -1173,73 +1174,153 @@ mod succeds_parsing {
         assert_eq!(res, expected);
     }
 
-    // TODO: the 2 tests below fail. Find out why
-    // #[test]
-    // fn let_body_extends_through_block_statement() {
-    //     let mut s_table = StringTable::new();
-    //     let input = r#"
-    //     class Main {
-    //         main(): Int {
-    //             {
-    //                 let x: Int <- 1 in
-    //                 let y: Int <- 2 in
-    //                     x + y;
-    //                 3;
-    //             }
-    //         };
-    //     };"#;
-    //     let result = parse(input, &mut s_table);
-    //     println!("{:?}", result);
-    //     assert!(result.is_ok());
-    //     let res = result.unwrap();
+    #[test]
+    fn let_body_extends_through_block_statement() {
+        let mut s_table = StringTable::new();
+        let input = r#"
+        class Main {
+            main(): Int {
+                {
+                    let x: Int <- 1 in
+                    let y: Int <- 2 in
+                        x + y;
+                    3;
+                }
+            };
+        };"#;
+        let result = parse(input, &mut s_table);
+        assert!(result.is_ok());
+        let res = result.unwrap();
 
-    //     let expected = ast::Program {
-    //         classes: vec![ast::Class {
-    //             name: i(&mut s_table, "Main"),
-    //             parent: None,
-    //             features: vec![ast::Feature::Method {
-    //                 name: i(&mut s_table, "main"),
-    //                 params: Vec::new(),
-    //                 type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-    //                 body: Box::new(ast::Expr::Block(vec![
-    //                     ast::Expr::Let {
-    //                         name: i(&mut s_table, "x"),
-    //                         type_dec: i(&mut s_table, "Int"),
-    //                         init: Some(Box::new(ast::Expr::IntConstant(1))),
-    //                         body: Box::new(ast::Expr::Let {
-    //                             name: i(&mut s_table, "y"),
-    //                             type_dec: i(&mut s_table, "Int"),
-    //                             init: Some(Box::new(ast::Expr::IntConstant(2))),
-    //                             body: Box::new(ast::Expr::Add(
-    //                                 Box::new(ast::Expr::Object(i(&mut s_table, "x"))),
-    //                                 Box::new(ast::Expr::Object(i(&mut s_table, "y"))),
-    //                             )),
-    //                         }),
-    //                     },
-    //                     ast::Expr::IntConstant(3),
-    //                 ])),
-    //             }],
-    //         }],
-    //     };
-    //     assert_eq!(res, expected);
-    // }
+        let expected = ast::Program {
+            classes: vec![ast::Class {
+                name: i(&mut s_table, "Main"),
+                parent: None,
+                features: vec![ast::Feature::Method {
+                    name: i(&mut s_table, "main"),
+                    params: Vec::new(),
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
+                    body: Box::new(ast::Expr::Block(vec![
+                        ast::Expr::Let {
+                            name: i(&mut s_table, "x"),
+                            type_dec: i(&mut s_table, "Int"),
+                            init: Some(Box::new(ast::Expr::IntConstant(1))),
+                            body: Box::new(ast::Expr::Let {
+                                name: i(&mut s_table, "y"),
+                                type_dec: i(&mut s_table, "Int"),
+                                init: Some(Box::new(ast::Expr::IntConstant(2))),
+                                body: Box::new(ast::Expr::Add(
+                                    Box::new(ast::Expr::Object(i(&mut s_table, "x"))),
+                                    Box::new(ast::Expr::Object(i(&mut s_table, "y"))),
+                                )),
+                            }),
+                        },
+                        ast::Expr::IntConstant(3),
+                    ])),
+                }],
+            }],
+        };
+        assert_eq!(res, expected);
+    }
 
-    // #[test]
-    // fn let_as_first_of_multiple_block_statements() {
-    //     let mut s_table = StringTable::new();
-    //     let input = r#"
-    //     class Main {
-    //         main(): Int {
-    //             {
-    //                 let x: Int <- 1 in x;
-    //                 3;
-    //             }
-    //         };
-    //     };"#;
-    //     let result = parse(input, &mut s_table);
-    //     println!("{:?}", result);
-    //     assert!(result.is_ok());
-    // }
+    #[test]
+    fn let_as_first_of_multiple_block_statements() {
+        let mut s_table = StringTable::new();
+        let input = r#"
+        class Main {
+            main(): Int {
+                {
+                    let x: Int <- 1 in x;
+                    3;
+                }
+            };
+        };"#;
+        assert!(parse(input, &mut s_table).is_ok());
+    }
+
+    #[test]
+    fn paren_let() {
+        let mut s_table = StringTable::new();
+        let input = r#"
+        class Main {
+            method3(num : Int) : C {
+                (let x : Int in
+                    {
+                        x <- ~num;
+                        (new C).set_var(x);
+                    }
+                )
+            };
+        };"#;
+        assert!(parse(input, &mut s_table).is_ok());
+    }
+
+    // TODO: fix this first
+    #[test]
+    fn op_as_dispatch_param() {
+        let mut s_table = StringTable::new();
+        let input = r#"
+        class Main {
+            main(s: String) : String {
+                s.substr(1, s.length() - 2);
+            };
+        };"#;
+        match parse(input, &mut s_table) {
+            Ok(_) => {}
+            Err(e) => {
+                panic!("Error:\n{:?}", e);
+            }
+        }
+    }
+
+    #[test]
+    fn let_inside_assignment() {
+        let mut s_table = StringTable::new();
+
+        let input = r#"
+        class Main {
+            main() : Int {
+                y <- let x : Int <- 5 in x + 1;
+            };
+        };
+        "#;
+
+        match parse(input, &mut s_table) {
+            Ok(_) => {}
+            Err(e) => {
+                panic!("Error:\n{:?}", e);
+            }
+        }
+    }
+
+    // TODO: arith, atoi, cells, lam, life, list, palindrome and sort_list fail parsing, fix the parser!!
+    #[test_case("arith.cl", include_str!("../examples/arith.cl"); "arith")]
+    #[test_case("atoi.cl", include_str!("../examples/atoi.cl"); "atoi")]
+    #[test_case("atoi_test.cl", include_str!("../examples/atoi_test.cl"); "atoi_test")]
+    #[test_case("book_list.cl", include_str!("../examples/book_list.cl"); "book_list")]
+    #[test_case("cells.cl", include_str!("../examples/cells.cl"); "cells")]
+    #[test_case("complex.cl", include_str!("../examples/complex.cl"); "complex")]
+    #[test_case("cool.cl", include_str!("../examples/cool.cl"); "cool")]
+    #[test_case("hairyscary.cl", include_str!("../examples/hairyscary.cl"); "hairyscary")]
+    #[test_case("hello_world.cl", include_str!("../examples/hello_world.cl"); "hello_world")]
+    #[test_case("io.cl", include_str!("../examples/io.cl"); "io")]
+    #[test_case("lam.cl", include_str!("../examples/lam.cl"); "lam")]
+    #[test_case("life.cl", include_str!("../examples/life.cl"); "life")]
+    #[test_case("list.cl", include_str!("../examples/list.cl"); "list")]
+    #[test_case("new_complex.cl", include_str!("../examples/new_complex.cl"); "new_complex")]
+    #[test_case("palindrome.cl", include_str!("../examples/palindrome.cl"); "palindrome")]
+    #[test_case("primes.cl", include_str!("../examples/primes.cl"); "primes")]
+    #[test_case("sort_list.cl", include_str!("../examples/sort_list.cl"); "sort_list")]
+    fn parses_examples(name: &str, input: &str) {
+        let mut s_table = StringTable::new();
+
+        match parse(input, &mut s_table) {
+            Ok(_) => {}
+            Err(e) => {
+                panic!("Failed parsing file: {}\n\nError:\n{:?}", name, e);
+            }
+        }
+    }
 }
 
 mod fail_parsing {
