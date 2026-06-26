@@ -8,21 +8,24 @@
  *
  * Error Handling:
  * The parser should recover at least in the following situations:
- * - if error in calss definition but class terminated properly and next class is syntactically correct,
+ * - if error in class definition but class terminated properly and next class is syntactically correct,
  * the parser should be able to start from next class definition
  *
  * - similarly, parser should recover from errors in features (going on to the next feature),
- * a let biding (going on to the next variable), and an expression inside a { ... } block
+ * a let binding (going on to the next variable), and an expression inside a { ... } block
  *
  *
  * Remarks:
  * - Only use precedence declarations for expressions
- * - the let construct introduces ambiguity, the manual says let expression extends as far to the right as possible
- * - Depending on the way your grammar is written, this ambiguity may show up
- * in your parser as a shift-reduce conflict involving the productions for let. If you run into such a conflict,
- * you might want to consider solving the problem by using a bison/CUP feature that allows precedence to
- * be associated with productions (not just operators) ??
+ * - the let construct introduces ambiguity,
+ * the manual says let expression extends as far to the right as possible
  */
+
+/*
+TODO let is considered an expression so code like x <- let y ... is valid
+creating a non-terminal for expressions - {let} is not a solution and would
+incorrectly not accept valid COOL syntax, see: let_inside_assignment test
+*/
 
 use crate::lexer::{Token, ErrorToken};
 use crate::ast;
