@@ -6,10 +6,13 @@ pub struct Program {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Class {
-    pub name: Id,
-    pub parent: Option<Id>,
-    pub features: Vec<Feature>,
+pub enum Class {
+    Valid {
+        name: Id,
+        parent: Option<Id>,
+        features: Vec<Feature>,
+    },
+    Invalid,
 }
 
 #[derive(Debug, PartialEq, Clone)]

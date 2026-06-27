@@ -1,7 +1,23 @@
-use coolc::{ast, lexer::LexerWrapper, parser, s_table::StringTable};
+use coolc::{
+    ast,
+    lexer::{ErrorToken, LexerWrapper, Token},
+    parser,
+    s_table::StringTable,
+};
+use lalrpop_util::{ErrorRecovery, ParseError};
 
-fn parse(input: &str, s_table: &mut StringTable) -> Result<ast::Program, impl std::fmt::Debug> {
-    parser::ProgramParser::new().parse(LexerWrapper::new(input, s_table))
+fn parse(
+    input: &str,
+    s_table: &mut StringTable,
+    errors: &mut Vec<ErrorRecovery<usize, Token, ErrorToken>>,
+) -> Result<ast::Program, ParseError<usize, Token, ErrorToken>> {
+    let program = parser::ProgramParser::new().parse(errors, LexerWrapper::new(input, s_table))?;
+
+    if !errors.is_empty() {
+        return Err(errors[0].error.clone());
+    }
+
+    Ok(program)
 }
 
 fn i(s_table: &mut StringTable, s: &str) -> usize {
@@ -15,16 +31,18 @@ mod succeds_parsing {
     #[test]
     fn one_class_one_constant_attribute() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             x: Int <- 10;
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Attribute {
@@ -35,12 +53,14 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn one_class_many_constant_attributes() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             x: Int <- 10;
@@ -52,12 +72,13 @@ mod succeds_parsing {
             d: IO;
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
         let hello_world = i(&mut s_table, "Hello World");
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![
@@ -100,12 +121,14 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn class_inheritance() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {};
         class A {};
@@ -114,32 +137,33 @@ mod succeds_parsing {
         class D inherits A {};
         "#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
             classes: vec![
-                ast::Class {
+                ast::Class::Valid {
                     name: i(&mut s_table, "Main"),
                     parent: None,
                     features: Vec::new(),
                 },
-                ast::Class {
+                ast::Class::Valid {
                     name: i(&mut s_table, "A"),
                     parent: None,
                     features: Vec::new(),
                 },
-                ast::Class {
+                ast::Class::Valid {
                     name: i(&mut s_table, "B"),
                     parent: Some(i(&mut s_table, "A")),
                     features: Vec::new(),
                 },
-                ast::Class {
+                ast::Class::Valid {
                     name: i(&mut s_table, "C"),
                     parent: Some(i(&mut s_table, "B")),
                     features: Vec::new(),
                 },
-                ast::Class {
+                ast::Class::Valid {
                     name: i(&mut s_table, "D"),
                     parent: Some(i(&mut s_table, "A")),
                     features: Vec::new(),
@@ -147,12 +171,14 @@ mod succeds_parsing {
             ],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn multiple_classes_constant_attributes() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             x: Int <- 1;
@@ -165,13 +191,14 @@ mod succeds_parsing {
         };
         "#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
         let string_id = i(&mut s_table, "String");
+        let mut errors = Vec::new();
         let expected = ast::Program {
             classes: vec![
-                ast::Class {
+                ast::Class::Valid {
                     name: i(&mut s_table, "Main"),
                     parent: None,
                     features: vec![ast::Feature::Attribute {
@@ -180,7 +207,7 @@ mod succeds_parsing {
                         init: Some(Box::new(ast::Expr::IntConstant(1))),
                     }],
                 },
-                ast::Class {
+                ast::Class::Valid {
                     name: i(&mut s_table, "Test"),
                     parent: None,
                     features: vec![ast::Feature::Attribute {
@@ -189,7 +216,7 @@ mod succeds_parsing {
                         init: Some(Box::new(ast::Expr::BoolConstant(true))),
                     }],
                 },
-                ast::Class {
+                ast::Class::Valid {
                     name: i(&mut s_table, "Test2"),
                     parent: None,
                     features: vec![ast::Feature::Attribute {
@@ -201,22 +228,25 @@ mod succeds_parsing {
             ],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn method_no_params() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             doStuff(): Int { 42 };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -228,22 +258,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn method_with_params() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             isNull(o: Object): Bool { false };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -258,22 +291,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn method_with_body_and_params() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             add(x: Int): Int { 42 };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -288,23 +324,26 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn method_with_assignment() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             changeValue(from: Int, to: Int): Int { from <- to };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
         let to_id = i(&mut s_table, "to");
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -328,22 +367,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn conditional_basic() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Int { if true then 1 else 0 fi };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -359,22 +401,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn while_loop_basic() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Int { while true loop 1 pool };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -389,22 +434,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn block_single_expr() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Int { { 42; } };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -416,22 +464,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn block_multiple_exprs() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Int { { 1; 2; 3; } };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -447,22 +498,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn new_object() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Object { new Object };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -477,22 +531,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn isvoid_expr() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Bool { isvoid 42 };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -504,22 +561,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn negation_expr() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Int { ~42 };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -531,22 +591,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn not_expr() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Bool { not true };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -558,22 +621,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn arithmetic_add() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Int { 1 + 2 };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -588,22 +654,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn arithmetic_sub() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Int { 5 - 3 };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -618,22 +687,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn arithmetic_mul() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Int { 3 * 4 };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -648,22 +720,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn arithmetic_div() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Int { 10 / 2 };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -678,22 +753,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn comparison_lt() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Bool { 1 < 2 };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -708,22 +786,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn comparison_le() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Bool { 1 <= 2 };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -738,12 +819,14 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn comparison_gt() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Bool {
@@ -751,11 +834,12 @@ mod succeds_parsing {
             };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -770,12 +854,14 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn comparison_ge() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Bool {
@@ -783,11 +869,12 @@ mod succeds_parsing {
             };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -802,22 +889,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn comparison_eq() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Bool { 1 = 1 };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -832,22 +922,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn case_single_branch() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Int { case 42 of x: Int => 1; esac };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -866,22 +959,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn case_multiple_branches() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Int { case 42 of x: Int => 1; y: Bool => 2; esac };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -907,22 +1003,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn precedence_mul_over_add() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Int { 1 + 2 * 3 };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -940,22 +1039,25 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn precedence_parens_override() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             test(): Int { (1 + 2) * 3 };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -973,19 +1075,22 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn examples_hello_world_cl() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = include_str!("../examples/hello_world.cl");
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: Some(i(&mut s_table, "IO")),
                 features: vec![ast::Feature::Method {
@@ -1003,12 +1108,14 @@ mod succeds_parsing {
             }],
         };
 
-        assert_eq!(res, expected);
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn simple_let() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             main(): Int {
@@ -1024,11 +1131,12 @@ mod succeds_parsing {
             };
         };"#;
 
-        assert!(parse(input, &mut s_table).is_ok());
-        let res = parse(input, &mut s_table).unwrap();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
 
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![
@@ -1073,12 +1181,15 @@ mod succeds_parsing {
                 ],
             }],
         };
-        assert_eq!(res, expected);
+
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn multi_binding_let() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             main(): Int {
@@ -1089,13 +1200,13 @@ mod succeds_parsing {
                 }
             };
         };"#;
-        let result = parse(input, &mut s_table);
-        println!("{:?}", result);
-        assert!(result.is_ok());
-        let res = result.unwrap();
 
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
+
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -1127,12 +1238,15 @@ mod succeds_parsing {
                 }],
             }],
         };
-        assert_eq!(res, expected);
+
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn let_extends_rightmost() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             main(): Int {
@@ -1141,13 +1255,13 @@ mod succeds_parsing {
                     x + y
             };
         };"#;
-        let result = parse(input, &mut s_table);
-        println!("{:?}", result);
-        assert!(result.is_ok());
-        let res = result.unwrap();
 
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
+
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -1171,12 +1285,15 @@ mod succeds_parsing {
                 }],
             }],
         };
-        assert_eq!(res, expected);
+
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn let_body_extends_through_block_statement() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             main(): Int {
@@ -1188,12 +1305,13 @@ mod succeds_parsing {
                 }
             };
         };"#;
-        let result = parse(input, &mut s_table);
-        assert!(result.is_ok());
-        let res = result.unwrap();
 
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
+
+        let mut errors = Vec::new();
         let expected = ast::Program {
-            classes: vec![ast::Class {
+            classes: vec![ast::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![ast::Feature::Method {
@@ -1220,12 +1338,15 @@ mod succeds_parsing {
                 }],
             }],
         };
-        assert_eq!(res, expected);
+
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn let_as_first_of_multiple_block_statements() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             main(): Int {
@@ -1235,12 +1356,15 @@ mod succeds_parsing {
                 }
             };
         };"#;
-        assert!(parse(input, &mut s_table).is_ok());
+
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn paren_let() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             method3(num : Int) : C {
@@ -1252,31 +1376,30 @@ mod succeds_parsing {
                 )
             };
         };"#;
-        assert!(parse(input, &mut s_table).is_ok());
+
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
     }
 
-    // TODO: fix this first
     #[test]
     fn op_as_dispatch_param() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             main(s: String) : String {
                 s.substr(1, s.length() - 2);
             };
         };"#;
-        match parse(input, &mut s_table) {
-            Ok(_) => {}
-            Err(e) => {
-                panic!("Error:\n{:?}", e);
-            }
-        }
+
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
     }
 
     #[test]
     fn let_inside_assignment() {
         let mut s_table = StringTable::new();
-
+        let mut errors = Vec::new();
         let input = r#"
         class Main {
             main() : Int {
@@ -1285,15 +1408,112 @@ mod succeds_parsing {
         };
         "#;
 
-        match parse(input, &mut s_table) {
-            Ok(_) => {}
-            Err(e) => {
-                panic!("Error:\n{:?}", e);
-            }
-        }
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
     }
 
-    // TODO: arith, atoi, cells, lam, life, list, palindrome and sort_list fail parsing, fix the parser!!
+    #[test]
+    fn adding_if_results() {
+        let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
+        let input = r#"
+        class Main {
+            cell_at_next_evolution(position : Int) : String {
+                if (if cell(position) = "X" then 1 else 0 fi
+                    + if cell_left_neighbor(position) = "X" then 1 else 0 fi
+                    + if cell_right_neighbor(position) = "X" then 1 else 0 fi
+                    = 1)
+                then
+                    "X"
+                else
+                    "."
+                fi
+            };
+        };
+        "#;
+
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
+
+        let mut errors = Vec::new();
+        let expected = ast::Program {
+            classes: vec![ast::Class::Valid {
+                name: i(&mut s_table, "Main"),
+                parent: None,
+                features: vec![ast::Feature::Method {
+                    name: i(&mut s_table, "cell_at_next_evolution"),
+                    params: vec![ast::Formal {
+                        name: i(&mut s_table, "position"),
+                        type_dec: i(&mut s_table, "Int"),
+                    }],
+                    type_dec: ast::TypeName::Type(i(&mut s_table, "String")),
+                    body: Box::new(ast::Expr::Conditional {
+                        cond: Box::new(ast::Expr::Eq(
+                            Box::new(ast::Expr::Add(
+                                Box::new(ast::Expr::Add(
+                                    Box::new(ast::Expr::Conditional {
+                                        cond: Box::new(ast::Expr::Eq(
+                                            Box::new(ast::Expr::SelfDispatch {
+                                                name: i(&mut s_table, "cell"),
+                                                args: vec![ast::Expr::Object(i(
+                                                    &mut s_table,
+                                                    "position",
+                                                ))],
+                                            }),
+                                            Box::new(ast::Expr::StringConstant(i(
+                                                &mut s_table,
+                                                "X",
+                                            ))),
+                                        )),
+                                        happy_path: Box::new(ast::Expr::IntConstant(1)),
+                                        sad_path: Box::new(ast::Expr::IntConstant(0)),
+                                    }),
+                                    Box::new(ast::Expr::Conditional {
+                                        cond: Box::new(ast::Expr::Eq(
+                                            Box::new(ast::Expr::SelfDispatch {
+                                                name: i(&mut s_table, "cell_left_neighbor"),
+                                                args: vec![ast::Expr::Object(i(
+                                                    &mut s_table,
+                                                    "position",
+                                                ))],
+                                            }),
+                                            Box::new(ast::Expr::StringConstant(i(
+                                                &mut s_table,
+                                                "X",
+                                            ))),
+                                        )),
+                                        happy_path: Box::new(ast::Expr::IntConstant(1)),
+                                        sad_path: Box::new(ast::Expr::IntConstant(0)),
+                                    }),
+                                )),
+                                Box::new(ast::Expr::Conditional {
+                                    cond: Box::new(ast::Expr::Eq(
+                                        Box::new(ast::Expr::SelfDispatch {
+                                            name: i(&mut s_table, "cell_right_neighbor"),
+                                            args: vec![ast::Expr::Object(i(
+                                                &mut s_table,
+                                                "position",
+                                            ))],
+                                        }),
+                                        Box::new(ast::Expr::StringConstant(i(&mut s_table, "X"))),
+                                    )),
+                                    happy_path: Box::new(ast::Expr::IntConstant(1)),
+                                    sad_path: Box::new(ast::Expr::IntConstant(0)),
+                                }),
+                            )),
+                            Box::new(ast::Expr::IntConstant(1)),
+                        )),
+                        happy_path: Box::new(ast::Expr::StringConstant(i(&mut s_table, "X"))),
+                        sad_path: Box::new(ast::Expr::StringConstant(i(&mut s_table, "."))),
+                    }),
+                }],
+            }],
+        };
+
+        assert_eq!(parse(input, &mut s_table, &mut errors).unwrap(), expected);
+        assert!(errors.is_empty());
+    }
+
     #[test_case("arith.cl", include_str!("../examples/arith.cl"); "arith")]
     #[test_case("atoi.cl", include_str!("../examples/atoi.cl"); "atoi")]
     #[test_case("atoi_test.cl", include_str!("../examples/atoi_test.cl"); "atoi_test")]
@@ -1311,15 +1531,11 @@ mod succeds_parsing {
     #[test_case("palindrome.cl", include_str!("../examples/palindrome.cl"); "palindrome")]
     #[test_case("primes.cl", include_str!("../examples/primes.cl"); "primes")]
     #[test_case("sort_list.cl", include_str!("../examples/sort_list.cl"); "sort_list")]
-    fn parses_examples(name: &str, input: &str) {
+    fn parses_examples(_: &str, input: &str) {
         let mut s_table = StringTable::new();
-
-        match parse(input, &mut s_table) {
-            Ok(_) => {}
-            Err(e) => {
-                panic!("Failed parsing file: {}\n\nError:\n{:?}", name, e);
-            }
-        }
+        let mut errors = Vec::new();
+        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        assert!(errors.is_empty());
     }
 }
 
@@ -1329,8 +1545,44 @@ mod fail_parsing {
     #[test]
     fn empty_string() {
         let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
         let input = r#""#;
 
-        assert!(parse(input, &mut s_table).is_err());
+        assert!(parse(input, &mut s_table, &mut errors).is_err());
+    }
+
+    #[test]
+    fn error_recovery_invalid_class() {
+        let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
+
+        let input = r#"
+            class main {
+
+            };
+
+            class foo {
+
+            };
+
+            class bar {
+
+            };
+
+            class Main {
+                x: Int <- 10;
+            };
+
+            class foobar {
+
+            };
+        "#;
+
+        assert!(parse(input, &mut s_table, &mut errors).is_err());
+        assert_eq!(errors.len(), 4);
+        assert!(matches!(errors[0].error, lalrpop_util::ParseError::UnrecognizedToken { .. }));
+        assert!(matches!(errors[1].error, lalrpop_util::ParseError::UnrecognizedToken { .. }));
+        assert!(matches!(errors[2].error, lalrpop_util::ParseError::UnrecognizedToken { .. }));
+        assert!(matches!(errors[3].error, lalrpop_util::ParseError::UnrecognizedToken { .. }));
     }
 }

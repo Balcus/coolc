@@ -21,16 +21,11 @@
  * the manual says let expression extends as far to the right as possible
  */
 
-/*
-TODO let is considered an expression so code like x <- let y ... is valid
-creating a non-terminal for expressions - {let} is not a solution and would
-incorrectly not accept valid COOL syntax, see: let_inside_assignment test
-*/
-
 use crate::lexer::{Token, ErrorToken};
+use lalrpop_util::ErrorRecovery;
 use crate::ast;
 
-grammar<'input>;
+grammar<'err>(errors: &'err mut Vec<ErrorRecovery<usize, Token, ErrorToken>>);
 
 extern {
     type Location = usize;
@@ -112,17 +107,23 @@ pub Program: ast::Program = {
 
 Class: ast::Class = {
     "class" <name: "TYPE"> "{" <features: (<Feature> ";")*> "}" =>
-        ast::Class {
+        ast::Class::Valid {
             name,
             parent: None,
             features,
         },
+
     "class" <name: "TYPE"> "inherits" <parent: "TYPE"> "{" <features: (<Feature> ";")*> "}" =>
-        ast::Class {
+        ast::Class::Valid {
             name,
             parent: Some(parent),
             features
         },
+
+    "class" <e: !> "}" => {
+        errors.push(<>);
+        ast::Class::Invalid
+    },
 }
 
 Feature: ast::Feature = {
@@ -196,6 +197,31 @@ Expr: ast::Expr = {
     "self" => ast::Expr::SelfExpr,
     <e: Paren> => e,
 
+    // Control flow
+    "if" <cond: FullExpr> "then" <happy_path: FullExpr> "else" <sad_path: FullExpr> "fi" =>
+        ast::Expr::Conditional {
+            cond: Box::new(cond),
+            happy_path: Box::new(happy_path),
+            sad_path: Box::new(sad_path)
+        },
+
+    "while" <cond: FullExpr> "loop" <body: FullExpr> "pool" =>
+        ast::Expr::Loop {
+            cond: Box::new(cond),
+            body: Box::new(body),
+        },
+
+    "{" <body: (<FullExpr> ";")+> "}" => ast::Expr::Block(body),
+
+    "case" <cond: FullExpr> "of" <branches: (<Branch> ";")+> "esac" =>
+        ast::Expr::Case {
+            cond: Box::new(cond),
+            branches
+        },
+
+    // New
+    "new" <type_dec: Type> => ast::Expr::New(type_dec),
+
     // Dispatch
     #[precedence(level="1")] #[assoc(side="left")]
     <expr: Expr> "." <name: "ID"> "(" <args: Comma<FullExpr>> ")" =>
@@ -250,32 +276,7 @@ Expr: ast::Expr = {
     <var: "ID"> "<-" <expr: FullExpr> => ast::Expr::Assignment { var: ast::Var::Id(var) , expr: Box::new(expr) },
     "self" "<-" <expr: FullExpr> => ast::Expr::Assignment { var: ast::Var::SelfValue, expr: Box::new(expr) },
 
-    // Control flow
-    #[precedence(level="8")]
-    "if" <cond: FullExpr> "then" <happy_path: FullExpr> "else" <sad_path: FullExpr> "fi" =>
-        ast::Expr::Conditional {
-            cond: Box::new(cond),
-            happy_path: Box::new(happy_path),
-            sad_path: Box::new(sad_path)
-        },
-
-    "while" <cond: FullExpr> "loop" <body: FullExpr> "pool" =>
-        ast::Expr::Loop {
-            cond: Box::new(cond),
-            body: Box::new(body),
-        },
-
-    "{" <body: (<FullExpr> ";")+> "}" => ast::Expr::Block(body),
-
-    "case" <cond: FullExpr> "of" <branches: (<Branch> ";")+> "esac" =>
-        ast::Expr::Case {
-            cond: Box::new(cond),
-            branches
-        },
-
-    // New
-    "new" <type_dec: Type> => ast::Expr::New(type_dec),
-
+    // Let
     #[precedence(level="8")]
     "let" <first: Binding> <rest: ("," <Binding>)*> "in" <body: FullExpr> => {
         let mut bindings = vec![first];
