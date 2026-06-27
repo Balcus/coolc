@@ -1,0 +1,48 @@
+Program  ::= (Class ';')+
+
+Class
+    ::= 'class' TYPE ('inherits' TYPE)? '{' (Feature ';')* '}'
+
+Feature
+    ::= ID ':' TYPE ('<-' Expr)?
+    | ID '(' (Formal (',' Formal)*)? ')' ':' TYPE '{' Expr '}'
+
+Formal
+    ::= ID ':' TYPE
+
+TYPE
+    ::= 'SELF_TYPE'
+    | TypeIdentifierToken
+
+ID
+    ::= ObjectIdentifierToken
+
+Expr
+    ::= IntConstant
+    | StringConstant
+    | BoolConstant
+    | ID
+    | ID '<-' Expr
+    | Expr ('@' TYPE)? '.' ID '(' (Expr (',' Expr)*)? ')'
+    | ID '(' (Expr (',' Expr)*)? ')'
+    | 'if' Expr 'then' Expr 'else' Expr 'fi'
+    | 'while' Expr 'loop' Expr 'pool'
+    | '{' (Expr ';')+ '}'
+    | 'let' ID ':' TYPE ( '<-' Expr)? (',' ID ':' TYPE ('<-' Expr)?)* 'in' Expr
+    | 'case' Expr 'of' (ID ':' TYPE '=>' Expr ';')+ 'esac'
+    | 'new' TYPE
+    | 'isvoid' Expr
+    | Expr '+' Expr
+    | Expr '-' Expr
+    | Expr '*' Expr
+    | Expr '/' Expr
+    | '~' Expr
+    | Expr '<' Expr
+    | Expr '<=' Expr
+    | Expr '>' Expr
+    | Expr '>=' Expr
+    | Expr '=' Expr
+    | 'not' Expr
+    | '(' Expr ')'
+    | 'self'
+    | 'self' '<-' Expr

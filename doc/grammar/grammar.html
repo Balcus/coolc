@@ -1,0 +1,482 @@
+<!DOCTYPE HTML>
+<html data-darkreader-mode="dynamic" data-darkreader-scheme="dark">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <style class="darkreader darkreader--fallback" media="screen"></style>
+      <style class="darkreader darkreader--user-agent" media="screen">@layer {
+html {
+    color-scheme: dark !important;
+}
+iframe {
+    color-scheme: dark !important;
+}
+html, body {
+    border-color: var(--darkreader-border-4c4c4c, #736b5e);
+    color: var(--darkreader-text-000000, #e8e6e3);
+}
+a {
+    color: var(--darkreader-text-0040ff, #3391ff);
+}
+table {
+    border-color: var(--darkreader-border-808080, #545b5e);
+}
+mark {
+    color: var(--darkreader-text-000000, #e8e6e3);
+}
+::placeholder {
+    color: var(--darkreader-text-a9a9a9, #b2aba1);
+}
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+    background-color: var(--darkreader-background-faffbd, #404400) !important;
+    color: var(--darkreader-text-000000, #e8e6e3) !important;
+}
+::selection {
+    background-color: var(--darkreader-background-0060d4, #004daa) !important;
+    color: var(--darkreader-text-ffffff, #e8e6e3) !important;
+}
+::-moz-selection {
+    background-color: var(--darkreader-background-0060d4, #004daa) !important;
+    color: var(--darkreader-text-ffffff, #e8e6e3) !important;
+}
+}</style>
+      <style class="darkreader darkreader--text" media="screen"></style>
+      <style class="darkreader darkreader--invert" media="screen">.jfk-bubble.gtx-bubble, .captcheck_answer_label > input + img, span#closed_text > img[src^="https://www.gstatic.com/images/branding/googlelogo"], span[data-href^="https://www.hcaptcha.com/"] > #icon, img.Wirisformula, a[data-testid="headerMediumLogo"]>svg, .d2l-navigation-link-image-container, .d2l-iframe-loading-container, div.mc-ip-hide[style*="background: rgb(255, 255, 255) !important"], [style*="color: rgb(0, 0, 1) !important;"] {
+    filter: invert(100%) hue-rotate(180deg) contrast(90%) !important;
+}</style>
+      <style class="darkreader darkreader--inline" media="screen">[data-darkreader-inline-bgcolor] {
+  background-color: var(--darkreader-inline-bgcolor) !important;
+}
+[data-darkreader-inline-bgimage] {
+  background-image: var(--darkreader-inline-bgimage) !important;
+}
+[data-darkreader-inline-border] {
+  border-color: var(--darkreader-inline-border) !important;
+}
+[data-darkreader-inline-border-bottom] {
+  border-bottom-color: var(--darkreader-inline-border-bottom) !important;
+}
+[data-darkreader-inline-border-left] {
+  border-left-color: var(--darkreader-inline-border-left) !important;
+}
+[data-darkreader-inline-border-right] {
+  border-right-color: var(--darkreader-inline-border-right) !important;
+}
+[data-darkreader-inline-border-top] {
+  border-top-color: var(--darkreader-inline-border-top) !important;
+}
+[data-darkreader-inline-boxshadow] {
+  box-shadow: var(--darkreader-inline-boxshadow) !important;
+}
+[data-darkreader-inline-color] {
+  color: var(--darkreader-inline-color) !important;
+}
+[data-darkreader-inline-fill] {
+  fill: var(--darkreader-inline-fill) !important;
+}
+[data-darkreader-inline-stroke] {
+  stroke: var(--darkreader-inline-stroke) !important;
+}
+[data-darkreader-inline-outline] {
+  outline-color: var(--darkreader-inline-outline) !important;
+}
+[data-darkreader-inline-stopcolor] {
+  stop-color: var(--darkreader-inline-stopcolor) !important;
+}
+[data-darkreader-inline-bg] {
+  background: var(--darkreader-inline-bg) !important;
+}
+[data-darkreader-inline-border-short] {
+  border: var(--darkreader-inline-border-short) !important;
+}
+[data-darkreader-inline-border-bottom-short] {
+  border-bottom: var(--darkreader-inline-border-bottom-short) !important;
+}
+[data-darkreader-inline-border-left-short] {
+  border-left: var(--darkreader-inline-border-left-short) !important;
+}
+[data-darkreader-inline-border-right-short] {
+  border-right: var(--darkreader-inline-border-right-short) !important;
+}
+[data-darkreader-inline-border-top-short] {
+  border-top: var(--darkreader-inline-border-top-short) !important;
+}
+[data-darkreader-inline-invert] {
+    filter: invert(100%) hue-rotate(180deg);
+}</style>
+      <style class="darkreader darkreader--variables" media="screen">:root {
+   --darkreader-neutral-background: var(--darkreader-background-ffffff, #181a1b);
+   --darkreader-neutral-text: var(--darkreader-text-000000, #e8e6e3);
+   --darkreader-selection-background: var(--darkreader-background-0060d4, #004daa);
+   --darkreader-selection-text: var(--darkreader-text-ffffff, #e8e6e3);
+}</style>
+      <style class="darkreader darkreader--root-vars" media="screen"></style>
+      <meta name="generator" content="Railroad Diagram Generator 2.6">
+      <style type="text/css">
+    ::-moz-selection
+    {
+      color: #FFFCF0;
+      background: #0F0C00;
+    }
+    ::selection
+    {
+      color: #FFFCF0;
+      background: #0F0C00;
+    }
+    body
+    {
+      font: normal 12px Verdana, sans-serif;
+      color: #0F0C00;
+      background: #FFFCF0;
+    }
+    .ebnf a
+    {
+      text-decoration: none;
+    }
+    .ebnf a:hover
+    {
+      color: #050400;
+      text-decoration: underline;
+    }
+    .signature
+    {
+      color: #806600;
+      font-size: 11px;
+      text-align: right;
+    }
+    a:link, a:visited
+    {
+      color: #0F0C00;
+    }
+    a:link.signature, a:visited.signature
+    {
+      color: #806600;
+    }
+    div.ebnf
+    {
+      padding: 10px;
+      background: #FFF6D1;
+      width: 992px;
+    }
+    .ebnf div
+    {
+      padding-left: 13ch;
+      text-indent: -13ch;
+    }
+    .ebnf code
+    {
+      font:12px SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
+    }
+  </style>
+      <style class="darkreader darkreader--sync" media="screen"></style>
+      <meta name="darkreader" content="bd82c509fc92419caf29c6f48a7e631a">
+      <style class="darkreader darkreader--override" media="screen">.jfk-bubble.gtx-bubble {
+    background-color: white !important;
+}
+.vimvixen-hint {
+    background-color: var(--darkreader-background-ffd76e, #684b00) !important;
+    border-color: var(--darkreader-background-c59d00, #9e7e00) !important;
+    color: var(--darkreader-text-302505, #d7d4cf) !important;
+}
+#vimvixen-console-frame {
+    color-scheme: light !important;
+}
+::placeholder {
+    opacity: 0.5 !important;
+}
+#edge-translate-panel-body,
+.MuiTypography-body1,
+.nfe-quote-text {
+    color: var(--darkreader-neutral-text) !important;
+}
+gr-main-header {
+    background-color: var(--darkreader-background-add8e6, #1b4958) !important;
+}
+.tou-z65h9k,
+.tou-mignzq,
+.tou-1b6i2ox,
+.tou-lnqlqk {
+    background-color: var(--darkreader-neutral-background) !important;
+}
+.tou-75mvi {
+    background-color: var(--darkreader-background-cfecf5, #0f3a47) !important;
+}
+.tou-ta9e87,
+.tou-1w3fhi0,
+.tou-1b8t2us,
+.tou-py7lfi,
+.tou-1lpmd9d,
+.tou-1frrtv8,
+.tou-17ezmgn {
+    background-color: var(--darkreader-background-f5f5f5, #1e2021) !important;
+}
+.tou-uknfeu {
+    background-color: var(--darkreader-background-faedda, #432c09) !important;
+}
+.tou-6i3zyv {
+    background-color: var(--darkreader-background-85c3d8, #245d70) !important;
+}
+div.mermaid-viewer-control-panel .btn {
+    background-color: var(--darkreader-neutral-background);
+    fill: var(--darkreader-neutral-text);
+}
+svg g rect.er {
+    fill: var(--darkreader-neutral-background) !important;
+}
+svg g rect.er.entityBox {
+    fill: var(--darkreader-neutral-background) !important;
+}
+svg g rect.er.attributeBoxOdd {
+    fill: var(--darkreader-neutral-background) !important;
+}
+svg g rect.er.attributeBoxEven {
+    fill: var(--darkreader-selection-background);
+    fill-opacity: 0.8 !important;
+}
+svg rect.er.relationshipLabelBox {
+    fill: var(--darkreader-neutral-background) !important;
+}
+svg g g.nodes rect,
+svg g g.nodes polygon {
+    fill: var(--darkreader-neutral-background) !important;
+}
+svg g rect.task {
+    fill: var(--darkreader-selection-background) !important;
+}
+svg line.messageLine0,
+svg line.messageLine1 {
+    stroke: var(--darkreader-neutral-text) !important;
+}
+div.mermaid .actor {
+    fill: var(--darkreader-neutral-background) !important;
+}
+mitid-authenticators-code-app > .code-app-container {
+    background-color: white !important;
+    padding-top: 1rem;
+}
+iframe#unpaywall[src$="unpaywall.html"] {
+    color-scheme: light !important;
+}
+select {
+    --darkreader-bg--form-control-background-color: rgba(22, 22, 22, 0) !important;
+}
+body#tumblr {
+    --darkreader-bg--secondary-accent: 31, 32, 34 !important;
+    --darkreader-bg--white: 23, 23, 23 !important;
+    --darkreader-text--black: 228, 224, 218 !important;
+}
+:host {
+    --d2l-border-color: var(--darkreader-bg--d2l-color-gypsum) !important;
+    --d2l-button-icon-background-color-hover: var(--darkreader-bg--d2l-color-gypsum) !important;
+    --d2l-color-ferrite: var(--darkreader-neutral-text) !important;
+    --d2l-color-sylvite: var(--darkreader-bg--d2l-color-sylvite) !important;
+    --d2l-dropdown-background-color: var(--darkreader-neutral-background) !important;
+    --d2l-dropdown-border-color: var(--darkreader-border--d2l-color-mica) !important;
+    --d2l-input-backgroud-color: var(--darkreader-neutral-background) !important;
+    --d2l-menu-border-color: var(--darkreader-bg--d2l-color-gypsum) !important;
+    --d2l-tooltip-background-color: var(--darkreader-neutral-background) !important;
+    --d2l-tooltip-border-color: var(--darkreader-bg--d2l-color-gypsum) !important;
+}
+:host([_floating]) .d2l-floating-buttons-container {
+    background-color: var(--darkreader-neutral-background) !important;
+    border-top-color: var(--darkreader-border--d2l-color-mica) !important;
+    opacity: 0.88 !important;
+}
+d2l-card {
+    background: var(--darkreader-neutral-background) !important;
+    border-color: var(--darkreader-border--d2l-color-gypsum) !important;
+}
+d2l-dropdown-content > div,
+d2l-menu-item {
+    background-color: var(--darkreader-neutral-background) !important;
+    border-radius: 10px !important;
+}
+d2l-empty-state-simple {
+    border-color: var(--darkreader-bg--d2l-color-gypsum) !important;
+}
+.d2l-button-filter > ul > li > a.vui-button {
+    border-color: var(--darkreader-border--d2l-color-mica) !important;
+}
+.d2l-label-text:has(.d2l-button-subtle-content):hover,
+.d2l-label-text:has(.d2l-button-subtle-content):focus,
+.d2l-label-text:has(.d2l-button-subtle-content):active {
+    background-color: var(--darkreader-bg--d2l-color-gypsum) !important;
+}
+.d2l-navigation-centerer {
+    color: inherit !important;
+}
+.d2l-tabs-layout {
+    border-color: var(--darkreader-border--d2l-color-gypsum) !important;
+}
+.d2l-input,
+.d2l-calendar-date,
+.d2l-htmleditor-container {
+    background-color: var(--darkreader-neutral-background) !important;
+}
+.d2l-collapsible-panel {
+    border: 1px solid var(--darkreader-border--d2l-color-mica) !important;
+    border-radius: 0.4rem !important;
+}
+.d2l-collapsible-panel-divider {
+    border-bottom: 1px solid var(--darkreader-border--d2l-color-mica) !important;
+}
+.d2l-w2d-flex {
+    border-bottom: 2px solid var(--darkreader-border--d2l-color-mica) !important;
+}
+.d2l-collapsible-panel scrolled,
+.d2l-collapsible-panel-header,
+.d2l-w2d-collection-fixed {
+    background-color: var(--darkreader-neutral-background) !important;
+}
+.d2l-loading-spinner-bg {
+    fill: var(--darkreader-bg--d2l-color-gypsum) !important;
+}
+.d2l-loading-spinner-bg-stroke {
+    stroke: var(--darkreader-border--d2l-color-mica) !important;
+}
+.d2l-loading-spinner-wrapper svg path,
+.d2l-loading-spinner-wrapper svg circle {
+    fill: var(--darkreader-neutral-background) !important;
+}
+.d2l-twopanelselector-side.d2l-twopanelselector-side-sep {
+    background: var(--darkreader-bg--d2l-color-mica) !important;
+}
+.d2l-le-TreeAccordionItem-anchor::before {
+    background: var(--darkreader-bg--d2l-color-corundum) !important;
+}
+table[class|="moz-header"] {
+    background: none;
+}
+*[style*="color: rgba(0,0,0,"]:not([style*="color: rgba(0,0,0,0)"]),
+*[style*="color: rgba(0, 0, 0,"]:not([style*="color: rgba(0, 0, 0, 0)"]),
+*[style*="color:#000"],
+*[style*="color:black"],
+*[style*="color:#282828"],
+*[style*="color:#444"],
+*[style*="color: #222222"] {
+    color: var(--darkreader-neutral-text) !important;
+}
+*[style*="background:#fff"],
+*[style*="background-color:#fff"],
+*[style*="background: #fff"] {
+    background: var(--darkreader-neutral-background) !important;
+}
+*[bgcolor="#F5F5F5"],
+*[style*="background-color: #F5F5F5"] {
+    background: var(--darkreader-background-f5f5f5, #1e2021) !important;
+}
+*[style*="background: #e6e6e6"] {
+    background: var(--darkreader-background-e6e6e6, #26292b) !important;
+}
+body[style*="background: rgb(255, 255, 255) !important"] *:not(a),
+.body[style*="background-color: rgb(254, 254, 254) !important"] *:not(a) {
+    background-color: var(--darkreader-neutral-background) !important;
+}
+div[style*="www.gstatic.com/android/"] {
+    background: none !important;
+}
+*[style*="background:#f9f9f9"] {
+    background: var(--darkreader-background-f9f9f9, #1b1e1f) !important;
+}
+body.mediawiki.skin-vector #mw-page-base {
+    background-image: none !important;
+}
+.overflow-hidden .spinning-bg,
+.overflow-hidden .solid-bg {
+    background: transparent !important;
+}
+embed[type="application/pdf"] { filter: invert(100%) contrast(90%); }</style>
+   </head>
+   <body>
+      <p style="font-size: 14px; font-weight:bold"><a name="Program">Program:</a></p><img border="0" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22197%22%20height%3D%2253%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%40namespace%20%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3B%20.line%20%7Bfill%3A%20none%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20.bold-line%20%7Bstroke%3A%20%23141000%3B%20shape-rendering%3A%20crispEdges%3B%20stroke-width%3A%202%3B%7D%20.thin-line%20%7Bstroke%3A%20%231F1800%3B%20shape-rendering%3A%20crispEdges%7D%20.filled%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20none%3B%7D%20text.terminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%23141000%3B%20font-weight%3A%20bold%3B%20%7D%20text.nonterminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231A1400%3B%20font-weight%3A%20normal%3B%20%7D%20text.regexp%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231F1800%3B%20font-weight%3A%20normal%3B%20%7D%20rect%2C%20circle%2C%20polygon%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20%23332900%3B%7D%20rect.terminal%20%7Bfill%3A%20%23FFDB4D%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.nonterminal%20%7Bfill%3A%20%23FFEC9E%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.text%20%7Bfill%3A%20none%3B%20stroke%3A%20none%3B%7D%20polygon.regexp%20%7Bfill%3A%20%23FFF4C7%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%3C%2Fstyle%3E%3Cstyle%20class%3D%22darkreader%20darkreader--sync%22%20media%3D%22screen%22%2F%3E%3C%2Fdefs%3E%3Cpolygon%20points%3D%229%2033%201%2029%201%2037%22%2F%3E%3Cpolygon%20points%3D%2217%2033%209%2029%209%2037%22%2F%3E%3Crect%20x%3D%2251%22%20y%3D%2219%22%20width%3D%2254%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%2217%22%20width%3D%2254%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%2259%22%20y%3D%2237%22%3EClass%3C%2Ftext%3E%3Crect%20x%3D%22125%22%20y%3D%2219%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22123%22%20y%3D%2217%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22133%22%20y%3D%2237%22%3E%3B%3C%2Ftext%3E%3Cpath%20class%3D%22line%22%20d%3D%22m17%2033%20h2%20m20%200%20h10%20m54%200%20h10%20m0%200%20h10%20m24%200%20h10%20m-138%200%20l20%200%20m-1%200%20q-9%200%20-9%20-10%20l0%20-12%20q0%20-10%2010%20-10%20m118%2032%20l20%200%20m-20%200%20q10%200%2010%20-10%20l0%20-12%20q0%20-10%20-10%20-10%20m-118%200%20h10%20m0%200%20h108%20m23%2032%20h-3%22%2F%3E%3Cpolygon%20points%3D%22187%2033%20195%2029%20195%2037%22%2F%3E%3Cpolygon%20points%3D%22187%2033%20179%2029%20179%2037%22%2F%3E%3C%2Fsvg%3E" height="53" width="197" usemap="#Program.map"><map name="Program.map"><area shape="rect" coords="49,17,103,49" href="#Class" title="Class"></map><p>
+         <div class="ebnf"><code>
+               <div><a href="#Program" title="Program">Program</a>&nbsp;&nbsp;::= ( <a href="#Class" title="Class">Class</a> ';' )+</div></code></div>
+      </p>
+      <p>no references</p><br><p style="font-size: 14px; font-weight:bold"><a name="Class">Class:</a></p><img border="0" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22691%22%20height%3D%2285%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%40namespace%20%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3B%20.line%20%7Bfill%3A%20none%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20.bold-line%20%7Bstroke%3A%20%23141000%3B%20shape-rendering%3A%20crispEdges%3B%20stroke-width%3A%202%3B%7D%20.thin-line%20%7Bstroke%3A%20%231F1800%3B%20shape-rendering%3A%20crispEdges%7D%20.filled%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20none%3B%7D%20text.terminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%23141000%3B%20font-weight%3A%20bold%3B%20%7D%20text.nonterminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231A1400%3B%20font-weight%3A%20normal%3B%20%7D%20text.regexp%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231F1800%3B%20font-weight%3A%20normal%3B%20%7D%20rect%2C%20circle%2C%20polygon%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20%23332900%3B%7D%20rect.terminal%20%7Bfill%3A%20%23FFDB4D%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.nonterminal%20%7Bfill%3A%20%23FFEC9E%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.text%20%7Bfill%3A%20none%3B%20stroke%3A%20none%3B%7D%20polygon.regexp%20%7Bfill%3A%20%23FFF4C7%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%3C%2Fstyle%3E%3Cstyle%20class%3D%22darkreader%20darkreader--sync%22%20media%3D%22screen%22%2F%3E%3C%2Fdefs%3E%3Cpolygon%20points%3D%229%2033%201%2029%201%2037%22%2F%3E%3Cpolygon%20points%3D%2217%2033%209%2029%209%2037%22%2F%3E%3Crect%20x%3D%2231%22%20y%3D%2219%22%20width%3D%2252%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2229%22%20y%3D%2217%22%20width%3D%2252%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2239%22%20y%3D%2237%22%3Eclass%3C%2Ftext%3E%3Crect%20x%3D%22103%22%20y%3D%2219%22%20width%3D%2250%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22101%22%20y%3D%2217%22%20width%3D%2250%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22111%22%20y%3D%2237%22%3ETYPE%3C%2Ftext%3E%3Crect%20x%3D%22193%22%20y%3D%2251%22%20width%3D%2272%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22191%22%20y%3D%2249%22%20width%3D%2272%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22201%22%20y%3D%2269%22%3Einherits%3C%2Ftext%3E%3Crect%20x%3D%22285%22%20y%3D%2251%22%20width%3D%2250%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22283%22%20y%3D%2249%22%20width%3D%2250%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22293%22%20y%3D%2269%22%3ETYPE%3C%2Ftext%3E%3Crect%20x%3D%22375%22%20y%3D%2219%22%20width%3D%2228%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22373%22%20y%3D%2217%22%20width%3D%2228%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22383%22%20y%3D%2237%22%3E%7B%3C%2Ftext%3E%3Crect%20x%3D%22463%22%20y%3D%2219%22%20width%3D%2268%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22461%22%20y%3D%2217%22%20width%3D%2268%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22471%22%20y%3D%2237%22%3EFeature%3C%2Ftext%3E%3Crect%20x%3D%22551%22%20y%3D%2219%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22549%22%20y%3D%2217%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22559%22%20y%3D%2237%22%3E%3B%3C%2Ftext%3E%3Crect%20x%3D%22635%22%20y%3D%2219%22%20width%3D%2228%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22633%22%20y%3D%2217%22%20width%3D%2228%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22643%22%20y%3D%2237%22%3E%7D%3C%2Ftext%3E%3Cpath%20class%3D%22line%22%20d%3D%22m17%2033%20h2%20m0%200%20h10%20m52%200%20h10%20m0%200%20h10%20m50%200%20h10%20m20%200%20h10%20m0%200%20h152%20m-182%200%20h20%20m162%200%20h20%20m-202%200%20q10%200%2010%2010%20m182%200%20q0%20-10%2010%20-10%20m-192%2010%20v12%20m182%200%20v-12%20m-182%2012%20q0%2010%2010%2010%20m162%200%20q10%200%2010%20-10%20m-172%2010%20h10%20m72%200%20h10%20m0%200%20h10%20m50%200%20h10%20m20%20-32%20h10%20m28%200%20h10%20m40%200%20h10%20m68%200%20h10%20m0%200%20h10%20m24%200%20h10%20m-152%200%20l20%200%20m-1%200%20q-9%200%20-9%20-10%20l0%20-12%20q0%20-10%2010%20-10%20m132%2032%20l20%200%20m-20%200%20q10%200%2010%20-10%20l0%20-12%20q0%20-10%20-10%20-10%20m-132%200%20h10%20m0%200%20h122%20m-172%2032%20h20%20m172%200%20h20%20m-212%200%20q10%200%2010%2010%20m192%200%20q0%20-10%2010%20-10%20m-202%2010%20v14%20m192%200%20v-14%20m-192%2014%20q0%2010%2010%2010%20m172%200%20q10%200%2010%20-10%20m-182%2010%20h10%20m0%200%20h162%20m20%20-34%20h10%20m28%200%20h10%20m3%200%20h-3%22%2F%3E%3Cpolygon%20points%3D%22681%2033%20689%2029%20689%2037%22%2F%3E%3Cpolygon%20points%3D%22681%2033%20673%2029%20673%2037%22%2F%3E%3C%2Fsvg%3E" height="85" width="691" usemap="#Class.map"><map name="Class.map"><area shape="rect" coords="101,17,151,49" href="#TYPE" title="TYPE"><area shape="rect" coords="283,49,333,81" href="#TYPE" title="TYPE"><area shape="rect" coords="461,17,529,49" href="#Feature" title="Feature"></map><p>
+         <div class="ebnf"><code>
+               <div><a href="#Class" title="Class">Class</a>&nbsp;&nbsp;&nbsp;&nbsp;::= 'class' <a href="#TYPE" title="TYPE">TYPE</a> ( 'inherits' <a href="#TYPE" title="TYPE">TYPE</a> )? '{' ( <a href="#Feature" title="Feature">Feature</a> ';' )* '}'</div></code></div>
+      </p>
+      <p>referenced by:
+         
+         <ul>
+            <li><a href="#Program" title="Program">Program</a></li>
+         </ul>
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="Feature">Feature:</a></p><img border="0" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22665%22%20height%3D%22173%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%40namespace%20%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3B%20.line%20%7Bfill%3A%20none%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20.bold-line%20%7Bstroke%3A%20%23141000%3B%20shape-rendering%3A%20crispEdges%3B%20stroke-width%3A%202%3B%7D%20.thin-line%20%7Bstroke%3A%20%231F1800%3B%20shape-rendering%3A%20crispEdges%7D%20.filled%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20none%3B%7D%20text.terminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%23141000%3B%20font-weight%3A%20bold%3B%20%7D%20text.nonterminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231A1400%3B%20font-weight%3A%20normal%3B%20%7D%20text.regexp%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231F1800%3B%20font-weight%3A%20normal%3B%20%7D%20rect%2C%20circle%2C%20polygon%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20%23332900%3B%7D%20rect.terminal%20%7Bfill%3A%20%23FFDB4D%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.nonterminal%20%7Bfill%3A%20%23FFEC9E%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.text%20%7Bfill%3A%20none%3B%20stroke%3A%20none%3B%7D%20polygon.regexp%20%7Bfill%3A%20%23FFF4C7%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%3C%2Fstyle%3E%3Cstyle%20class%3D%22darkreader%20darkreader--sync%22%20media%3D%22screen%22%2F%3E%3C%2Fdefs%3E%3Cpolygon%20points%3D%229%2017%201%2013%201%2021%22%2F%3E%3Cpolygon%20points%3D%2217%2017%209%2013%209%2021%22%2F%3E%3Crect%20x%3D%2231%22%20y%3D%223%22%20width%3D%2234%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%2229%22%20y%3D%221%22%20width%3D%2234%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%2239%22%20y%3D%2221%22%3EID%3C%2Ftext%3E%3Crect%20x%3D%22105%22%20y%3D%223%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22103%22%20y%3D%221%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22113%22%20y%3D%2221%22%3E%3A%3C%2Ftext%3E%3Crect%20x%3D%22149%22%20y%3D%223%22%20width%3D%2250%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22147%22%20y%3D%221%22%20width%3D%2250%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22157%22%20y%3D%2221%22%3ETYPE%3C%2Ftext%3E%3Crect%20x%3D%22239%22%20y%3D%2235%22%20width%3D%2236%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22237%22%20y%3D%2233%22%20width%3D%2236%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22247%22%20y%3D%2253%22%3E%26lt%3B-%3C%2Ftext%3E%3Crect%20x%3D%22295%22%20y%3D%2235%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22293%22%20y%3D%2233%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22303%22%20y%3D%2253%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22105%22%20y%3D%22123%22%20width%3D%2226%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22103%22%20y%3D%22121%22%20width%3D%2226%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22113%22%20y%3D%22141%22%3E%28%3C%2Ftext%3E%3Crect%20x%3D%22191%22%20y%3D%22123%22%20width%3D%2262%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22189%22%20y%3D%22121%22%20width%3D%2262%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22199%22%20y%3D%22141%22%3EFormal%3C%2Ftext%3E%3Crect%20x%3D%22191%22%20y%3D%2279%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22189%22%20y%3D%2277%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22199%22%20y%3D%2297%22%3E%2C%3C%2Ftext%3E%3Crect%20x%3D%22313%22%20y%3D%22123%22%20width%3D%2226%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22311%22%20y%3D%22121%22%20width%3D%2226%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22321%22%20y%3D%22141%22%3E%29%3C%2Ftext%3E%3Crect%20x%3D%22359%22%20y%3D%22123%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22357%22%20y%3D%22121%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22367%22%20y%3D%22141%22%3E%3A%3C%2Ftext%3E%3Crect%20x%3D%22403%22%20y%3D%22123%22%20width%3D%2250%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22401%22%20y%3D%22121%22%20width%3D%2250%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22411%22%20y%3D%22141%22%3ETYPE%3C%2Ftext%3E%3Crect%20x%3D%22473%22%20y%3D%22123%22%20width%3D%2228%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22471%22%20y%3D%22121%22%20width%3D%2228%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22481%22%20y%3D%22141%22%3E%7B%3C%2Ftext%3E%3Crect%20x%3D%22521%22%20y%3D%22123%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22519%22%20y%3D%22121%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22529%22%20y%3D%22141%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22589%22%20y%3D%22123%22%20width%3D%2228%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22587%22%20y%3D%22121%22%20width%3D%2228%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22597%22%20y%3D%22141%22%3E%7D%3C%2Ftext%3E%3Cpath%20class%3D%22line%22%20d%3D%22m17%2017%20h2%20m0%200%20h10%20m34%200%20h10%20m20%200%20h10%20m24%200%20h10%20m0%200%20h10%20m50%200%20h10%20m20%200%20h10%20m0%200%20h114%20m-144%200%20h20%20m124%200%20h20%20m-164%200%20q10%200%2010%2010%20m144%200%20q0%20-10%2010%20-10%20m-154%2010%20v12%20m144%200%20v-12%20m-144%2012%20q0%2010%2010%2010%20m124%200%20q10%200%2010%20-10%20m-134%2010%20h10%20m36%200%20h10%20m0%200%20h10%20m48%200%20h10%20m20%20-32%20h254%20m-552%200%20h20%20m532%200%20h20%20m-572%200%20q10%200%2010%2010%20m552%200%20q0%20-10%2010%20-10%20m-562%2010%20v100%20m552%200%20v-100%20m-552%20100%20q0%2010%2010%2010%20m532%200%20q10%200%2010%20-10%20m-542%2010%20h10%20m26%200%20h10%20m40%200%20h10%20m62%200%20h10%20m-102%200%20l20%200%20m-1%200%20q-9%200%20-9%20-10%20l0%20-24%20q0%20-10%2010%20-10%20m82%2044%20l20%200%20m-20%200%20q10%200%2010%20-10%20l0%20-24%20q0%20-10%20-10%20-10%20m-82%200%20h10%20m24%200%20h10%20m0%200%20h38%20m-122%2044%20h20%20m122%200%20h20%20m-162%200%20q10%200%2010%2010%20m142%200%20q0%20-10%2010%20-10%20m-152%2010%20v14%20m142%200%20v-14%20m-142%2014%20q0%2010%2010%2010%20m122%200%20q10%200%2010%20-10%20m-132%2010%20h10%20m0%200%20h112%20m20%20-34%20h10%20m26%200%20h10%20m0%200%20h10%20m24%200%20h10%20m0%200%20h10%20m50%200%20h10%20m0%200%20h10%20m28%200%20h10%20m0%200%20h10%20m48%200%20h10%20m0%200%20h10%20m28%200%20h10%20m23%20-120%20h-3%22%2F%3E%3Cpolygon%20points%3D%22655%2017%20663%2013%20663%2021%22%2F%3E%3Cpolygon%20points%3D%22655%2017%20647%2013%20647%2021%22%2F%3E%3C%2Fsvg%3E" height="173" width="665" usemap="#Feature.map"><map name="Feature.map"><area shape="rect" coords="29,1,63,33" href="#ID" title="ID"><area shape="rect" coords="147,1,197,33" href="#TYPE" title="TYPE"><area shape="rect" coords="293,33,341,65" href="#Expr" title="Expr"><area shape="rect" coords="189,121,251,153" href="#Formal" title="Formal"><area shape="rect" coords="401,121,451,153" href="#TYPE" title="TYPE"><area shape="rect" coords="519,121,567,153" href="#Expr" title="Expr"></map><p>
+         <div class="ebnf"><code>
+               <div><a href="#Feature" title="Feature">Feature</a>&nbsp;&nbsp;::= <a href="#ID" title="ID">ID</a> ( ':' <a href="#TYPE" title="TYPE">TYPE</a> ( '&lt;-' <a href="#Expr" title="Expr">Expr</a> )? | '(' ( <a href="#Formal" title="Formal">Formal</a> ( ',' <a href="#Formal" title="Formal">Formal</a> )* )? ')' ':' <a href="#TYPE" title="TYPE">TYPE</a> '{' <a href="#Expr" title="Expr">Expr</a> '}' )</div></code></div>
+      </p>
+      <p>referenced by:
+         
+         <ul>
+            <li><a href="#Class" title="Class">Class</a></li>
+         </ul>
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="Formal">Formal:</a></p><img border="0" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22207%22%20height%3D%2237%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%40namespace%20%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3B%20.line%20%7Bfill%3A%20none%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20.bold-line%20%7Bstroke%3A%20%23141000%3B%20shape-rendering%3A%20crispEdges%3B%20stroke-width%3A%202%3B%7D%20.thin-line%20%7Bstroke%3A%20%231F1800%3B%20shape-rendering%3A%20crispEdges%7D%20.filled%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20none%3B%7D%20text.terminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%23141000%3B%20font-weight%3A%20bold%3B%20%7D%20text.nonterminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231A1400%3B%20font-weight%3A%20normal%3B%20%7D%20text.regexp%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231F1800%3B%20font-weight%3A%20normal%3B%20%7D%20rect%2C%20circle%2C%20polygon%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20%23332900%3B%7D%20rect.terminal%20%7Bfill%3A%20%23FFDB4D%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.nonterminal%20%7Bfill%3A%20%23FFEC9E%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.text%20%7Bfill%3A%20none%3B%20stroke%3A%20none%3B%7D%20polygon.regexp%20%7Bfill%3A%20%23FFF4C7%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%3C%2Fstyle%3E%3Cstyle%20class%3D%22darkreader%20darkreader--sync%22%20media%3D%22screen%22%2F%3E%3C%2Fdefs%3E%3Cpolygon%20points%3D%229%2017%201%2013%201%2021%22%2F%3E%3Cpolygon%20points%3D%2217%2017%209%2013%209%2021%22%2F%3E%3Crect%20x%3D%2231%22%20y%3D%223%22%20width%3D%2234%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%2229%22%20y%3D%221%22%20width%3D%2234%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%2239%22%20y%3D%2221%22%3EID%3C%2Ftext%3E%3Crect%20x%3D%2285%22%20y%3D%223%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2283%22%20y%3D%221%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2293%22%20y%3D%2221%22%3E%3A%3C%2Ftext%3E%3Crect%20x%3D%22129%22%20y%3D%223%22%20width%3D%2250%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22127%22%20y%3D%221%22%20width%3D%2250%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22137%22%20y%3D%2221%22%3ETYPE%3C%2Ftext%3E%3Cpath%20class%3D%22line%22%20d%3D%22m17%2017%20h2%20m0%200%20h10%20m34%200%20h10%20m0%200%20h10%20m24%200%20h10%20m0%200%20h10%20m50%200%20h10%20m3%200%20h-3%22%2F%3E%3Cpolygon%20points%3D%22197%2017%20205%2013%20205%2021%22%2F%3E%3Cpolygon%20points%3D%22197%2017%20189%2013%20189%2021%22%2F%3E%3C%2Fsvg%3E" height="37" width="207" usemap="#Formal.map"><map name="Formal.map"><area shape="rect" coords="29,1,63,33" href="#ID" title="ID"><area shape="rect" coords="127,1,177,33" href="#TYPE" title="TYPE"></map><p>
+         <div class="ebnf"><code>
+               <div><a href="#Formal" title="Formal">Formal</a>&nbsp;&nbsp;&nbsp;::= <a href="#ID" title="ID">ID</a> ':' <a href="#TYPE" title="TYPE">TYPE</a></div></code></div>
+      </p>
+      <p>referenced by:
+         
+         <ul>
+            <li><a href="#Feature" title="Feature">Feature</a></li>
+         </ul>
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="TYPE">TYPE:</a></p><img border="0" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22245%22%20height%3D%2281%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%40namespace%20%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3B%20.line%20%7Bfill%3A%20none%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20.bold-line%20%7Bstroke%3A%20%23141000%3B%20shape-rendering%3A%20crispEdges%3B%20stroke-width%3A%202%3B%7D%20.thin-line%20%7Bstroke%3A%20%231F1800%3B%20shape-rendering%3A%20crispEdges%7D%20.filled%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20none%3B%7D%20text.terminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%23141000%3B%20font-weight%3A%20bold%3B%20%7D%20text.nonterminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231A1400%3B%20font-weight%3A%20normal%3B%20%7D%20text.regexp%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231F1800%3B%20font-weight%3A%20normal%3B%20%7D%20rect%2C%20circle%2C%20polygon%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20%23332900%3B%7D%20rect.terminal%20%7Bfill%3A%20%23FFDB4D%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.nonterminal%20%7Bfill%3A%20%23FFEC9E%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.text%20%7Bfill%3A%20none%3B%20stroke%3A%20none%3B%7D%20polygon.regexp%20%7Bfill%3A%20%23FFF4C7%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%3C%2Fstyle%3E%3Cstyle%20class%3D%22darkreader%20darkreader--sync%22%20media%3D%22screen%22%2F%3E%3C%2Fdefs%3E%3Cpolygon%20points%3D%229%2017%201%2013%201%2021%22%2F%3E%3Cpolygon%20points%3D%2217%2017%209%2013%209%2021%22%2F%3E%3Crect%20x%3D%2251%22%20y%3D%223%22%20width%3D%2296%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%221%22%20width%3D%2296%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2259%22%20y%3D%2221%22%3ESELF_TYPE%3C%2Ftext%3E%3Crect%20x%3D%2251%22%20y%3D%2247%22%20width%3D%22146%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%2245%22%20width%3D%22146%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%2259%22%20y%3D%2265%22%3ETypeIdentifierToken%3C%2Ftext%3E%3Cpath%20class%3D%22line%22%20d%3D%22m17%2017%20h2%20m20%200%20h10%20m96%200%20h10%20m0%200%20h50%20m-186%200%20h20%20m166%200%20h20%20m-206%200%20q10%200%2010%2010%20m186%200%20q0%20-10%2010%20-10%20m-196%2010%20v24%20m186%200%20v-24%20m-186%2024%20q0%2010%2010%2010%20m166%200%20q10%200%2010%20-10%20m-176%2010%20h10%20m146%200%20h10%20m23%20-44%20h-3%22%2F%3E%3Cpolygon%20points%3D%22235%2017%20243%2013%20243%2021%22%2F%3E%3Cpolygon%20points%3D%22235%2017%20227%2013%20227%2021%22%2F%3E%3C%2Fsvg%3E" height="81" width="245" usemap="#TYPE.map"><map name="TYPE.map"><area shape="rect" coords="49,45,195,77" href="#TypeIdentifierToken" title="TypeIdentifierToken"></map><p>
+         <div class="ebnf"><code>
+               <div><a href="#TYPE" title="TYPE">TYPE</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::= 'SELF_TYPE'</div>
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a href="#TypeIdentifierToken" title="TypeIdentifierToken">TypeIdentifierToken</a></div></code></div>
+      </p>
+      <p>referenced by:
+         
+         <ul>
+            <li><a href="#Class" title="Class">Class</a></li>
+            <li><a href="#Expr" title="Expr">Expr</a></li>
+            <li><a href="#Feature" title="Feature">Feature</a></li>
+            <li><a href="#Formal" title="Formal">Formal</a></li>
+         </ul>
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="ID">ID:</a></p><img border="0" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22215%22%20height%3D%2237%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%40namespace%20%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3B%20.line%20%7Bfill%3A%20none%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20.bold-line%20%7Bstroke%3A%20%23141000%3B%20shape-rendering%3A%20crispEdges%3B%20stroke-width%3A%202%3B%7D%20.thin-line%20%7Bstroke%3A%20%231F1800%3B%20shape-rendering%3A%20crispEdges%7D%20.filled%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20none%3B%7D%20text.terminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%23141000%3B%20font-weight%3A%20bold%3B%20%7D%20text.nonterminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231A1400%3B%20font-weight%3A%20normal%3B%20%7D%20text.regexp%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231F1800%3B%20font-weight%3A%20normal%3B%20%7D%20rect%2C%20circle%2C%20polygon%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20%23332900%3B%7D%20rect.terminal%20%7Bfill%3A%20%23FFDB4D%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.nonterminal%20%7Bfill%3A%20%23FFEC9E%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.text%20%7Bfill%3A%20none%3B%20stroke%3A%20none%3B%7D%20polygon.regexp%20%7Bfill%3A%20%23FFF4C7%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%3C%2Fstyle%3E%3Cstyle%20class%3D%22darkreader%20darkreader--sync%22%20media%3D%22screen%22%2F%3E%3C%2Fdefs%3E%3Cpolygon%20points%3D%229%2017%201%2013%201%2021%22%2F%3E%3Cpolygon%20points%3D%2217%2017%209%2013%209%2021%22%2F%3E%3Crect%20x%3D%2231%22%20y%3D%223%22%20width%3D%22156%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%2229%22%20y%3D%221%22%20width%3D%22156%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%2239%22%20y%3D%2221%22%3EObjectIdentifierToken%3C%2Ftext%3E%3Cpath%20class%3D%22line%22%20d%3D%22m17%2017%20h2%20m0%200%20h10%20m156%200%20h10%20m3%200%20h-3%22%2F%3E%3Cpolygon%20points%3D%22205%2017%20213%2013%20213%2021%22%2F%3E%3Cpolygon%20points%3D%22205%2017%20197%2013%20197%2021%22%2F%3E%3C%2Fsvg%3E" height="37" width="215" usemap="#ID.map"><map name="ID.map"><area shape="rect" coords="29,1,185,33" href="#ObjectIdentifierToken" title="ObjectIdentifierToken"></map><p>
+         <div class="ebnf"><code>
+               <div><a href="#ID" title="ID">ID</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::= <a href="#ObjectIdentifierToken" title="ObjectIdentifierToken">ObjectIdentifierToken</a></div></code></div>
+      </p>
+      <p>referenced by:
+         
+         <ul>
+            <li><a href="#Expr" title="Expr">Expr</a></li>
+            <li><a href="#Feature" title="Feature">Feature</a></li>
+            <li><a href="#Formal" title="Formal">Formal</a></li>
+         </ul>
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="Expr">Expr:</a></p><img border="0" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22719%22%20height%3D%221463%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%40namespace%20%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3B%20.line%20%7Bfill%3A%20none%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20.bold-line%20%7Bstroke%3A%20%23141000%3B%20shape-rendering%3A%20crispEdges%3B%20stroke-width%3A%202%3B%7D%20.thin-line%20%7Bstroke%3A%20%231F1800%3B%20shape-rendering%3A%20crispEdges%7D%20.filled%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20none%3B%7D%20text.terminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%23141000%3B%20font-weight%3A%20bold%3B%20%7D%20text.nonterminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231A1400%3B%20font-weight%3A%20normal%3B%20%7D%20text.regexp%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231F1800%3B%20font-weight%3A%20normal%3B%20%7D%20rect%2C%20circle%2C%20polygon%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20%23332900%3B%7D%20rect.terminal%20%7Bfill%3A%20%23FFDB4D%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.nonterminal%20%7Bfill%3A%20%23FFEC9E%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.text%20%7Bfill%3A%20none%3B%20stroke%3A%20none%3B%7D%20polygon.regexp%20%7Bfill%3A%20%23FFF4C7%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%3C%2Fstyle%3E%3Cstyle%20class%3D%22darkreader%20darkreader--sync%22%20media%3D%22screen%22%2F%3E%3C%2Fdefs%3E%3Cpolygon%20points%3D%229%2017%201%2013%201%2021%22%2F%3E%3Cpolygon%20points%3D%2217%2017%209%2013%209%2021%22%2F%3E%3Crect%20x%3D%2251%22%20y%3D%223%22%20width%3D%2296%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%221%22%20width%3D%2296%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%2259%22%20y%3D%2221%22%3EIntConstant%3C%2Ftext%3E%3Crect%20x%3D%2251%22%20y%3D%2247%22%20width%3D%22116%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%2245%22%20width%3D%22116%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%2259%22%20y%3D%2265%22%3EStringConstant%3C%2Ftext%3E%3Crect%20x%3D%2251%22%20y%3D%2291%22%20width%3D%22106%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%2289%22%20width%3D%22106%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%2259%22%20y%3D%22109%22%3EBoolConstant%3C%2Ftext%3E%3Crect%20x%3D%2251%22%20y%3D%22135%22%20width%3D%2234%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%22133%22%20width%3D%2234%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%2259%22%20y%3D%22153%22%3EID%3C%2Ftext%3E%3Crect%20x%3D%22125%22%20y%3D%22167%22%20width%3D%2236%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22123%22%20y%3D%22165%22%20width%3D%2236%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22133%22%20y%3D%22185%22%3E%26lt%3B-%3C%2Ftext%3E%3Crect%20x%3D%22181%22%20y%3D%22167%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22179%22%20y%3D%22165%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22189%22%20y%3D%22185%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22125%22%20y%3D%22255%22%20width%3D%2226%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22123%22%20y%3D%22253%22%20width%3D%2226%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22133%22%20y%3D%22273%22%3E%28%3C%2Ftext%3E%3Crect%20x%3D%22211%22%20y%3D%22255%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22209%22%20y%3D%22253%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22219%22%20y%3D%22273%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22211%22%20y%3D%22211%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22209%22%20y%3D%22209%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22219%22%20y%3D%22229%22%3E%2C%3C%2Ftext%3E%3Crect%20x%3D%22319%22%20y%3D%22255%22%20width%3D%2226%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22317%22%20y%3D%22253%22%20width%3D%2226%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22327%22%20y%3D%22273%22%3E%29%3C%2Ftext%3E%3Crect%20x%3D%2251%22%20y%3D%22365%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%22363%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%2259%22%20y%3D%22383%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22159%22%20y%3D%22397%22%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22157%22%20y%3D%22395%22%20width%3D%2232%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22167%22%20y%3D%22415%22%3E%40%3C%2Ftext%3E%3Crect%20x%3D%22211%22%20y%3D%22397%22%20width%3D%2250%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22209%22%20y%3D%22395%22%20width%3D%2250%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22219%22%20y%3D%22415%22%3ETYPE%3C%2Ftext%3E%3Crect%20x%3D%22301%22%20y%3D%22365%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22299%22%20y%3D%22363%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22309%22%20y%3D%22383%22%3E.%3C%2Ftext%3E%3Crect%20x%3D%22345%22%20y%3D%22365%22%20width%3D%2234%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22343%22%20y%3D%22363%22%20width%3D%2234%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22353%22%20y%3D%22383%22%3EID%3C%2Ftext%3E%3Crect%20x%3D%22399%22%20y%3D%22365%22%20width%3D%2226%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22397%22%20y%3D%22363%22%20width%3D%2226%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22407%22%20y%3D%22383%22%3E%28%3C%2Ftext%3E%3Crect%20x%3D%22485%22%20y%3D%22365%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22483%22%20y%3D%22363%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22493%22%20y%3D%22383%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22485%22%20y%3D%22321%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22483%22%20y%3D%22319%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22493%22%20y%3D%22339%22%3E%2C%3C%2Ftext%3E%3Crect%20x%3D%22593%22%20y%3D%22365%22%20width%3D%2226%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22591%22%20y%3D%22363%22%20width%3D%2226%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22601%22%20y%3D%22383%22%3E%29%3C%2Ftext%3E%3Crect%20x%3D%22159%22%20y%3D%22441%22%20width%3D%2230%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22157%22%20y%3D%22439%22%20width%3D%2230%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22167%22%20y%3D%22459%22%3E%2B%3C%2Ftext%3E%3Crect%20x%3D%22159%22%20y%3D%22485%22%20width%3D%2226%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22157%22%20y%3D%22483%22%20width%3D%2226%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22167%22%20y%3D%22503%22%3E-%3C%2Ftext%3E%3Crect%20x%3D%22159%22%20y%3D%22529%22%20width%3D%2228%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22157%22%20y%3D%22527%22%20width%3D%2228%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22167%22%20y%3D%22547%22%3E%2A%3C%2Ftext%3E%3Crect%20x%3D%22159%22%20y%3D%22573%22%20width%3D%2228%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22157%22%20y%3D%22571%22%20width%3D%2228%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22167%22%20y%3D%22591%22%3E%2F%3C%2Ftext%3E%3Crect%20x%3D%22159%22%20y%3D%22617%22%20width%3D%2230%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22157%22%20y%3D%22615%22%20width%3D%2230%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22167%22%20y%3D%22635%22%3E%26lt%3B%3C%2Ftext%3E%3Crect%20x%3D%22159%22%20y%3D%22661%22%20width%3D%2240%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22157%22%20y%3D%22659%22%20width%3D%2240%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22167%22%20y%3D%22679%22%3E%26lt%3B%3D%3C%2Ftext%3E%3Crect%20x%3D%22159%22%20y%3D%22705%22%20width%3D%2230%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22157%22%20y%3D%22703%22%20width%3D%2230%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22167%22%20y%3D%22723%22%3E%26gt%3B%3C%2Ftext%3E%3Crect%20x%3D%22159%22%20y%3D%22749%22%20width%3D%2240%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22157%22%20y%3D%22747%22%20width%3D%2240%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22167%22%20y%3D%22767%22%3E%26gt%3B%3D%3C%2Ftext%3E%3Crect%20x%3D%22159%22%20y%3D%22793%22%20width%3D%2230%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22157%22%20y%3D%22791%22%20width%3D%2230%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22167%22%20y%3D%22811%22%3E%3D%3C%2Ftext%3E%3Crect%20x%3D%22239%22%20y%3D%22441%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22237%22%20y%3D%22439%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22247%22%20y%3D%22459%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%2251%22%20y%3D%22837%22%20width%3D%2228%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%22835%22%20width%3D%2228%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2259%22%20y%3D%22855%22%3Eif%3C%2Ftext%3E%3Crect%20x%3D%2299%22%20y%3D%22837%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%2297%22%20y%3D%22835%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22107%22%20y%3D%22855%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22167%22%20y%3D%22837%22%20width%3D%2250%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22165%22%20y%3D%22835%22%20width%3D%2250%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22175%22%20y%3D%22855%22%3Ethen%3C%2Ftext%3E%3Crect%20x%3D%22237%22%20y%3D%22837%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22235%22%20y%3D%22835%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22245%22%20y%3D%22855%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22305%22%20y%3D%22837%22%20width%3D%2246%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22303%22%20y%3D%22835%22%20width%3D%2246%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22313%22%20y%3D%22855%22%3Eelse%3C%2Ftext%3E%3Crect%20x%3D%22371%22%20y%3D%22837%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22369%22%20y%3D%22835%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22379%22%20y%3D%22855%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22439%22%20y%3D%22837%22%20width%3D%2228%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22437%22%20y%3D%22835%22%20width%3D%2228%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22447%22%20y%3D%22855%22%3Efi%3C%2Ftext%3E%3Crect%20x%3D%2251%22%20y%3D%22881%22%20width%3D%2256%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%22879%22%20width%3D%2256%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2259%22%20y%3D%22899%22%3Ewhile%3C%2Ftext%3E%3Crect%20x%3D%22127%22%20y%3D%22881%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22125%22%20y%3D%22879%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22135%22%20y%3D%22899%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22195%22%20y%3D%22881%22%20width%3D%2248%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22193%22%20y%3D%22879%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22203%22%20y%3D%22899%22%3Eloop%3C%2Ftext%3E%3Crect%20x%3D%22263%22%20y%3D%22881%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22261%22%20y%3D%22879%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22271%22%20y%3D%22899%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22331%22%20y%3D%22881%22%20width%3D%2248%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22329%22%20y%3D%22879%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22339%22%20y%3D%22899%22%3Epool%3C%2Ftext%3E%3Crect%20x%3D%2251%22%20y%3D%22947%22%20width%3D%2228%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%22945%22%20width%3D%2228%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2259%22%20y%3D%22965%22%3E%7B%3C%2Ftext%3E%3Crect%20x%3D%22119%22%20y%3D%22947%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22117%22%20y%3D%22945%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22127%22%20y%3D%22965%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22187%22%20y%3D%22947%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22185%22%20y%3D%22945%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22195%22%20y%3D%22965%22%3E%3B%3C%2Ftext%3E%3Crect%20x%3D%22251%22%20y%3D%22947%22%20width%3D%2228%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22249%22%20y%3D%22945%22%20width%3D%2228%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22259%22%20y%3D%22965%22%3E%7D%3C%2Ftext%3E%3Crect%20x%3D%2271%22%20y%3D%221035%22%20width%3D%2238%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2269%22%20y%3D%221033%22%20width%3D%2238%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2279%22%20y%3D%221053%22%3Elet%3C%2Ftext%3E%3Crect%20x%3D%22149%22%20y%3D%221035%22%20width%3D%2234%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22147%22%20y%3D%221033%22%20width%3D%2234%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22157%22%20y%3D%221053%22%3EID%3C%2Ftext%3E%3Crect%20x%3D%22203%22%20y%3D%221035%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22201%22%20y%3D%221033%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22211%22%20y%3D%221053%22%3E%3A%3C%2Ftext%3E%3Crect%20x%3D%22247%22%20y%3D%221035%22%20width%3D%2250%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22245%22%20y%3D%221033%22%20width%3D%2250%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22255%22%20y%3D%221053%22%3ETYPE%3C%2Ftext%3E%3Crect%20x%3D%22337%22%20y%3D%221067%22%20width%3D%2236%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22335%22%20y%3D%221065%22%20width%3D%2236%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22345%22%20y%3D%221085%22%3E%26lt%3B-%3C%2Ftext%3E%3Crect%20x%3D%22393%22%20y%3D%221067%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22391%22%20y%3D%221065%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22401%22%20y%3D%221085%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22149%22%20y%3D%22991%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22147%22%20y%3D%22989%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22157%22%20y%3D%221009%22%3E%2C%3C%2Ftext%3E%3Crect%20x%3D%22501%22%20y%3D%221035%22%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22499%22%20y%3D%221033%22%20width%3D%2232%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22509%22%20y%3D%221053%22%3Ein%3C%2Ftext%3E%3Crect%20x%3D%2271%22%20y%3D%221111%22%20width%3D%2260%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2269%22%20y%3D%221109%22%20width%3D%2260%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2279%22%20y%3D%221129%22%3Eisvoid%3C%2Ftext%3E%3Crect%20x%3D%2271%22%20y%3D%221155%22%20width%3D%2230%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2269%22%20y%3D%221153%22%20width%3D%2230%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2279%22%20y%3D%221173%22%3E~%3C%2Ftext%3E%3Crect%20x%3D%2271%22%20y%3D%221199%22%20width%3D%2242%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2269%22%20y%3D%221197%22%20width%3D%2242%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2279%22%20y%3D%221217%22%3Enot%3C%2Ftext%3E%3Crect%20x%3D%22573%22%20y%3D%221035%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22571%22%20y%3D%221033%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22581%22%20y%3D%221053%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%2251%22%20y%3D%221265%22%20width%3D%2250%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%221263%22%20width%3D%2250%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2259%22%20y%3D%221283%22%3Ecase%3C%2Ftext%3E%3Crect%20x%3D%22121%22%20y%3D%221265%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22119%22%20y%3D%221263%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22129%22%20y%3D%221283%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22189%22%20y%3D%221265%22%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22187%22%20y%3D%221263%22%20width%3D%2232%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22197%22%20y%3D%221283%22%3Eof%3C%2Ftext%3E%3Crect%20x%3D%22261%22%20y%3D%221265%22%20width%3D%2234%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22259%22%20y%3D%221263%22%20width%3D%2234%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22269%22%20y%3D%221283%22%3EID%3C%2Ftext%3E%3Crect%20x%3D%22315%22%20y%3D%221265%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22313%22%20y%3D%221263%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22323%22%20y%3D%221283%22%3E%3A%3C%2Ftext%3E%3Crect%20x%3D%22359%22%20y%3D%221265%22%20width%3D%2250%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22357%22%20y%3D%221263%22%20width%3D%2250%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22367%22%20y%3D%221283%22%3ETYPE%3C%2Ftext%3E%3Crect%20x%3D%22429%22%20y%3D%221265%22%20width%3D%2240%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22427%22%20y%3D%221263%22%20width%3D%2240%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22437%22%20y%3D%221283%22%3E%3D%26gt%3B%3C%2Ftext%3E%3Crect%20x%3D%22489%22%20y%3D%221265%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22487%22%20y%3D%221263%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22497%22%20y%3D%221283%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22557%22%20y%3D%221265%22%20width%3D%2224%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22555%22%20y%3D%221263%22%20width%3D%2224%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22565%22%20y%3D%221283%22%3E%3B%3C%2Ftext%3E%3Crect%20x%3D%22621%22%20y%3D%221265%22%20width%3D%2250%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22619%22%20y%3D%221263%22%20width%3D%2250%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22629%22%20y%3D%221283%22%3Eesac%3C%2Ftext%3E%3Crect%20x%3D%2251%22%20y%3D%221309%22%20width%3D%2248%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%221307%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2259%22%20y%3D%221327%22%3Enew%3C%2Ftext%3E%3Crect%20x%3D%22119%22%20y%3D%221309%22%20width%3D%2250%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22117%22%20y%3D%221307%22%20width%3D%2250%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22127%22%20y%3D%221327%22%3ETYPE%3C%2Ftext%3E%3Crect%20x%3D%2251%22%20y%3D%221353%22%20width%3D%2226%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%221351%22%20width%3D%2226%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2259%22%20y%3D%221371%22%3E%28%3C%2Ftext%3E%3Crect%20x%3D%2297%22%20y%3D%221353%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%2295%22%20y%3D%221351%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22105%22%20y%3D%221371%22%3EExpr%3C%2Ftext%3E%3Crect%20x%3D%22165%22%20y%3D%221353%22%20width%3D%2226%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22163%22%20y%3D%221351%22%20width%3D%2226%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22173%22%20y%3D%221371%22%3E%29%3C%2Ftext%3E%3Crect%20x%3D%2251%22%20y%3D%221397%22%20width%3D%2244%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%221395%22%20width%3D%2244%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%2259%22%20y%3D%221415%22%3Eself%3C%2Ftext%3E%3Crect%20x%3D%22135%22%20y%3D%221429%22%20width%3D%2236%22%20height%3D%2232%22%20rx%3D%2210%22%2F%3E%3Crect%20x%3D%22133%22%20y%3D%221427%22%20width%3D%2236%22%20height%3D%2232%22%20class%3D%22terminal%22%20rx%3D%2210%22%2F%3E%3Ctext%20class%3D%22terminal%22%20x%3D%22143%22%20y%3D%221447%22%3E%26lt%3B-%3C%2Ftext%3E%3Crect%20x%3D%22191%22%20y%3D%221429%22%20width%3D%2248%22%20height%3D%2232%22%2F%3E%3Crect%20x%3D%22189%22%20y%3D%221427%22%20width%3D%2248%22%20height%3D%2232%22%20class%3D%22nonterminal%22%2F%3E%3Ctext%20class%3D%22nonterminal%22%20x%3D%22199%22%20y%3D%221447%22%3EExpr%3C%2Ftext%3E%3Cpath%20class%3D%22line%22%20d%3D%22m17%2017%20h2%20m20%200%20h10%20m96%200%20h10%20m0%200%20h524%20m-660%200%20h20%20m640%200%20h20%20m-680%200%20q10%200%2010%2010%20m660%200%20q0%20-10%2010%20-10%20m-670%2010%20v24%20m660%200%20v-24%20m-660%2024%20q0%2010%2010%2010%20m640%200%20q10%200%2010%20-10%20m-650%2010%20h10%20m116%200%20h10%20m0%200%20h504%20m-650%20-10%20v20%20m660%200%20v-20%20m-660%2020%20v24%20m660%200%20v-24%20m-660%2024%20q0%2010%2010%2010%20m640%200%20q10%200%2010%20-10%20m-650%2010%20h10%20m106%200%20h10%20m0%200%20h514%20m-650%20-10%20v20%20m660%200%20v-20%20m-660%2020%20v24%20m660%200%20v-24%20m-660%2024%20q0%2010%2010%2010%20m640%200%20q10%200%2010%20-10%20m-650%2010%20h10%20m34%200%20h10%20m20%200%20h10%20m0%200%20h230%20m-260%200%20h20%20m240%200%20h20%20m-280%200%20q10%200%2010%2010%20m260%200%20q0%20-10%2010%20-10%20m-270%2010%20v12%20m260%200%20v-12%20m-260%2012%20q0%2010%2010%2010%20m240%200%20q10%200%2010%20-10%20m-250%2010%20h10%20m36%200%20h10%20m0%200%20h10%20m48%200%20h10%20m0%200%20h116%20m-250%20-10%20v20%20m260%200%20v-20%20m-260%2020%20v68%20m260%200%20v-68%20m-260%2068%20q0%2010%2010%2010%20m240%200%20q10%200%2010%20-10%20m-250%2010%20h10%20m26%200%20h10%20m40%200%20h10%20m48%200%20h10%20m-88%200%20l20%200%20m-1%200%20q-9%200%20-9%20-10%20l0%20-24%20q0%20-10%2010%20-10%20m68%2044%20l20%200%20m-20%200%20q10%200%2010%20-10%20l0%20-24%20q0%20-10%20-10%20-10%20m-68%200%20h10%20m24%200%20h10%20m0%200%20h24%20m-108%2044%20h20%20m108%200%20h20%20m-148%200%20q10%200%2010%2010%20m128%200%20q0%20-10%2010%20-10%20m-138%2010%20v14%20m128%200%20v-14%20m-128%2014%20q0%2010%2010%2010%20m108%200%20q10%200%2010%20-10%20m-118%2010%20h10%20m0%200%20h98%20m20%20-34%20h10%20m26%200%20h10%20m20%20-120%20h306%20m-650%20-10%20v20%20m660%200%20v-20%20m-660%2020%20v210%20m660%200%20v-210%20m-660%20210%20q0%2010%2010%2010%20m640%200%20q10%200%2010%20-10%20m-650%2010%20h10%20m48%200%20h10%20m40%200%20h10%20m0%200%20h112%20m-142%200%20h20%20m122%200%20h20%20m-162%200%20q10%200%2010%2010%20m142%200%20q0%20-10%2010%20-10%20m-152%2010%20v12%20m142%200%20v-12%20m-142%2012%20q0%2010%2010%2010%20m122%200%20q10%200%2010%20-10%20m-132%2010%20h10%20m32%200%20h10%20m0%200%20h10%20m50%200%20h10%20m20%20-32%20h10%20m24%200%20h10%20m0%200%20h10%20m34%200%20h10%20m0%200%20h10%20m26%200%20h10%20m40%200%20h10%20m48%200%20h10%20m-88%200%20l20%200%20m-1%200%20q-9%200%20-9%20-10%20l0%20-24%20q0%20-10%2010%20-10%20m68%2044%20l20%200%20m-20%200%20q10%200%2010%20-10%20l0%20-24%20q0%20-10%20-10%20-10%20m-68%200%20h10%20m24%200%20h10%20m0%200%20h24%20m-108%2044%20h20%20m108%200%20h20%20m-148%200%20q10%200%2010%2010%20m128%200%20q0%20-10%2010%20-10%20m-138%2010%20v14%20m128%200%20v-14%20m-128%2014%20q0%2010%2010%2010%20m108%200%20q10%200%2010%20-10%20m-118%2010%20h10%20m0%200%20h98%20m20%20-34%20h10%20m26%200%20h10%20m-520%200%20h20%20m500%200%20h20%20m-540%200%20q10%200%2010%2010%20m520%200%20q0%20-10%2010%20-10%20m-530%2010%20v56%20m520%200%20v-56%20m-520%2056%20q0%2010%2010%2010%20m500%200%20q10%200%2010%20-10%20m-490%2010%20h10%20m30%200%20h10%20m0%200%20h10%20m-80%200%20h20%20m60%200%20h20%20m-100%200%20q10%200%2010%2010%20m80%200%20q0%20-10%2010%20-10%20m-90%2010%20v24%20m80%200%20v-24%20m-80%2024%20q0%2010%2010%2010%20m60%200%20q10%200%2010%20-10%20m-70%2010%20h10%20m26%200%20h10%20m0%200%20h14%20m-70%20-10%20v20%20m80%200%20v-20%20m-80%2020%20v24%20m80%200%20v-24%20m-80%2024%20q0%2010%2010%2010%20m60%200%20q10%200%2010%20-10%20m-70%2010%20h10%20m28%200%20h10%20m0%200%20h12%20m-70%20-10%20v20%20m80%200%20v-20%20m-80%2020%20v24%20m80%200%20v-24%20m-80%2024%20q0%2010%2010%2010%20m60%200%20q10%200%2010%20-10%20m-70%2010%20h10%20m28%200%20h10%20m0%200%20h12%20m-70%20-10%20v20%20m80%200%20v-20%20m-80%2020%20v24%20m80%200%20v-24%20m-80%2024%20q0%2010%2010%2010%20m60%200%20q10%200%2010%20-10%20m-70%2010%20h10%20m30%200%20h10%20m0%200%20h10%20m-70%20-10%20v20%20m80%200%20v-20%20m-80%2020%20v24%20m80%200%20v-24%20m-80%2024%20q0%2010%2010%2010%20m60%200%20q10%200%2010%20-10%20m-70%2010%20h10%20m40%200%20h10%20m-70%20-10%20v20%20m80%200%20v-20%20m-80%2020%20v24%20m80%200%20v-24%20m-80%2024%20q0%2010%2010%2010%20m60%200%20q10%200%2010%20-10%20m-70%2010%20h10%20m30%200%20h10%20m0%200%20h10%20m-70%20-10%20v20%20m80%200%20v-20%20m-80%2020%20v24%20m80%200%20v-24%20m-80%2024%20q0%2010%2010%2010%20m60%200%20q10%200%2010%20-10%20m-70%2010%20h10%20m40%200%20h10%20m-70%20-10%20v20%20m80%200%20v-20%20m-80%2020%20v24%20m80%200%20v-24%20m-80%2024%20q0%2010%2010%2010%20m60%200%20q10%200%2010%20-10%20m-70%2010%20h10%20m30%200%20h10%20m0%200%20h10%20m20%20-352%20h10%20m48%200%20h10%20m0%200%20h332%20m20%20-76%20h32%20m-650%20-10%20v20%20m660%200%20v-20%20m-660%2020%20v452%20m660%200%20v-452%20m-660%20452%20q0%2010%2010%2010%20m640%200%20q10%200%2010%20-10%20m-650%2010%20h10%20m28%200%20h10%20m0%200%20h10%20m48%200%20h10%20m0%200%20h10%20m50%200%20h10%20m0%200%20h10%20m48%200%20h10%20m0%200%20h10%20m46%200%20h10%20m0%200%20h10%20m48%200%20h10%20m0%200%20h10%20m28%200%20h10%20m0%200%20h204%20m-650%20-10%20v20%20m660%200%20v-20%20m-660%2020%20v24%20m660%200%20v-24%20m-660%2024%20q0%2010%2010%2010%20m640%200%20q10%200%2010%20-10%20m-650%2010%20h10%20m56%200%20h10%20m0%200%20h10%20m48%200%20h10%20m0%200%20h10%20m48%200%20h10%20m0%200%20h10%20m48%200%20h10%20m0%200%20h10%20m48%200%20h10%20m0%200%20h292%20m-650%20-10%20v20%20m660%200%20v-20%20m-660%2020%20v46%20m660%200%20v-46%20m-660%2046%20q0%2010%2010%2010%20m640%200%20q10%200%2010%20-10%20m-650%2010%20h10%20m28%200%20h10%20m20%200%20h10%20m48%200%20h10%20m0%200%20h10%20m24%200%20h10%20m-132%200%20l20%200%20m-1%200%20q-9%200%20-9%20-10%20l0%20-12%20q0%20-10%2010%20-10%20m112%2032%20l20%200%20m-20%200%20q10%200%2010%20-10%20l0%20-12%20q0%20-10%20-10%20-10%20m-112%200%20h10%20m0%200%20h102%20m20%2032%20h10%20m28%200%20h10%20m0%200%20h392%20m-650%20-10%20v20%20m660%200%20v-20%20m-660%2020%20v68%20m660%200%20v-68%20m-660%2068%20q0%2010%2010%2010%20m640%200%20q10%200%2010%20-10%20m-630%2010%20h10%20m38%200%20h10%20m20%200%20h10%20m34%200%20h10%20m0%200%20h10%20m24%200%20h10%20m0%200%20h10%20m50%200%20h10%20m20%200%20h10%20m0%200%20h114%20m-144%200%20h20%20m124%200%20h20%20m-164%200%20q10%200%2010%2010%20m144%200%20q0%20-10%2010%20-10%20m-154%2010%20v12%20m144%200%20v-12%20m-144%2012%20q0%2010%2010%2010%20m124%200%20q10%200%2010%20-10%20m-134%2010%20h10%20m36%200%20h10%20m0%200%20h10%20m48%200%20h10%20m-332%20-32%20l20%200%20m-1%200%20q-9%200%20-9%20-10%20l0%20-24%20q0%20-10%2010%20-10%20m332%2044%20l20%200%20m-20%200%20q10%200%2010%20-10%20l0%20-24%20q0%20-10%20-10%20-10%20m-332%200%20h10%20m24%200%20h10%20m0%200%20h288%20m20%2044%20h10%20m32%200%20h10%20m-502%200%20h20%20m482%200%20h20%20m-522%200%20q10%200%2010%2010%20m502%200%20q0%20-10%2010%20-10%20m-512%2010%20v56%20m502%200%20v-56%20m-502%2056%20q0%2010%2010%2010%20m482%200%20q10%200%2010%20-10%20m-492%2010%20h10%20m60%200%20h10%20m0%200%20h402%20m-492%20-10%20v20%20m502%200%20v-20%20m-502%2020%20v24%20m502%200%20v-24%20m-502%2024%20q0%2010%2010%2010%20m482%200%20q10%200%2010%20-10%20m-492%2010%20h10%20m30%200%20h10%20m0%200%20h432%20m-492%20-10%20v20%20m502%200%20v-20%20m-502%2020%20v24%20m502%200%20v-24%20m-502%2024%20q0%2010%2010%2010%20m482%200%20q10%200%2010%20-10%20m-492%2010%20h10%20m42%200%20h10%20m0%200%20h420%20m20%20-164%20h10%20m48%200%20h10%20m0%200%20h50%20m-650%20-10%20v20%20m660%200%20v-20%20m-660%2020%20v210%20m660%200%20v-210%20m-660%20210%20q0%2010%2010%2010%20m640%200%20q10%200%2010%20-10%20m-650%2010%20h10%20m50%200%20h10%20m0%200%20h10%20m48%200%20h10%20m0%200%20h10%20m32%200%20h10%20m20%200%20h10%20m34%200%20h10%20m0%200%20h10%20m24%200%20h10%20m0%200%20h10%20m50%200%20h10%20m0%200%20h10%20m40%200%20h10%20m0%200%20h10%20m48%200%20h10%20m0%200%20h10%20m24%200%20h10%20m-360%200%20l20%200%20m-1%200%20q-9%200%20-9%20-10%20l0%20-12%20q0%20-10%2010%20-10%20m340%2032%20l20%200%20m-20%200%20q10%200%2010%20-10%20l0%20-12%20q0%20-10%20-10%20-10%20m-340%200%20h10%20m0%200%20h330%20m20%2032%20h10%20m50%200%20h10%20m-650%20-10%20v20%20m660%200%20v-20%20m-660%2020%20v24%20m660%200%20v-24%20m-660%2024%20q0%2010%2010%2010%20m640%200%20q10%200%2010%20-10%20m-650%2010%20h10%20m48%200%20h10%20m0%200%20h10%20m50%200%20h10%20m0%200%20h502%20m-650%20-10%20v20%20m660%200%20v-20%20m-660%2020%20v24%20m660%200%20v-24%20m-660%2024%20q0%2010%2010%2010%20m640%200%20q10%200%2010%20-10%20m-650%2010%20h10%20m26%200%20h10%20m0%200%20h10%20m48%200%20h10%20m0%200%20h10%20m26%200%20h10%20m0%200%20h480%20m-650%20-10%20v20%20m660%200%20v-20%20m-660%2020%20v24%20m660%200%20v-24%20m-660%2024%20q0%2010%2010%2010%20m640%200%20q10%200%2010%20-10%20m-650%2010%20h10%20m44%200%20h10%20m20%200%20h10%20m0%200%20h114%20m-144%200%20h20%20m124%200%20h20%20m-164%200%20q10%200%2010%2010%20m144%200%20q0%20-10%2010%20-10%20m-154%2010%20v12%20m144%200%20v-12%20m-144%2012%20q0%2010%2010%2010%20m124%200%20q10%200%2010%20-10%20m-134%2010%20h10%20m36%200%20h10%20m0%200%20h10%20m48%200%20h10%20m20%20-32%20h412%20m23%20-1394%20h-3%22%2F%3E%3Cpolygon%20points%3D%22709%2017%20717%2013%20717%2021%22%2F%3E%3Cpolygon%20points%3D%22709%2017%20701%2013%20701%2021%22%2F%3E%3C%2Fsvg%3E" height="1463" width="719" usemap="#Expr.map"><map name="Expr.map"><area shape="rect" coords="49,1,145,33" href="#IntConstant" title="IntConstant"><area shape="rect" coords="49,45,165,77" href="#StringConstant" title="StringConstant"><area shape="rect" coords="49,89,155,121" href="#BoolConstant" title="BoolConstant"><area shape="rect" coords="49,133,83,165" href="#ID" title="ID"><area shape="rect" coords="179,165,227,197" href="#Expr" title="Expr"><area shape="rect" coords="209,253,257,285" href="#Expr" title="Expr"><area shape="rect" coords="49,363,97,395" href="#Expr" title="Expr"><area shape="rect" coords="209,395,259,427" href="#TYPE" title="TYPE"><area shape="rect" coords="343,363,377,395" href="#ID" title="ID"><area shape="rect" coords="483,363,531,395" href="#Expr" title="Expr"><area shape="rect" coords="237,439,285,471" href="#Expr" title="Expr"><area shape="rect" coords="97,835,145,867" href="#Expr" title="Expr"><area shape="rect" coords="235,835,283,867" href="#Expr" title="Expr"><area shape="rect" coords="369,835,417,867" href="#Expr" title="Expr"><area shape="rect" coords="125,879,173,911" href="#Expr" title="Expr"><area shape="rect" coords="261,879,309,911" href="#Expr" title="Expr"><area shape="rect" coords="117,945,165,977" href="#Expr" title="Expr"><area shape="rect" coords="147,1033,181,1065" href="#ID" title="ID"><area shape="rect" coords="245,1033,295,1065" href="#TYPE" title="TYPE"><area shape="rect" coords="391,1065,439,1097" href="#Expr" title="Expr"><area shape="rect" coords="571,1033,619,1065" href="#Expr" title="Expr"><area shape="rect" coords="119,1263,167,1295" href="#Expr" title="Expr"><area shape="rect" coords="259,1263,293,1295" href="#ID" title="ID"><area shape="rect" coords="357,1263,407,1295" href="#TYPE" title="TYPE"><area shape="rect" coords="487,1263,535,1295" href="#Expr" title="Expr"><area shape="rect" coords="117,1307,167,1339" href="#TYPE" title="TYPE"><area shape="rect" coords="95,1351,143,1383" href="#Expr" title="Expr"><area shape="rect" coords="189,1427,237,1459" href="#Expr" title="Expr"></map><p>
+         <div class="ebnf"><code>
+               <div><a href="#Expr" title="Expr">Expr</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::= <a href="#IntConstant" title="IntConstant">IntConstant</a></div>
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a href="#StringConstant" title="StringConstant">StringConstant</a></div>
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a href="#BoolConstant" title="BoolConstant">BoolConstant</a></div>
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a href="#ID" title="ID">ID</a> ( '&lt;-' <a href="#Expr" title="Expr">Expr</a> | '(' ( <a href="#Expr" title="Expr">Expr</a> ( ',' <a href="#Expr" title="Expr">Expr</a> )* )? ')' )?</div>
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a href="#Expr" title="Expr">Expr</a> ( ( '@' <a href="#TYPE" title="TYPE">TYPE</a> )? '.' <a href="#ID" title="ID">ID</a> '(' ( <a href="#Expr" title="Expr">Expr</a> ( ',' <a href="#Expr" title="Expr">Expr</a> )* )? ')' | ( '+' | '-' | '*' | '/' | '&lt;' | '&lt;=' | '&gt;' | '&gt;=' | '=' ) <a href="#Expr" title="Expr">Expr</a> )</div>
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| 'if' <a href="#Expr" title="Expr">Expr</a> 'then' <a href="#Expr" title="Expr">Expr</a> 'else' <a href="#Expr" title="Expr">Expr</a> 'fi'</div>
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| 'while' <a href="#Expr" title="Expr">Expr</a> 'loop' <a href="#Expr" title="Expr">Expr</a> 'pool'</div>
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| '{' ( <a href="#Expr" title="Expr">Expr</a> ';' )+ '}'</div>
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| ( 'let' <a href="#ID" title="ID">ID</a> ':' <a href="#TYPE" title="TYPE">TYPE</a> ( '&lt;-' <a href="#Expr" title="Expr">Expr</a> )? ( ',' <a href="#ID" title="ID">ID</a> ':' <a href="#TYPE" title="TYPE">TYPE</a> ( '&lt;-' <a href="#Expr" title="Expr">Expr</a> )? )* 'in' | 'isvoid' | '~' | 'not' ) <a href="#Expr" title="Expr">Expr</a></div>
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| 'case' <a href="#Expr" title="Expr">Expr</a> 'of' ( <a href="#ID" title="ID">ID</a> ':' <a href="#TYPE" title="TYPE">TYPE</a> '=&gt;' <a href="#Expr" title="Expr">Expr</a> ';' )+ 'esac'</div>
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| 'new' <a href="#TYPE" title="TYPE">TYPE</a></div>
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| '(' <a href="#Expr" title="Expr">Expr</a> ')'</div>
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| 'self' ( '&lt;-' <a href="#Expr" title="Expr">Expr</a> )?</div></code></div>
+      </p>
+      <p>referenced by:
+         
+         <ul>
+            <li><a href="#Expr" title="Expr">Expr</a></li>
+            <li><a href="#Feature" title="Feature">Feature</a></li>
+         </ul>
+      </p><br><hr>
+      <p>
+         <table border="0" class="signature">
+            <tr>
+               <td style="width: 100%">&nbsp;</td>
+               <td valign="top">
+                  <nobr class="signature">... generated by <a name="Railroad-Diagram-Generator" class="signature" title="https://www.bottlecaps.de/rr/ui" href="https://www.bottlecaps.de/rr/ui" target="_blank">RR - Railroad Diagram Generator</a></nobr>
+               </td>
+               <td><a name="Railroad-Diagram-Generator" title="https://www.bottlecaps.de/rr/ui" href="https://www.bottlecaps.de/rr/ui" target="_blank"><img border="0" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%40namespace%20%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3B%20.line%20%7Bfill%3A%20none%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20.bold-line%20%7Bstroke%3A%20%23141000%3B%20shape-rendering%3A%20crispEdges%3B%20stroke-width%3A%202%3B%7D%20.thin-line%20%7Bstroke%3A%20%231F1800%3B%20shape-rendering%3A%20crispEdges%7D%20.filled%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20none%3B%7D%20text.terminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%23141000%3B%20font-weight%3A%20bold%3B%20%7D%20text.nonterminal%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231A1400%3B%20font-weight%3A%20normal%3B%20%7D%20text.regexp%20%7Bfont-family%3A%20Verdana%2C%20Sans-serif%3B%20font-size%3A%2012px%3B%20fill%3A%20%231F1800%3B%20font-weight%3A%20normal%3B%20%7D%20rect%2C%20circle%2C%20polygon%20%7Bfill%3A%20%23332900%3B%20stroke%3A%20%23332900%3B%7D%20rect.terminal%20%7Bfill%3A%20%23FFDB4D%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.nonterminal%20%7Bfill%3A%20%23FFEC9E%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%20rect.text%20%7Bfill%3A%20none%3B%20stroke%3A%20none%3B%7D%20polygon.regexp%20%7Bfill%3A%20%23FFF4C7%3B%20stroke%3A%20%23332900%3B%20stroke-width%3A%201%3B%7D%3C%2Fstyle%3E%3Cstyle%20class%3D%22darkreader%20darkreader--sync%22%20media%3D%22screen%22%2F%3E%3C%2Fdefs%3E%3Cg%20transform%3D%22scale%280.178%29%22%3E%3Ccircle%20cx%3D%2245%22%20cy%3D%2245%22%20r%3D%2245%22%20style%3D%22stroke%3A%20none%3B%20fill%3A%20rgb%28255%2C%20204%2C%200%29%3B%20--darkreader-inline-stroke%3A%20none%3B%20--darkreader-inline-fill%3A%20var%28--darkreader-text-ffcc00%2C%20%23ffd11a%29%3B%22%20data-darkreader-inline-stroke%3D%22%22%20data-darkreader-inline-fill%3D%22%22%2F%3E%3Ccircle%20cx%3D%2245%22%20cy%3D%2245%22%20r%3D%2242%22%20style%3D%22stroke%3A%20rgb%2851%2C%2041%2C%200%29%3B%20stroke-width%3A%202px%3B%20fill%3A%20rgb%28255%2C%20204%2C%200%29%3B%20--darkreader-inline-stroke%3A%20var%28--darkreader-text-332900%2C%20%23d8d5cf%29%3B%20--darkreader-inline-fill%3A%20var%28--darkreader-text-ffcc00%2C%20%23ffd11a%29%3B%22%20data-darkreader-inline-stroke%3D%22%22%20data-darkreader-inline-fill%3D%22%22%2F%3E%3Cline%20x1%3D%2215%22%20y1%3D%2215%22%20x2%3D%2275%22%20y2%3D%2275%22%20stroke%3D%22%23332900%22%20style%3D%22stroke-width%3A%209px%3B%20--darkreader-inline-stroke%3A%20var%28--darkreader-border-332900%2C%20%23847a6c%29%3B%22%20data-darkreader-inline-stroke%3D%22%22%2F%3E%3Cline%20x1%3D%2215%22%20y1%3D%2275%22%20x2%3D%2275%22%20y2%3D%2215%22%20stroke%3D%22%23332900%22%20style%3D%22stroke-width%3A%209px%3B%20--darkreader-inline-stroke%3A%20var%28--darkreader-border-332900%2C%20%23847a6c%29%3B%22%20data-darkreader-inline-stroke%3D%22%22%2F%3E%3Ctext%20x%3D%227%22%20y%3D%2254%22%20style%3D%22font-size%3A%2026px%3B%20font-family%3A%20Arial%2C%20sans-serif%3B%20font-weight%3A%20bold%3B%20fill%3A%20rgb%2851%2C%2041%2C%200%29%3B%20--darkreader-inline-fill%3A%20var%28--darkreader-text-332900%2C%20%23d8d5cf%29%3B%22%20data-darkreader-inline-fill%3D%22%22%3ER%3C%2Ftext%3E%3Ctext%20x%3D%2264%22%20y%3D%2254%22%20style%3D%22font-size%3A%2026px%3B%20font-family%3A%20Arial%2C%20sans-serif%3B%20font-weight%3A%20bold%3B%20fill%3A%20rgb%2851%2C%2041%2C%200%29%3B%20--darkreader-inline-fill%3A%20var%28--darkreader-text-332900%2C%20%23d8d5cf%29%3B%22%20data-darkreader-inline-fill%3D%22%22%3ER%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fsvg%3E" height="16" width="16"></a></td>
+            </tr>
+         </table>
+      </p>
+   </body>
+</html>
