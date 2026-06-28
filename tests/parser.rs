@@ -1,7 +1,7 @@
 use coolc::{
     ast,
     lexer::{ErrorToken, LexerWrapper, Token},
-    parser,
+    grammar,
     s_table::StringTable,
 };
 use lalrpop_util::{ErrorRecovery, ParseError};
@@ -11,7 +11,7 @@ fn parse(
     s_table: &mut StringTable,
     errors: &mut Vec<ErrorRecovery<usize, Token, ErrorToken>>,
 ) -> Result<ast::Program, ParseError<usize, Token, ErrorToken>> {
-    let program = parser::ProgramParser::new().parse(errors, LexerWrapper::new(input, s_table))?;
+    let program = grammar::ProgramParser::new().parse(errors, LexerWrapper::new(input, s_table, String::from("test")))?;
 
     if !errors.is_empty() {
         return Err(errors[0].error.clone());
@@ -1540,6 +1540,8 @@ mod succeds_parsing {
 }
 
 mod fail_parsing {
+    use coolc::lexer::{ErrorKind, Span};
+
     use super::*;
 
     #[test]
@@ -1580,9 +1582,46 @@ mod fail_parsing {
 
         assert!(parse(input, &mut s_table, &mut errors).is_err());
         assert_eq!(errors.len(), 4);
-        assert!(matches!(errors[0].error, lalrpop_util::ParseError::UnrecognizedToken { .. }));
-        assert!(matches!(errors[1].error, lalrpop_util::ParseError::UnrecognizedToken { .. }));
-        assert!(matches!(errors[2].error, lalrpop_util::ParseError::UnrecognizedToken { .. }));
-        assert!(matches!(errors[3].error, lalrpop_util::ParseError::UnrecognizedToken { .. }));
+        assert!(matches!(
+            errors[0].error,
+            lalrpop_util::ParseError::UnrecognizedToken { .. }
+        ));
+        assert!(matches!(
+            errors[1].error,
+            lalrpop_util::ParseError::UnrecognizedToken { .. }
+        ));
+        assert!(matches!(
+            errors[2].error,
+            lalrpop_util::ParseError::UnrecognizedToken { .. }
+        ));
+        assert!(matches!(
+            errors[3].error,
+            lalrpop_util::ParseError::UnrecognizedToken { .. }
+        ));
+    }
+
+    #[test]
+    fn lexing_error_unterminated_string() {
+        let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
+        let input = "class Main {
+            x: String <- \"This is \n a string\";
+        };";
+
+        let result = parse(input, &mut s_table, &mut errors);
+
+        match result {
+            Err(lalrpop_util::ParseError::User { error }) => {
+                assert_eq!(
+                    error,
+                    ErrorToken::new(
+                        ErrorKind::UnterminatedStringConstant,
+                        String::from("Unterminated string constant"),
+                        Span::new("test".to_string(),  38, 47)
+                    )
+                );
+            }
+            _ => panic!("Expected lexer error"),
+        }
     }
 }

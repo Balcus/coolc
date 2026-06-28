@@ -1,4 +1,5 @@
 use clap::Parser;
+use coolc::diagnostic::Diagnostic;
 use coolc::lexer::LexerWrapper;
 use coolc::parser;
 use coolc::s_table::StringTable;
@@ -20,13 +21,31 @@ struct Cli {
 
     /// Verbose lexer mode
     #[arg(short = 'v')]
-    lexer_verbose: bool,
+    verbose: bool,
 }
 
 fn main() {
     let cli = Cli::parse();
     let input = fs::read_to_string(&cli.path).expect(&format!("Failed to read file: {}", cli.path));
+
     let mut s_table = StringTable::new();
-    let _lexer = LexerWrapper::new(&input, &mut s_table);
-    let _parser = parser::ProgramParser::new();
+    let mut errors = Vec::new();
+    let tokens: Box<dyn Iterator<Item = _>> = Box::new(LexerWrapper::new(&input, &mut s_table, cli.path.clone()));
+
+    let mut parser = parser::Parser::new(&mut errors);
+    let diag = Diagnostic::new(cli.path.clone(), input.clone());
+
+    if let Ok(program) = parser.parse(tokens) {
+        match cli.verbose {
+            true => println!("{:#?}", program),
+            false => println!("{} passed parser checks", &cli.path)
+        }
+    } else {
+        for err in errors {
+            match err.error {
+                lalrpop_util::ParseError::User { error } => &diag.emit_lexing_error(error),
+                e => &diag.emit_parsing_error(e),
+            };
+        }
+    }
 }

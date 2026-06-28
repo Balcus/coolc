@@ -9,7 +9,7 @@ fn lex(src: &str) -> Vec<Token> {
     Token::lexer_with_extras(
         src,
         LexerExtras {
-            s_table: &mut s_table,
+            s_table: &mut s_table, file: String::from("test")
         },
     )
     .map(|r| r.unwrap_or_else(|e| Token::Err(e)))
@@ -36,7 +36,7 @@ mod succeeds_lexing {
         let mut lex = Token::lexer_with_extras(
             src,
             LexerExtras {
-                s_table: &mut s_table,
+                s_table: &mut s_table, file: String::from("test")
             },
         );
 
@@ -54,7 +54,7 @@ mod succeeds_lexing {
         let mut lexer = Token::lexer_with_extras(
             src,
             LexerExtras {
-                s_table: &mut s_table,
+                s_table: &mut s_table, file: String::from("test")
             },
         );
         let tokens: Vec<Token> = lexer.by_ref().map(|t| t.unwrap()).collect();
@@ -132,7 +132,7 @@ mod succeeds_lexing {
         let mut lexer = Token::lexer_with_extras(
             src,
             LexerExtras {
-                s_table: &mut s_table,
+                s_table: &mut s_table, file: String::from("test")
             },
         );
         let tokens: Vec<Token> = lexer.by_ref().map(|t| t.unwrap()).collect();
@@ -295,7 +295,7 @@ mod succeeds_lexing {
         let mut lexer = Token::lexer_with_extras(
             src,
             LexerExtras {
-                s_table: &mut s_table,
+                s_table: &mut s_table, file: String::from("test"),
             },
         );
         let tokens: Vec<Token> = lexer.by_ref().map(|t| t.unwrap()).collect();
@@ -1767,7 +1767,7 @@ mod succeeds_lexing {
         let mut lexer = Token::lexer_with_extras(
             src,
             LexerExtras {
-                s_table: &mut s_table,
+                s_table: &mut s_table, file: String::from("test"),
             },
         );
         let tokens: Vec<Token> = lexer.by_ref().map(|t| t.unwrap()).collect();
@@ -1811,8 +1811,8 @@ mod fail_lexing {
             tokens,
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::EofInString,
-                Some(String::from("EOF in string constant")),
-                Span::new(0, 14)
+                String::from("EOF in string constant"),
+                Span::new(String::from("test"), 0, 14)
             ))]
         )
     }
@@ -1825,8 +1825,8 @@ mod fail_lexing {
             lex(str),
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::EofInString,
-                Some(String::from("EOF in string constant")),
-                Span::new(0, str.len())
+                String::from("EOF in string constant"),
+                Span::new(String::from("test"), 0, str.len())
             ))]
         );
     }
@@ -1838,8 +1838,8 @@ mod fail_lexing {
             lex("§"),
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::InvalidCharacter,
-                Some(String::from("§")),
-                Span::new(0, 2)
+                String::from("§"),
+                Span::new(String::from("test"), 0, 2)
             ))]
         )
     }
@@ -1850,8 +1850,8 @@ mod fail_lexing {
             lex("#"),
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::InvalidCharacter,
-                Some(String::from("#")),
-                Span::new(0, 1)
+                String::from("#"),
+                Span::new(String::from("test"), 0, 1)
             ))]
         )
     }
@@ -1864,8 +1864,8 @@ mod fail_lexing {
             lex(str),
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::UnmatchedCloseComment,
-                Some(String::from("Unmatched *)")),
-                Span::new(0, 2)
+                String::from("Unmatched *)"),
+                Span::new(String::from("test"), 0, 2)
             ))]
         )
     }
@@ -1878,8 +1878,8 @@ mod fail_lexing {
             lex(str),
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::UnmatchedCloseComment,
-                Some(String::from("Unmatched *)")),
-                Span::new(16, 18)
+                String::from("Unmatched *)"),
+                Span::new(String::from("test"), 16, 18)
             ))]
         )
     }
@@ -1893,8 +1893,8 @@ mod fail_lexing {
             tokens,
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::StringConstantTooLong,
-                Some("String constant too long".to_string()),
-                Span::new(0, long_string.len()),
+                "String constant too long".to_string(),
+                Span::new(String::from("test"), 0, long_string.len()),
             ))]
         );
     }
@@ -1907,8 +1907,8 @@ mod fail_lexing {
             lex(input),
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::StringContainsNullCharacter,
-                Some("String contains null character".to_string()),
-                Span::new(0, input.len())
+                "String contains null character".to_string(),
+                Span::new(String::from("test"), 0, input.len())
             ))]
         );
     }
@@ -1920,7 +1920,7 @@ mod fail_lexing {
         let mut lex = Token::lexer_with_extras(
             src,
             LexerExtras {
-                s_table: &mut s_table,
+                s_table: &mut s_table, file: String::from("test")
             },
         );
 
@@ -1928,8 +1928,8 @@ mod fail_lexing {
             lex.next(),
             Some(Err(ErrorToken::new(
                 ErrorKind::UnterminatedStringConstant,
-                Some(String::from("Unterminated string constant")),
-                Span::new(0, 25)
+                String::from("Unterminated string constant"),
+                Span::new(String::from("test"), 0, 25)
             )))
         );
 
@@ -1956,17 +1956,52 @@ mod fail_lexing {
             Token::RParen,
             Token::Err(ErrorToken::new(
                 ErrorKind::UnmatchedCloseComment,
-                Some("Unmatched *)".into()),
-                Span::new(47, 49),
+                "Unmatched *)".into(),
+                Span::new(String::from("test"), 47, 49),
             )),
             Token::At,
             Token::Err(ErrorToken::new(
                 ErrorKind::InvalidCharacter,
-                Some("#".into()),
-                Span::new(52, 53),
+                "#".to_string(),
+                Span::new(String::from("test"), 52, 53),
             )),
         ];
 
         assert_eq!(lex(src), result);
+    }
+
+    #[test]
+    fn endline_in_string() {
+        let input = "class Main {
+            x: String <- \"This is \n a string\";
+        };";
+
+        let mut s_table = StringTable::new();
+
+        let expected = vec![
+            Token::Class,
+            Token::TypeIdentifier(s_table.insert("Main".into())),
+            Token::LBrace,
+            Token::ObjectIdentifier(s_table.insert("x".into())),
+            Token::Colon,
+            Token::TypeIdentifier(s_table.insert("String".into())),
+            Token::Assign,
+            Token::Err(ErrorToken {
+                kind: ErrorKind::UnterminatedStringConstant,
+                message: "Unterminated string constant".to_string(),
+                span: Span::new(String::from("test"), 38, 47),
+            }),
+            Token::ObjectIdentifier(s_table.insert("a".into())),
+            Token::ObjectIdentifier(s_table.insert("string".into())),
+            Token::Err(ErrorToken {
+                kind: ErrorKind::UnterminatedStringConstant,
+                message: "Unterminated string constant".to_string(),
+                span: Span::new(String::from("test"), 57, 59),
+            }),
+            Token::RBrace,
+            Token::Semicolon,
+        ];
+
+        assert_eq!(lex(input), expected);
     }
 }

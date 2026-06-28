@@ -10,6 +10,7 @@ lalrpop = "0.23.1"
 clap = { version = "4.6.1", features = ["derive"] }
 logos = "0.16.1"
 lalrpop-util = { version = "0.23.1", features = ["lexer", "unicode"] }
+ariadne = { version = "0.6", features = ["auto-color"] }
 
 [dev-dependencies]
 test-case = "3"
