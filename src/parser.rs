@@ -1,7 +1,6 @@
 use crate::{
-    ast,
+    ast, grammar,
     lexer::{ErrorToken, Spanned, Token},
-    grammar,
 };
 use lalrpop_util::ErrorRecovery;
 
@@ -16,22 +15,18 @@ impl<'a> Parser<'a> {
         Self { errors }
     }
 
-    pub fn parse(
-        &mut self,
-        tokens: TokenStream<'_>,
-    ) -> Result<ast::Program, &[ErrorRecovery<usize, Token, ErrorToken>]> {
+    pub fn parse(&mut self, tokens: TokenStream<'_>) -> Option<ast::Program> {
         self.errors.clear();
-
         match grammar::ProgramParser::new().parse(self.errors, tokens) {
-            Ok(program) if self.errors.is_empty() => Ok(program),
+            Ok(program) if self.errors.is_empty() => Some(program),
+            Ok(_) => None,
             Err(e) => {
                 self.errors.push(ErrorRecovery {
                     error: e,
                     dropped_tokens: vec![],
                 });
-                Err(self.errors.as_slice())
+                None
             }
-            _ => Err(self.errors.as_slice()),
         }
     }
 }

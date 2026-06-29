@@ -1,4 +1,4 @@
-use crate::s_table::StringTable;
+use crate::{s_table::StringTable, utils};
 use logos::{FilterResult, Lexer, Logos, SpannedIter};
 
 const MAX_STR_CONST_LEN: usize = 1024;
@@ -33,40 +33,9 @@ impl<'input, 's: 'input> Iterator for LexerWrapper<'input, 's> {
     }
 }
 
-#[derive(Default, Debug, PartialEq, Clone)]
-pub struct Span {
-    file: String,
-    start: usize,
-    end: usize,
-}
-
-impl ariadne::Span for Span {
-    type SourceId = String;
-
-    fn source(&self) -> &Self::SourceId {
-        &self.file
-    }
-
-    fn start(&self) -> usize {
-        self.start
-    }
-
-    fn end(&self) -> usize {
-        self.end
-    }
-}
-
-// The span is inclusive for start but exclusive for end [start, end)
-// Used to hold location information in case of lexing errors
-impl Span {
-    pub fn new(file: String, start: usize, end: usize) -> Self {
-        Self { file, start, end }
-    }
-}
-
 pub struct LexerExtras<'s> {
     pub s_table: &'s mut StringTable,
-    pub file: String
+    pub file: String,
 }
 
 /// The default constructor for LexerExtras `MUST NOT` be used.
@@ -102,11 +71,11 @@ pub enum ErrorKind {
 pub struct ErrorToken {
     pub kind: ErrorKind,
     pub message: String,
-    pub span: Span,
+    pub span: utils::Span,
 }
 
 impl ErrorToken {
-    pub fn new(kind: ErrorKind, message: String, span: Span) -> Self {
+    pub fn new(kind: ErrorKind, message: String, span: utils::Span) -> Self {
         Self {
             kind,
             message,
@@ -302,7 +271,7 @@ fn block_comment_callback(lex: &mut Lexer<Token>) -> FilterResult<(), ErrorToken
     FilterResult::Error(ErrorToken::new(
         ErrorKind::EofInComment,
         String::from("EOF in comment"),
-        Span::new(lex.extras.file.clone(), start, end),
+        utils::Span::new(lex.extras.file.clone(), start, end),
     ))
 }
 
@@ -336,7 +305,7 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
                 return Err(ErrorToken::new(
                     ErrorKind::StringContainsNullCharacter,
                     String::from("String contains null character"),
-                    Span::new(lex.extras.file.clone(), start, end),
+                    utils::Span::new(lex.extras.file.clone(), start, end),
                 ));
             }
             '\n' => {
@@ -346,7 +315,7 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
                 return Err(ErrorToken::new(
                     ErrorKind::UnterminatedStringConstant,
                     String::from("Unterminated string constant"),
-                    Span::new(lex.extras.file.clone(), start, end),
+                    utils::Span::new(lex.extras.file.clone(), start, end),
                 ));
             }
             '"' => {
@@ -370,7 +339,7 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
                     return Err(ErrorToken::new(
                         ErrorKind::EofInString,
                         String::from("EOF in string constant"),
-                        Span::new(lex.extras.file.clone(), start, end),
+                        utils::Span::new(lex.extras.file.clone(), start, end),
                     ));
                 }
             }
@@ -397,7 +366,7 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
             return Err(ErrorToken::new(
                 ErrorKind::StringConstantTooLong,
                 String::from("String constant too long"),
-                Span::new(lex.extras.file.clone(), start, end),
+                utils::Span::new(lex.extras.file.clone(), start, end),
             ));
         }
     }
@@ -407,7 +376,7 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
     Err(ErrorToken::new(
         ErrorKind::EofInString,
         String::from("EOF in string constant"),
-        Span::new(lex.extras.file.clone(), start, end),
+        utils::Span::new(lex.extras.file.clone(), start, end),
     ))
 }
 
@@ -415,7 +384,7 @@ fn invalid_character_callback(lex: &mut Lexer<Token>) -> ErrorToken {
     ErrorToken::new(
         ErrorKind::InvalidCharacter,
         lex.slice().to_string(),
-        Span::new(lex.extras.file.clone(), lex.span().start, lex.span().end),
+        utils::Span::new(lex.extras.file.clone(), lex.span().start, lex.span().end),
     )
 }
 
@@ -423,6 +392,6 @@ fn unmatched_close_comment_callback(lex: &mut Lexer<Token>) -> Result<logos::Ski
     Err(ErrorToken::new(
         ErrorKind::UnmatchedCloseComment,
         String::from("Unmatched *)"),
-        Span::new(lex.extras.file.clone(), lex.span().start, lex.span().end),
+        utils::Span::new(lex.extras.file.clone(), lex.span().start, lex.span().end),
     ))
 }

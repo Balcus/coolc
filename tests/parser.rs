@@ -1,7 +1,6 @@
 use coolc::{
-    ast,
+    ast, grammar,
     lexer::{ErrorToken, LexerWrapper, Token},
-    grammar,
     s_table::StringTable,
 };
 use lalrpop_util::{ErrorRecovery, ParseError};
@@ -11,7 +10,10 @@ fn parse(
     s_table: &mut StringTable,
     errors: &mut Vec<ErrorRecovery<usize, Token, ErrorToken>>,
 ) -> Result<ast::Program, ParseError<usize, Token, ErrorToken>> {
-    let program = grammar::ProgramParser::new().parse(errors, LexerWrapper::new(input, s_table, String::from("test")))?;
+    let program = grammar::ProgramParser::new().parse(
+        errors,
+        LexerWrapper::new(input, s_table, String::from("test")),
+    )?;
 
     if !errors.is_empty() {
         return Err(errors[0].error.clone());
@@ -1540,7 +1542,7 @@ mod succeds_parsing {
 }
 
 mod fail_parsing {
-    use coolc::lexer::{ErrorKind, Span};
+    use coolc::{lexer::ErrorKind, utils};
 
     use super::*;
 
@@ -1617,7 +1619,7 @@ mod fail_parsing {
                     ErrorToken::new(
                         ErrorKind::UnterminatedStringConstant,
                         String::from("Unterminated string constant"),
-                        Span::new("test".to_string(),  38, 47)
+                        utils::Span::new("test".to_string(), 38, 47)
                     )
                 );
             }

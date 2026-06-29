@@ -30,22 +30,17 @@ fn main() {
 
     let mut s_table = StringTable::new();
     let mut errors = Vec::new();
-    let tokens: Box<dyn Iterator<Item = _>> = Box::new(LexerWrapper::new(&input, &mut s_table, cli.path.clone()));
+    let tokens: Box<dyn Iterator<Item = _>> =
+        Box::new(LexerWrapper::new(&input, &mut s_table, cli.path.clone()));
 
     let mut parser = parser::Parser::new(&mut errors);
-    let diag = Diagnostic::new(cli.path.clone(), input.clone());
 
-    if let Ok(program) = parser.parse(tokens) {
+    if let Some(program) = parser.parse(tokens) {
         match cli.verbose {
             true => println!("{:#?}", program),
-            false => println!("{} passed parser checks", &cli.path)
+            false => println!("{} passed parser checks", &cli.path),
         }
     } else {
-        for err in errors {
-            match err.error {
-                lalrpop_util::ParseError::User { error } => &diag.emit_lexing_error(error),
-                e => &diag.emit_parsing_error(e),
-            };
-        }
+        Diagnostic::new(cli.path.clone(), input.clone(), errors).emit_errors();
     }
 }
