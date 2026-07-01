@@ -1846,7 +1846,7 @@ mod fail_lexing {
             lex("§"),
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::InvalidCharacter,
-                String::from("§"),
+                String::from("Invalid character: §"),
                 utils::Span::new(String::from("test"), 0, 2)
             ))]
         )
@@ -1858,7 +1858,7 @@ mod fail_lexing {
             lex("#"),
             vec![Token::Err(ErrorToken::new(
                 ErrorKind::InvalidCharacter,
-                String::from("#"),
+                String::from("Invalid character: #"),
                 utils::Span::new(String::from("test"), 0, 1)
             ))]
         )
@@ -1971,7 +1971,7 @@ mod fail_lexing {
             Token::At,
             Token::Err(ErrorToken::new(
                 ErrorKind::InvalidCharacter,
-                "#".to_string(),
+                "Invalid character: #".to_string(),
                 utils::Span::new(String::from("test"), 52, 53),
             )),
         ];

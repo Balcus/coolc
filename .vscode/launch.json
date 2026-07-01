@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Rust",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/target/debug/coolc",
+            "args": ["${input:programArgs}"],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "cargo build",
+        }
+    ],
+    "inputs": [
+        {
+            "id": "programArgs",
+            "type": "promptString",
+            "description": "Arguments to pass to coolc",
+        }
+    ]
+}

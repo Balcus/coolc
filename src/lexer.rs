@@ -27,9 +27,12 @@ impl<'input, 's: 'input> Iterator for LexerWrapper<'input, 's> {
     type Item = Spanned<Token, usize, ErrorToken>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.token_stream
-            .next()
-            .map(|(token, span)| Ok((span.start, token?, span.end)))
+        self.token_stream.next().map(|(token, span)| {
+            match token? {
+                Token::Err(error_token) => Err(error_token),
+                tok => Ok((span.start, tok, span.end)),
+            }
+        })
     }
 }
 
@@ -383,7 +386,7 @@ fn string_callback(lex: &mut Lexer<Token>) -> Result<usize, ErrorToken> {
 fn invalid_character_callback(lex: &mut Lexer<Token>) -> ErrorToken {
     ErrorToken::new(
         ErrorKind::InvalidCharacter,
-        lex.slice().to_string(),
+        format!("Invalid character: {}", lex.slice()),
         utils::Span::new(lex.extras.file.clone(), lex.span().start, lex.span().end),
     )
 }
