@@ -106,14 +106,14 @@ pub Program: ast::Program = {
 }
 
 Class: ast::Class = {
-    "class" <name: "TYPE"> "{" <features: (<Feature> ";")*> "}" =>
+    "class" <name: "TYPE"> "{" <features: Feature*> "}" =>
         ast::Class::Valid {
             name,
             parent: None,
             features,
         },
 
-    "class" <name: "TYPE"> "inherits" <parent: "TYPE"> "{" <features: (<Feature> ";")*> "}" =>
+    "class" <name: "TYPE"> "inherits" <parent: "TYPE"> "{" <features: Feature*> "}" =>
         ast::Class::Valid {
             name,
             parent: Some(parent),
@@ -128,14 +128,14 @@ Class: ast::Class = {
 
 Feature: ast::Feature = {
     // Attribute
-    <name: "ID"> ":" <type_dec: Type> =>
+    <name: "ID"> ":" <type_dec: Type> ";" =>
         ast::Feature::Attribute {
             name,
             type_dec,
             init: None
         },
 
-    <name: "ID"> ":" <type_dec: Type> "<-" <expr: FullExpr> =>
+    <name: "ID"> ":" <type_dec: Type> "<-" <expr: FullExpr> ";" =>
         ast::Feature::Attribute {
             name,
             type_dec,
@@ -143,7 +143,7 @@ Feature: ast::Feature = {
         },
 
     // Method with single expression body
-    <name: "ID"> "(" <params: Comma<Formal>> ")" ":" <type_dec: Type> "{" <expr: FullExpr> "}" =>
+    <name: "ID"> "(" <params: Comma<Formal>> ")" ":" <type_dec: Type> "{" <expr: FullExpr> "}" ";" =>
         ast::Feature::Method {
             name,
             params,
@@ -152,13 +152,19 @@ Feature: ast::Feature = {
         },
 
     // Method with block body
-    <name: "ID"> "(" <params: Comma<Formal>> ")" ":" <type_dec: Type> "{" <body: (<FullExpr> ";")+> "}" =>
+    <name: "ID"> "(" <params: Comma<Formal>> ")" ":" <type_dec: Type> "{" <body: (<FullExpr> ";")+> "}" ";" =>
         ast::Feature::Method {
             name,
             params,
             type_dec,
             body: Box::new(ast::Expr::Block(body)),
         },
+
+    // Invalid features
+    <e: !> ";" => {
+        errors.push(<>);
+        ast::Feature::Invalid
+    }
 }
 
 Formal: ast::Formal = {
@@ -290,5 +296,10 @@ Expr: ast::Expr = {
                 body: Box::new(inner_body),
             }
         })
+    },
+
+    <e: !> ";" => {
+        errors.push(<>);
+        ast::Expr::Invalid
     },
 }

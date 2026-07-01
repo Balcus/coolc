@@ -41,6 +41,7 @@ pub enum Feature {
         type_dec: TypeName,
         body: Box<Expr>,
     },
+    Invalid,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -126,4 +127,6 @@ pub enum Expr {
     Eq(Box<Expr>, Box<Expr>),
     Le(Box<Expr>, Box<Expr>),
     Not(Box<Expr>),
+
+    Invalid,
 }

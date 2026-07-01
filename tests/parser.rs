@@ -1626,4 +1626,79 @@ mod fail_parsing {
             _ => panic!("Expected lexer error"),
         }
     }
+
+    #[test]
+    fn error_recovery_malformed_feature() {
+        let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
+        let input = r#"
+        class Main {
+            x: Int <- 10;
+            y: integer <- 10;
+            z: Int <- 20;
+        };
+    "#;
+
+        let program = grammar::ProgramParser::new()
+            .parse(
+                &mut errors,
+                LexerWrapper::new(input, &mut s_table, String::from("test")),
+            )
+            .expect("recovery should still yield a partial AST");
+
+        assert_eq!(errors.len(), 1);
+        assert!(matches!(
+            errors[0].error,
+            lalrpop_util::ParseError::UnrecognizedToken { .. }
+        ));
+
+        let ast::Class::Valid { features, .. } = &program.classes[0] else {
+            panic!()
+        };
+        assert_eq!(features.len(), 3);
+
+        let x = i(&mut s_table, "x");
+        let z = i(&mut s_table, "z");
+        assert!(matches!(&features[0], ast::Feature::Attribute { name, .. } if *name == x));
+        assert!(matches!(&features[1], ast::Feature::Invalid));
+        assert!(matches!(&features[2], ast::Feature::Attribute { name, .. } if *name == z));
+    }
+
+    #[test]
+    fn error_recovery_multiple_malformed_features() {
+        let mut s_table = StringTable::new();
+        let mut errors = Vec::new();
+        let input = r#"
+        class Main {
+            a: Int <- 1;
+            b: integer <- 2;
+            c: Int <- 3;
+            d: boolean;
+            e: Int <- 5;
+        };
+    "#;
+
+        let program = grammar::ProgramParser::new()
+            .parse(
+                &mut errors,
+                LexerWrapper::new(input, &mut s_table, String::from("test")),
+            )
+            .expect("recovery should still yield a partial AST");
+
+        assert_eq!(errors.len(), 2);
+
+        let ast::Class::Valid { features, .. } = &program.classes[0] else {
+            panic!()
+        };
+        assert_eq!(features.len(), 5);
+
+        let a = i(&mut s_table, "a");
+        let c = i(&mut s_table, "c");
+        let e = i(&mut s_table, "e");
+        assert!(matches!(&features[0], ast::Feature::Attribute { name, .. } if *name == a));
+        assert!(matches!(&features[1], ast::Feature::Invalid));
+        assert!(matches!(&features[2], ast::Feature::Attribute { name, .. } if *name == c));
+        assert!(matches!(&features[3], ast::Feature::Invalid));
+        assert!(matches!(&features[4], ast::Feature::Attribute { name, .. } if *name == e));
+    }
 }
