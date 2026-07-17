@@ -6,6 +6,7 @@ pub mod s_table;
 pub mod diagnostic;
 pub mod parser;
 pub mod utils;
+pub mod semantic_analysis;
 
 lalrpop_mod!(
     #[allow(clippy::all)]

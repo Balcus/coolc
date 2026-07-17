@@ -16,6 +16,10 @@ impl StringTable {
         *self.map.entry(string).or_insert(next_id)
     }
 
+    pub fn lookup(&self, string: &str) -> Option<usize> {
+        self.map.get(string).copied()
+    }
+
     pub fn get(&self, id: usize) -> Option<&String> {
         self.map.iter().find(|(_, v)| *v == &id).map(|(k, _)| k)
     }
