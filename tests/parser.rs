@@ -1,7 +1,7 @@
 use coolc::{
     ast, grammar,
     lexer::{ErrorToken, LexerWrapper, Token},
-    s_table::StringTable,
+    string_table::StringTable,
 };
 use lalrpop_util::{ErrorRecovery, ParseError};
 
