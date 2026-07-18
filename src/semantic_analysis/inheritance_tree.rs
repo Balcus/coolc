@@ -119,8 +119,8 @@ mod test {
     use crate::{
         lexer::LexerWrapper,
         parser,
-        string_table::StringTable,
         semantic_analysis::{SemanticError, inheritance_tree::InheritanceTree},
+        string_table::StringTable,
     };
 
     fn build_tree(input: &str) -> (StringTable, Result<InheritanceTree, Vec<SemanticError>>) {

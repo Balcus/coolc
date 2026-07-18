@@ -19,7 +19,7 @@ pub enum CompileError {
         span: utils::Span,
         token: lexer::Token,
     },
-    Semantic(semantic_analysis::SemanticError)
+    Semantic(semantic_analysis::SemanticError),
 }
 
 impl CompileError {
@@ -38,7 +38,7 @@ impl CompileError {
                 expected.join(", ")
             ),
             CompileError::ExtraToken { token, .. } => format!("Extra token: {:?}", token),
-            _ => todo!()
+            _ => todo!(),
         }
     }
 
@@ -49,7 +49,7 @@ impl CompileError {
             CompileError::UnrecognizedEof { span, .. } => span.clone(),
             CompileError::UnrecognizedToken { span, .. } => span.clone(),
             CompileError::ExtraToken { span, .. } => span.clone(),
-            _ => todo!()
+            _ => todo!(),
         }
     }
 }
