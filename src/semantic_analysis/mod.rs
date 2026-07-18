@@ -1,20 +1,28 @@
 use crate::{
-    semantic_analysis::{inheritance_tree::InheritanceTree, symbol_table::SymbolTable},
-    string_table::StringTable,
+    ast,
+    semantic_analysis::{
+        inheritance_tree::InheritanceTree,
+        method_table::{FormalInfo, MethodInfo, MethodTable, ReturnType},
+    },
 };
 
-type SymbolId = usize;
 type TypeId = usize;
-type ClassId = usize;
 
 pub mod inheritance_tree;
+pub mod method_table;
 pub mod symbol_table;
 
+// TODO: add relevant information to the errors
 #[derive(Debug, PartialEq)]
 pub enum SemanticError {
+    // Class related
     InheritanceCycle,
     DuplicateClass,
     NonExistentClass(usize),
+
+    // Method Related
+    RedefinedMethodInSameClass,
+    WrongOverrideSignature,
 }
 
 pub enum VarKind {
@@ -29,18 +37,69 @@ pub struct VarInfo {
     kind: VarKind,
 }
 
-pub struct MethodInfo {
-    ret_ty: TypeId,
-    formal_info: Vec<FormalInfo>,
+pub struct SemanticAnalyzer {
+    inheritance_tree: InheritanceTree,
+    method_table: MethodTable,
 }
 
-pub struct FormalInfo {
-    ty: TypeId,
-}
+impl SemanticAnalyzer {
+    pub fn analyze(program: &ast::Program) -> Result<(), Vec<SemanticError>> {
+        let analyzer = Self {
+            inheritance_tree: InheritanceTree::build(program)?,
+            method_table: MethodTable::build(program)?,
+        };
+        analyzer.check_overrides(program)?;
 
-pub struct Environment<'a> {
-    string_table: &'a StringTable,
-    obejct_env: &'a mut SymbolTable<SymbolId, VarInfo>,
-    inheritance_tree: &'a InheritanceTree,
-    current_class: ClassId,
+        Ok(())
+    }
+
+    fn check_overrides(&self, program: &ast::Program) -> Result<(), Vec<SemanticError>> {
+        let mut err = Vec::new();
+        for class in &program.classes {
+            match class {
+                ast::Class::Invalid => continue,
+                ast::Class::Valid {
+                    parent, features, ..
+                } => {
+                    for feature in features {
+                        if let ast::Feature::Method {
+                            name,
+                            params,
+                            type_dec,
+                            ..
+                        } = feature
+                        {
+                            let formal_info = params
+                                .iter()
+                                .map(|p| FormalInfo::new(p.name, p.type_dec))
+                                .collect();
+
+                            let return_type = match type_dec {
+                                ast::TypeName::SelfType => ReturnType::SelfType,
+                                ast::TypeName::Type(id) => ReturnType::Type(*id),
+                            };
+
+                            let base_method_info = MethodInfo::new(formal_info, return_type);
+
+                            if let Some(p) = parent {
+                                if let Some(parent_method_info) =
+                                    self.method_table.lookup(&self.inheritance_tree, *p, *name)
+                                {
+                                    if !parent_method_info.has_same_signature(&base_method_info) {
+                                        err.push(SemanticError::WrongOverrideSignature);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if !err.is_empty() {
+            return Err(err);
+        }
+
+        Ok(())
+    }
 }

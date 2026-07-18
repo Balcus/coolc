@@ -117,36 +117,22 @@ impl InheritanceTree {
 #[cfg(test)]
 mod test {
     use crate::{
-        lexer::LexerWrapper,
-        parser,
         semantic_analysis::{SemanticError, inheritance_tree::InheritanceTree},
-        string_table::StringTable,
+        utils::parse_program,
     };
-
-    fn build_tree(input: &str) -> (StringTable, Result<InheritanceTree, Vec<SemanticError>>) {
-        let mut s_table = StringTable::new();
-        let mut errors = Vec::new();
-
-        let tokens = Box::new(LexerWrapper::new(input, &mut s_table, "".to_string()));
-        let mut parser = parser::Parser::new(&mut errors);
-
-        let program = parser.parse(tokens).unwrap();
-        let tree = InheritanceTree::build(&program);
-
-        (s_table, tree)
-    }
 
     #[test]
     fn valid_hierarchy() {
-        let input = r#"
-            class A {};
-            class B inherits A {};
-            class C inherits A {};
-            class D inherits B {};
-        "#;
+        let (s_table, program) = parse_program(
+            r#"
+                class A {};
+                class B inherits A {};
+                class C inherits A {};
+                class D inherits B {};
+            "#,
+        );
 
-        let (s_table, tree) = build_tree(input);
-        let tree = tree.unwrap();
+        let tree = InheritanceTree::build(&program).unwrap();
 
         let a = s_table.lookup("A").unwrap();
         let b = s_table.lookup("B").unwrap();
@@ -161,14 +147,14 @@ mod test {
 
     #[test]
     fn circular_hierarchy() {
-        let (_, tree) = build_tree(
+        let (_, program) = parse_program(
             r#"
                 class A inherits B {};
                 class B inherits A {};
             "#,
         );
 
-        let errors = tree.unwrap_err();
+        let errors = InheritanceTree::build(&program).unwrap_err();
 
         assert_eq!(errors.len(), 1);
         assert_eq!(errors[0], SemanticError::InheritanceCycle);
@@ -176,14 +162,14 @@ mod test {
 
     #[test]
     fn nonexistent_parent() {
-        let (s_table, tree) = build_tree(
+        let (s_table, program) = parse_program(
             r#"
                 class A inherits B {};
             "#,
         );
 
         let b = s_table.lookup("B").unwrap();
-        let errors = tree.unwrap_err();
+        let errors = InheritanceTree::build(&program).unwrap_err();
 
         assert_eq!(errors.len(), 1);
         assert_eq!(errors[0], SemanticError::NonExistentClass(b));
@@ -191,14 +177,14 @@ mod test {
 
     #[test]
     fn duplicate_class() {
-        let (_, tree) = build_tree(
+        let (_, program) = parse_program(
             r#"
                 class A {};
                 class A {};
             "#,
         );
 
-        let errors = tree.unwrap_err();
+        let errors = InheritanceTree::build(&program).unwrap_err();
 
         assert_eq!(errors.len(), 1);
         assert_eq!(errors[0], SemanticError::DuplicateClass);
@@ -206,14 +192,15 @@ mod test {
 
     #[test]
     fn subtype_and_ancestor() {
-        let input = r#"
-            class A {};
-            class B inherits A {};
-            class C inherits B {};
-        "#;
+        let (s_table, program) = parse_program(
+            r#"
+                class A {};
+                class B inherits A {};
+                class C inherits B {};
+            "#,
+        );
 
-        let (s_table, tree) = build_tree(input);
-        let tree = tree.unwrap();
+        let tree = InheritanceTree::build(&program).unwrap();
 
         let a = s_table.lookup("A").unwrap();
         let b = s_table.lookup("B").unwrap();
@@ -235,15 +222,16 @@ mod test {
 
     #[test]
     fn lub() {
-        let input = r#"
-            class A {};
-            class B inherits A {};
-            class C inherits A {};
-            class D inherits B {};
-        "#;
+        let (s_table, program) = parse_program(
+            r#"
+                class A {};
+                class B inherits A {};
+                class C inherits A {};
+                class D inherits B {};
+            "#,
+        );
 
-        let (s_table, tree) = build_tree(input);
-        let tree = tree.unwrap();
+        let tree = InheritanceTree::build(&program).unwrap();
 
         let a = s_table.lookup("A").unwrap();
         let b = s_table.lookup("B").unwrap();

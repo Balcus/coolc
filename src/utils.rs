@@ -1,3 +1,5 @@
+use crate::{ast::Program, lexer::LexerWrapper, parser, string_table::StringTable};
+
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct Span {
     file: String,
@@ -27,4 +29,17 @@ impl Span {
     pub fn new(file: String, start: usize, end: usize) -> Self {
         Self { file, start, end }
     }
+}
+
+// used for unit-testing
+pub fn parse_program(input: &str) -> (StringTable, Program) {
+    let mut string_table = StringTable::new();
+    let mut errors = Vec::new();
+
+    let tokens = Box::new(LexerWrapper::new(input, &mut string_table, "".to_string()));
+
+    let mut parser = parser::Parser::new(&mut errors);
+    let program = parser.parse(tokens).unwrap();
+
+    (string_table, program)
 }
