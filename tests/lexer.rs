@@ -1,6 +1,6 @@
 use coolc::{
     lexer::{ErrorKind, ErrorToken, LexerExtras, Token},
-    s_table::StringTable,
+    string_table::StringTable,
 };
 use logos::Logos;
 
@@ -46,7 +46,7 @@ mod succeeds_lexing {
         let Token::StringConstant(id) = tok else {
             panic!("expected StringConstant")
         };
-        assert_eq!(lex.extras.s_table.get(id).unwrap(), "Hello World!");
+        assert_eq!(lex.extras.s_table.string_from_id(id).unwrap(), "Hello World!");
     }
 
     #[test]
@@ -1946,7 +1946,7 @@ mod fail_lexing {
         let Token::ObjectIdentifier(id) = tok else {
             panic!("expected ObjectIdentifier")
         };
-        assert_eq!(lex.extras.s_table.get(id).unwrap(), "out_string");
+        assert_eq!(lex.extras.s_table.string_from_id(id).unwrap(), "out_string");
     }
 
     #[test]

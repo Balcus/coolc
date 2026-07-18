@@ -1,4 +1,4 @@
-use crate::{s_table::StringTable, utils};
+use crate::{string_table::StringTable, utils};
 use logos::{FilterResult, Lexer, Logos, SpannedIter};
 
 const MAX_STR_CONST_LEN: usize = 1024;

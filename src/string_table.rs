@@ -20,7 +20,7 @@ impl StringTable {
         self.map.get(string).copied()
     }
 
-    pub fn get(&self, id: usize) -> Option<&String> {
+    pub fn string_from_id(&self, id: usize) -> Option<&String> {
         self.map.iter().find(|(_, v)| *v == &id).map(|(k, _)| k)
     }
 }
