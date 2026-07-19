@@ -1,4 +1,8 @@
-use crate::semantic_analysis::method_table::ReturnType;
+use std::usize;
+
+use crate::{
+    semantic_analysis::method_table::ReturnType, string_table::{BOOL_ID, INT_ID, OBJECT_ID, STRING_ID},
+};
 
 type Id = usize;
 type ClassId = usize;
@@ -66,6 +70,35 @@ pub struct FormalNode {
 pub struct ExprNode {
     pub kind: ExprKind,
     pub ty: ReturnType,
+}
+
+impl ExprNode {
+    pub fn new(kind: ExprKind, ty: ReturnType) -> Self {
+        Self { kind, ty }
+    }
+
+    pub fn bool_const(value: &bool) -> Self {
+        return ExprNode::new(ExprKind::BoolConstant(*value), ReturnType::Type(BOOL_ID));
+    }
+
+    pub fn int_const(value: &i64) -> Self {
+        return ExprNode::new(ExprKind::IntConstant(*value), ReturnType::Type(INT_ID));
+    }
+
+    pub fn string_const(value: &usize) -> Self {
+        return ExprNode::new(
+            ExprKind::StringConstant(*value),
+            ReturnType::Type(STRING_ID),
+        );
+    }
+
+    pub fn self_expr() -> Self {
+        return ExprNode::new(ExprKind::SelfExpr, ReturnType::SelfType);
+    }
+
+    pub fn obj_const(value: &usize) -> Self {
+        return ExprNode::new(ExprKind::Object(*value), ReturnType::Type(OBJECT_ID));
+    }
 }
 
 #[derive(Debug, Clone)]
