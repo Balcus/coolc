@@ -1,5 +1,5 @@
 use crate::{
-    ast, grammar,
+    parse_tree, grammar,
     lexer::{ErrorToken, Spanned, Token},
 };
 use lalrpop_util::ErrorRecovery;
@@ -15,7 +15,7 @@ impl<'a> Parser<'a> {
         Self { errors }
     }
 
-    pub fn parse(&mut self, tokens: TokenStream<'_>) -> Option<ast::Program> {
+    pub fn parse(&mut self, tokens: TokenStream<'_>) -> Option<parse_tree::Program> {
         self.errors.clear();
         match grammar::ProgramParser::new().parse(self.errors, tokens) {
             Ok(program) if self.errors.is_empty() => Some(program),

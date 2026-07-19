@@ -59,4 +59,8 @@ impl<SYM: Eq + Hash, DAT> SymbolTable<SYM, DAT> {
             )
             .get(symbol_id)
     }
+
+    pub fn scopes_len(&self) -> usize {
+        self.scopes.len()
+    }
 }

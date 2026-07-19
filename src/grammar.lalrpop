@@ -1,13 +1,13 @@
 /*
  * Parser Output:
- * Semantic actions should build an AST
- * The root of the AST (and only the root) should be of type program
+ * Semantic actions should build an parse_tree
+ * The root of the parse_tree (and only the root) should be of type program
  * For programs that have errors, the output is the error message
  * For multi line constructs free to use any line that is part of the construct
  * Parser needs to work for programs contained in a single file
  *
  * Error Handling:
- * The parser should recover at least in the following situations:
+ * The parser should recover at leparse_tree in the following situations:
  * - if error in class definition but class terminated properly and next class is syntactically correct,
  * the parser should be able to start from next class definition
  *
@@ -23,7 +23,7 @@
 
 use crate::lexer::{Token, ErrorToken};
 use lalrpop_util::ErrorRecovery;
-use crate::ast;
+use crate::parse_tree;
 
 grammar<'err>(errors: &'err mut Vec<ErrorRecovery<usize, Token, ErrorToken>>);
 
@@ -90,31 +90,31 @@ Comma<T>: Vec<T> = {
 };
 
 // Helper type for a single binding (x: Type or x: Type <- y)
-Binding: (ast::Id, ast::Id, Option<Box<ast::Expr>>) = {
+Binding: (parse_tree::Id, parse_tree::Id, Option<Box<parse_tree::Expr>>) = {
     <n: "ID"> ":" <t: "TYPE"> =>
         (n, t, None),
     <n: "ID"> ":" <t: "TYPE"> "<-" <e: FullExpr> =>
         (n, t, Some(Box::new(e))),
 }
 
-FullExpr: ast::Expr = {
+FullExpr: parse_tree::Expr = {
     <e: Expr> => e,
 }
 
-pub Program: ast::Program = {
-    <classes: (<Class> ";")+> => ast::Program { classes }
+pub Program: parse_tree::Program = {
+    <classes: (<Class> ";")+> => parse_tree::Program { classes }
 }
 
-Class: ast::Class = {
+Class: parse_tree::Class = {
     "class" <name: "TYPE"> "{" <features: Feature*> "}" =>
-        ast::Class::Valid {
+        parse_tree::Class::Valid {
             name,
             parent: None,
             features,
         },
 
     "class" <name: "TYPE"> "inherits" <parent: "TYPE"> "{" <features: Feature*> "}" =>
-        ast::Class::Valid {
+        parse_tree::Class::Valid {
             name,
             parent: Some(parent),
             features
@@ -122,21 +122,21 @@ Class: ast::Class = {
 
     "class" <e: !> "}" => {
         errors.push(<>);
-        ast::Class::Invalid
+        parse_tree::Class::Invalid
     },
 }
 
-Feature: ast::Feature = {
+Feature: parse_tree::Feature = {
     // Attribute
     <name: "ID"> ":" <type_dec: Type> ";" =>
-        ast::Feature::Attribute {
+        parse_tree::Feature::Attribute {
             name,
             type_dec,
             init: None
         },
 
     <name: "ID"> ":" <type_dec: Type> "<-" <expr: FullExpr> ";" =>
-        ast::Feature::Attribute {
+        parse_tree::Feature::Attribute {
             name,
             type_dec,
             init: Some(Box::new(expr))
@@ -144,7 +144,7 @@ Feature: ast::Feature = {
 
     // Method with single expression body
     <name: "ID"> "(" <params: Comma<Formal>> ")" ":" <type_dec: Type> "{" <expr: FullExpr> "}" ";" =>
-        ast::Feature::Method {
+        parse_tree::Feature::Method {
             name,
             params,
             type_dec,
@@ -153,98 +153,98 @@ Feature: ast::Feature = {
 
     // Method with block body
     <name: "ID"> "(" <params: Comma<Formal>> ")" ":" <type_dec: Type> "{" <body: (<FullExpr> ";")+> "}" ";" =>
-        ast::Feature::Method {
+        parse_tree::Feature::Method {
             name,
             params,
             type_dec,
-            body: Box::new(ast::Expr::Block(body)),
+            body: Box::new(parse_tree::Expr::Block(body)),
         },
 
     // Invalid features
     <e: !> ";" => {
         errors.push(<>);
-        ast::Feature::Invalid
+        parse_tree::Feature::Invalid
     }
 }
 
-Formal: ast::Formal = {
+Formal: parse_tree::Formal = {
     <name: "ID"> ":" <type_dec: "TYPE"> =>
-        ast::Formal {
+        parse_tree::Formal {
             name,
             type_dec
         },
 }
 
-Branch: ast::CaseBranch = {
+Branch: parse_tree::CaseBranch = {
     <name: "ID"> ":" <type_dec: "TYPE"> "=>" <expr: FullExpr> =>
-        ast::CaseBranch {
+        parse_tree::CaseBranch {
             name,
             type_dec,
             body: Box::new(expr)
         },
 }
 
-Paren: ast::Expr = {
+Paren: parse_tree::Expr = {
     "(" <e: FullExpr> ")" => e,
 }
 
-Type: ast::TypeName = {
-    <t: "TYPE"> => ast::TypeName::Type(t),
-    "SELF_TYPE" => ast::TypeName::SelfType,
+Type: parse_tree::TypeName = {
+    <t: "TYPE"> => parse_tree::TypeName::Type(t),
+    "SELF_TYPE" => parse_tree::TypeName::SelfType,
 }
 
-Expr: ast::Expr = {
+Expr: parse_tree::Expr = {
     // Constnats & Identifiers
     #[precedence(level="0")]
-    <n: "integer"> => ast::Expr::IntConstant(n),
-    <s: "string"> => ast::Expr::StringConstant(s),
-    <b: "boolean"> => ast::Expr::BoolConstant(b),
-    <o: "ID"> => ast::Expr::Object(o),
-    "self" => ast::Expr::SelfExpr,
+    <n: "integer"> => parse_tree::Expr::IntConstant(n),
+    <s: "string"> => parse_tree::Expr::StringConstant(s),
+    <b: "boolean"> => parse_tree::Expr::BoolConstant(b),
+    <o: "ID"> => parse_tree::Expr::Object(o),
+    "self" => parse_tree::Expr::SelfExpr,
     <e: Paren> => e,
 
     // Control flow
     "if" <cond: FullExpr> "then" <happy_path: FullExpr> "else" <sad_path: FullExpr> "fi" =>
-        ast::Expr::Conditional {
+        parse_tree::Expr::Conditional {
             cond: Box::new(cond),
             happy_path: Box::new(happy_path),
             sad_path: Box::new(sad_path)
         },
 
     "while" <cond: FullExpr> "loop" <body: FullExpr> "pool" =>
-        ast::Expr::Loop {
+        parse_tree::Expr::Loop {
             cond: Box::new(cond),
             body: Box::new(body),
         },
 
-    "{" <body: (<FullExpr> ";")+> "}" => ast::Expr::Block(body),
+    "{" <body: (<FullExpr> ";")+> "}" => parse_tree::Expr::Block(body),
 
     "case" <cond: FullExpr> "of" <branches: (<Branch> ";")+> "esac" =>
-        ast::Expr::Case {
+        parse_tree::Expr::Case {
             cond: Box::new(cond),
             branches
         },
 
     // New
-    "new" <type_dec: Type> => ast::Expr::New(type_dec),
+    "new" <type_dec: Type> => parse_tree::Expr::New(type_dec),
 
     // Dispatch
     #[precedence(level="1")] #[assoc(side="left")]
     <expr: Expr> "." <name: "ID"> "(" <args: Comma<FullExpr>> ")" =>
-        ast::Expr::Dispatch {
+        parse_tree::Expr::Dispatch {
             expr: Box::new(expr),
             name,
             args
         },
 
     <name: "ID"> "(" <args: Comma<FullExpr>> ")" =>
-        ast::Expr::SelfDispatch {
+        parse_tree::Expr::SelfDispatch {
             name,
             args
         },
 
     <expr: Expr> "@" <type_dec: "TYPE"> "." <name: "ID"> "(" <args: Comma<FullExpr>> ")" =>
-        ast::Expr::StaticDispatch {
+        parse_tree::Expr::StaticDispatch {
             name,
             expr: Box::new(expr),
             type_dec,
@@ -253,34 +253,34 @@ Expr: ast::Expr = {
 
     // isVoid & negation
     #[precedence(level="2")]
-    "~" <e: Expr> => ast::Expr::Neg(Box::new(e)),
-    "isvoid" <e: Expr> => ast::Expr::IsVoid(Box::new(e)),
+    "~" <e: Expr> => parse_tree::Expr::Neg(Box::new(e)),
+    "isvoid" <e: Expr> => parse_tree::Expr::IsVoid(Box::new(e)),
 
     // Arithmetic
     #[precedence(level="3")] #[assoc(side="left")]
-    <e1: Expr> "*" <e2: Expr> => ast::Expr::Mul(Box::new(e1), Box::new(e2)),
-    <e1: Expr> "/" <e2: Expr> => ast::Expr::Div(Box::new(e1), Box::new(e2)),
+    <e1: Expr> "*" <e2: Expr> => parse_tree::Expr::Mul(Box::new(e1), Box::new(e2)),
+    <e1: Expr> "/" <e2: Expr> => parse_tree::Expr::Div(Box::new(e1), Box::new(e2)),
 
     #[precedence(level="4")] #[assoc(side="left")]
-    <e1: Expr> "+" <e2: Expr> => ast::Expr::Add(Box::new(e1), Box::new(e2)),
-    <e1: Expr> "-" <e2: Expr> => ast::Expr::Sub(Box::new(e1), Box::new(e2)),
+    <e1: Expr> "+" <e2: Expr> => parse_tree::Expr::Add(Box::new(e1), Box::new(e2)),
+    <e1: Expr> "-" <e2: Expr> => parse_tree::Expr::Sub(Box::new(e1), Box::new(e2)),
 
     // Comparison
     #[precedence(level="5")] #[assoc(side="none")]
-    <e1: Expr> ">" <e2: Expr> => ast::Expr::Lt(Box::new(e2), Box::new(e1)),
-    <e1: Expr> ">=" <e2: Expr> => ast::Expr::Le(Box::new(e2), Box::new(e1)),
-    <e1: Expr> "<" <e2: Expr> => ast::Expr::Lt(Box::new(e1), Box::new(e2)),
-    <e1: Expr> "<=" <e2: Expr> => ast::Expr::Le(Box::new(e1), Box::new(e2)),
-    <e1: Expr> "=" <e2: Expr> => ast::Expr::Eq(Box::new(e1), Box::new(e2)),
+    <e1: Expr> ">" <e2: Expr> => parse_tree::Expr::Lt(Box::new(e2), Box::new(e1)),
+    <e1: Expr> ">=" <e2: Expr> => parse_tree::Expr::Le(Box::new(e2), Box::new(e1)),
+    <e1: Expr> "<" <e2: Expr> => parse_tree::Expr::Lt(Box::new(e1), Box::new(e2)),
+    <e1: Expr> "<=" <e2: Expr> => parse_tree::Expr::Le(Box::new(e1), Box::new(e2)),
+    <e1: Expr> "=" <e2: Expr> => parse_tree::Expr::Eq(Box::new(e1), Box::new(e2)),
 
     // Not
     #[precedence(level="6")]
-    "not" <e: Expr> => ast::Expr::Not(Box::new(e)),
+    "not" <e: Expr> => parse_tree::Expr::Not(Box::new(e)),
 
     // Assignment
     #[precedence(level="7")] #[assoc(side="right")]
-    <var: "ID"> "<-" <expr: FullExpr> => ast::Expr::Assignment { var: ast::Var::Id(var) , expr: Box::new(expr) },
-    "self" "<-" <expr: FullExpr> => ast::Expr::Assignment { var: ast::Var::SelfValue, expr: Box::new(expr) },
+    <var: "ID"> "<-" <expr: FullExpr> => parse_tree::Expr::Assignment { var: parse_tree::Var::Id(var) , expr: Box::new(expr) },
+    "self" "<-" <expr: FullExpr> => parse_tree::Expr::Assignment { var: parse_tree::Var::SelfValue, expr: Box::new(expr) },
 
     // Let
     #[precedence(level="8")]
@@ -289,7 +289,7 @@ Expr: ast::Expr = {
         bindings.extend(rest);
 
         bindings.into_iter().rev().fold(body, |inner_body, (name, type_dec, init)| {
-            ast::Expr::Let {
+            parse_tree::Expr::Let {
                 name,
                 type_dec,
                 init,
@@ -300,6 +300,6 @@ Expr: ast::Expr = {
 
     <e: !> ";" => {
         errors.push(<>);
-        ast::Expr::Invalid
+        parse_tree::Expr::Invalid
     },
 }

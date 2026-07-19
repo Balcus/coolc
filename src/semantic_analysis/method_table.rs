@@ -1,5 +1,5 @@
 use crate::{
-    ast,
+    parse_tree::{self, TypeName},
     semantic_analysis::{SemanticError, inheritance_tree::InheritanceTree},
 };
 use std::collections::HashMap;
@@ -9,10 +9,19 @@ type MethodId = usize;
 type TypeId = usize;
 type ObjectId = usize;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ReturnType {
     SelfType,
     Type(TypeId),
+}
+
+impl ReturnType {
+    pub fn from(ty: TypeName) -> Self {
+        match ty {
+            TypeName::SelfType => Self::SelfType,
+            TypeName::Type(type_id) => Self::Type(type_id),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -58,7 +67,7 @@ pub struct MethodTable {
 }
 
 impl MethodTable {
-    pub fn build(program: &ast::Program) -> Result<Self, Vec<SemanticError>> {
+    pub fn build(program: &parse_tree::Program) -> Result<Self, Vec<SemanticError>> {
         let mut table = Self {
             inner: HashMap::new(),
         };
@@ -67,13 +76,13 @@ impl MethodTable {
 
         for class in &program.classes {
             match class {
-                ast::Class::Invalid => continue,
+                parse_tree::Class::Invalid => continue,
 
-                ast::Class::Valid { name, features, .. } => {
+                parse_tree::Class::Valid { name, features, .. } => {
                     let defining_class = *name;
 
                     for feature in features {
-                        if let ast::Feature::Method {
+                        if let parse_tree::Feature::Method {
                             name,
                             params,
                             type_dec,
@@ -86,8 +95,8 @@ impl MethodTable {
                                 .collect();
 
                             let return_type = match type_dec {
-                                ast::TypeName::SelfType => ReturnType::SelfType,
-                                ast::TypeName::Type(id) => ReturnType::Type(*id),
+                                parse_tree::TypeName::SelfType => ReturnType::SelfType,
+                                parse_tree::TypeName::Type(id) => ReturnType::Type(*id),
                             };
 
                             let method_info = MethodInfo {

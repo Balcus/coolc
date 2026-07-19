@@ -1,4 +1,4 @@
-use crate::{ast::Program, lexer::LexerWrapper, parser, string_table::StringTable};
+use crate::{parse_tree::Program, lexer::LexerWrapper, parser, string_table::StringTable};
 
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct Span {

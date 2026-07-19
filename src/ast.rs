@@ -1,64 +1,75 @@
-pub type Id = usize;
+use crate::semantic_analysis::method_table::ReturnType;
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct Program {
-    pub classes: Vec<Class>,
+type Id = usize;
+type ClassId = usize;
+
+#[derive(Debug, Clone)]
+pub struct Root {
+    pub classes: Vec<ClassNode>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum Class {
-    Valid {
-        name: Id,
-        parent: Option<Id>,
-        features: Vec<Feature>,
-    },
-    Invalid,
+impl Root {
+    pub fn new(classes: Vec<ClassNode>) -> Self {
+        Self { classes }
+    }
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum TypeName {
-    SelfType,
-    Type(usize),
+#[derive(Debug, Clone)]
+pub struct ClassNode {
+    pub name: ClassId,
+    pub parent: Option<ClassId>,
+    pub features: Vec<FeatureNode>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum Var {
-    Id(Id),
-    SelfValue,
+impl ClassNode {
+    pub fn new(name: ClassId, parent: Option<ClassId>, features: Vec<FeatureNode>) -> Self {
+        Self {
+            name,
+            parent,
+            features,
+        }
+    }
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum Feature {
+#[derive(Debug, Clone)]
+pub enum FeatureNode {
     Attribute {
         name: Id,
-        type_dec: TypeName,
-        init: Option<Box<Expr>>,
+        type_dec: ReturnType,
+        init: Option<Box<ExprNode>>,
     },
-
     Method {
         name: Id,
-        params: Vec<Formal>,
-        type_dec: TypeName,
-        body: Box<Expr>,
+        params: Vec<FormalNode>,
+        return_type: ReturnType,
+        body: Box<ExprNode>,
     },
-    Invalid,
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct Formal {
+impl FeatureNode {
+    pub fn attribute(name: Id, type_dec: ReturnType, init: Option<Box<ExprNode>>) -> Self {
+        Self::Attribute {
+            name,
+            type_dec,
+            init,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct FormalNode {
     pub name: Id,
-    pub type_dec: Id,
+    pub type_dec: ClassId,
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct CaseBranch {
-    pub name: Id,
-    pub type_dec: Id,
-    pub body: Box<Expr>,
+#[derive(Debug, Clone)]
+pub struct ExprNode {
+    pub kind: ExprKind,
+    pub ty: ReturnType,
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum Expr {
+#[derive(Debug, Clone)]
+pub enum ExprKind {
     BoolConstant(bool),
     IntConstant(i64),
     StringConstant(Id),
@@ -67,66 +78,79 @@ pub enum Expr {
 
     Assignment {
         var: Var,
-        expr: Box<Expr>,
+        expr: Box<ExprNode>,
     },
 
     Dispatch {
-        expr: Box<Expr>,
+        expr: Box<ExprNode>,
         name: Id,
-        args: Vec<Expr>,
+        args: Vec<ExprNode>,
+        static_class: ClassId,
     },
 
     StaticDispatch {
-        expr: Box<Expr>,
+        expr: Box<ExprNode>,
         type_dec: Id,
         name: Id,
-        args: Vec<Expr>,
+        args: Vec<ExprNode>,
     },
 
     SelfDispatch {
         name: Id,
-        args: Vec<Expr>,
+        args: Vec<ExprNode>,
+        static_class: ClassId,
     },
 
     Conditional {
-        cond: Box<Expr>,
-        happy_path: Box<Expr>,
-        sad_path: Box<Expr>,
+        cond: Box<ExprNode>,
+        happy_path: Box<ExprNode>,
+        sad_path: Box<ExprNode>,
     },
 
     Loop {
-        cond: Box<Expr>,
-        body: Box<Expr>,
+        cond: Box<ExprNode>,
+        body: Box<ExprNode>,
     },
 
-    Block(Vec<Expr>),
+    Block(Vec<ExprNode>),
 
     Let {
         name: Id,
         type_dec: Id,
-        init: Option<Box<Expr>>,
-        body: Box<Expr>,
+        init: Option<Box<ExprNode>>,
+        body: Box<ExprNode>,
     },
 
     Case {
-        cond: Box<Expr>,
-        branches: Vec<CaseBranch>,
+        cond: Box<ExprNode>,
+        branches: Vec<CaseBranchNode>,
     },
 
-    New(TypeName),
+    New(ReturnType),
 
-    IsVoid(Box<Expr>),
+    IsVoid(Box<ExprNode>),
 
-    Add(Box<Expr>, Box<Expr>),
-    Sub(Box<Expr>, Box<Expr>),
-    Mul(Box<Expr>, Box<Expr>),
-    Div(Box<Expr>, Box<Expr>),
-    Neg(Box<Expr>),
+    Add(Box<ExprNode>, Box<ExprNode>),
+    Sub(Box<ExprNode>, Box<ExprNode>),
+    Mul(Box<ExprNode>, Box<ExprNode>),
+    Div(Box<ExprNode>, Box<ExprNode>),
+    Neg(Box<ExprNode>),
 
-    Lt(Box<Expr>, Box<Expr>),
-    Eq(Box<Expr>, Box<Expr>),
-    Le(Box<Expr>, Box<Expr>),
-    Not(Box<Expr>),
+    Lt(Box<ExprNode>, Box<ExprNode>),
+    Eq(Box<ExprNode>, Box<ExprNode>),
+    Le(Box<ExprNode>, Box<ExprNode>),
+    Not(Box<ExprNode>),
+}
 
-    Invalid,
+#[derive(Debug, Clone)]
+pub enum Var {
+    Id(Id),
+    SelfValue,
+}
+
+#[derive(Debug, Clone)]
+pub struct CaseBranchNode {
+    pub name: Id,
+    pub type_dec: Id,
+    pub body: Box<ExprNode>,
 }

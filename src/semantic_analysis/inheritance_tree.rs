@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Class, Program},
+    parse_tree::{Class, Program},
     semantic_analysis::SemanticError,
 };
 use std::collections::{HashMap, HashSet};
