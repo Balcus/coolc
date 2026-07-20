@@ -1,4 +1,6 @@
 #![allow(dead_code, unused_variables, unused_imports, unused)]
+use std::todo;
+
 use crate::{
     ast::{self, ExprNode},
     parse_tree::{self, TypeName},
@@ -18,11 +20,11 @@ pub mod inheritance_tree;
 pub mod method_table;
 pub mod symbol_table;
 
-pub enum Operand {
+pub enum ArithOp {
     Add,
     Sub,
     Mul,
-    Div
+    Div,
 }
 
 // TODO: add relevant information to the errors
@@ -259,16 +261,19 @@ impl SemanticAnalyzer {
     ) -> Result<ast::ExprNode, Vec<SemanticError>> {
         let mut err = Vec::new();
 
-        match expr {
-            parse_tree::Expr::BoolConstant(value) => return Ok(ExprNode::bool_const(value)),
-            parse_tree::Expr::IntConstant(value) => return Ok(ExprNode::int_const(value)),
-            parse_tree::Expr::StringConstant(value) => return Ok(ExprNode::string_const(value)),
-            parse_tree::Expr::Object(value) => return Ok(ExprNode::obj_const(value)),
-            parse_tree::Expr::SelfExpr => return Ok(ExprNode::self_expr()),
+        let expr_node: ExprNode = match expr {
+            parse_tree::Expr::BoolConstant(value) => ExprNode::bool_const(value),
+            parse_tree::Expr::IntConstant(value) => ExprNode::int_const(value),
+            parse_tree::Expr::StringConstant(value) => ExprNode::string_const(value),
+            parse_tree::Expr::Object(value) => ExprNode::obj_const(value),
+            parse_tree::Expr::SelfExpr => ExprNode::self_expr(),
             parse_tree::Expr::Assignment { var, expr } => {
                 match self.type_check_assignment(class_id, var, expr, obj_env) {
-                    Ok(expr_node) => return Ok(expr_node),
-                    Err(mut errors) => err.append(&mut errors),
+                    Ok(expr_node) => expr_node,
+                    Err(mut errors) => {
+                        err.append(&mut errors);
+                        return Err(err);
+                    }
                 }
             }
             parse_tree::Expr::Dispatch { expr, name, args } => todo!(),
@@ -295,26 +300,78 @@ impl SemanticAnalyzer {
             parse_tree::Expr::Case { cond, branches } => todo!(),
             parse_tree::Expr::New(type_name) => todo!(),
             parse_tree::Expr::IsVoid(expr) => todo!(),
-            parse_tree::Expr::Add(a, b) => match self.type_check_arith(class_id, a, b, Operand::Add, obj_env) {
-                Ok(_) => todo!(),
-                Err(_) => todo!(),
+            parse_tree::Expr::Add(a, b) => {
+                match self.type_check_arith(class_id, a, b, ArithOp::Add, obj_env) {
+                    Ok(expr_node) => expr_node,
+                    Err(mut errors) => {
+                        err.append(&mut errors);
+                        return Err(err);
+                    }
+                }
+            }
+            parse_tree::Expr::Sub(a, b) => {
+                match self.type_check_arith(class_id, a, b, ArithOp::Sub, obj_env) {
+                    Ok(expr_node) => expr_node,
+                    Err(mut errors) => {
+                        err.append(&mut errors);
+                        return Err(err);
+                    }
+                }
+            }
+            parse_tree::Expr::Mul(a, b) => {
+                match self.type_check_arith(class_id, a, b, ArithOp::Mul, obj_env) {
+                    Ok(expr_node) => expr_node,
+                    Err(mut errors) => {
+                        err.append(&mut errors);
+                        return Err(err);
+                    }
+                }
+            }
+            parse_tree::Expr::Div(a, b) => {
+                match self.type_check_arith(class_id, a, b, ArithOp::Div, obj_env) {
+                    Ok(expr_node) => expr_node,
+                    Err(mut errors) => {
+                        err.append(&mut errors);
+                        return Err(err);
+                    }
+                }
+            }
+            parse_tree::Expr::Neg(expr) => {
+                match self.type_check_neg(class_id, expr, obj_env) {
+                    Ok(_) => todo!(),
+                    Err(_) => todo!(),
+                }
             },
-            parse_tree::Expr::Sub(expr, expr1) => todo!(),
-            parse_tree::Expr::Mul(expr, expr1) => todo!(),
-            parse_tree::Expr::Div(expr, expr1) => todo!(),
-            parse_tree::Expr::Neg(expr) => todo!(),
             parse_tree::Expr::Lt(expr, expr1) => todo!(),
             parse_tree::Expr::Eq(expr, expr1) => todo!(),
             parse_tree::Expr::Le(expr, expr1) => todo!(),
             parse_tree::Expr::Not(expr) => todo!(),
             parse_tree::Expr::Invalid => todo!(),
-        }
+        };
 
         if !err.is_empty() {
             return Err(err);
         }
 
-        unreachable!("Something is very wrong!");
+        Ok(expr_node)
+    }
+
+    fn type_check_neg(
+        &self,
+        current_class: ClassId,
+        expr: &Box<parse_tree::Expr>,
+        obj_env: &mut SymbolTable<ObjectId, ObjInfo>
+    ) -> Result<ast::ExprNode, Vec<SemanticError>> {
+        let mut err = Vec::new();
+        let typed_expr = match self.type_check_expr(class_id, expr, obj_env) {
+            Ok(expr_node) => expr_node,
+            Err(mut errors) => {
+                err.append(&mut errors);
+                return Err(err);
+            }
+        };
+
+        todo!();
     }
 
     fn type_check_assignment(
@@ -364,7 +421,7 @@ impl SemanticAnalyzer {
         current_class: ClassId,
         a: &Box<parse_tree::Expr>,
         b: &Box<parse_tree::Expr>,
-        op: Operand,
+        op: ArithOp,
         obj_env: &mut SymbolTable<ObjectId, ObjInfo>,
     ) -> Result<ast::ExprNode, Vec<SemanticError>> {
         let mut err = Vec::new();
@@ -372,7 +429,7 @@ impl SemanticAnalyzer {
         let b = self.type_check_expr(current_class, b, obj_env)?;
 
         if !self.is_subtype(current_class, &a.ty, &ReturnType::Type(INT_ID)) {
-            err.push(SemanticError::InvalidArithmeticOperandType); // needs adding to the enum
+            err.push(SemanticError::InvalidArithmeticOperandType);
         }
         if !self.is_subtype(current_class, &b.ty, &ReturnType::Type(INT_ID)) {
             err.push(SemanticError::InvalidArithmeticOperandType);
@@ -383,10 +440,22 @@ impl SemanticAnalyzer {
         }
 
         match op {
-            Operand::Add => todo!(),
-            Operand::Sub => todo!(),
-            Operand::Mul => todo!(),
-            Operand::Div => todo!(),
+            ArithOp::Add => Ok(ExprNode::new(
+                ExprKind::Add(Box::new(a), Box::new(b)),
+                ReturnType::Type(INT_ID),
+            )),
+            ArithOp::Sub => Ok(ExprNode::new(
+                ExprKind::Sub(Box::new(a), Box::new(b)),
+                ReturnType::Type(INT_ID),
+            )),
+            ArithOp::Mul => Ok(ExprNode::new(
+                ExprKind::Mul(Box::new(a), Box::new(b)),
+                ReturnType::Type(INT_ID),
+            )),
+            ArithOp::Div => Ok(ExprNode::new(
+                ExprKind::Div(Box::new(a), Box::new(b)),
+                ReturnType::Type(INT_ID),
+            )),
         }
     }
 
