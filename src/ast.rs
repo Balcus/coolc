@@ -1,8 +1,8 @@
-use std::usize;
-
 use crate::{
-    semantic_analysis::method_table::ReturnType, string_table::{BOOL_ID, INT_ID, OBJECT_ID, STRING_ID},
+    semantic_analysis::method_table::ReturnType,
+    string_table::{BOOL_ID, INT_ID, STRING_ID},
 };
+use std::usize;
 
 type Id = usize;
 type ClassId = usize;
@@ -96,8 +96,33 @@ impl ExprNode {
         return ExprNode::new(ExprKind::SelfExpr, ReturnType::SelfType);
     }
 
-    pub fn obj_const(value: &usize) -> Self {
-        return ExprNode::new(ExprKind::Object(*value), ReturnType::Type(OBJECT_ID));
+    pub fn conditional(predicate: ExprNode, sp: ExprNode, hp: ExprNode, rt: ReturnType) -> Self {
+        return ExprNode::new(
+            ExprKind::Conditional {
+                cond: Box::new(predicate),
+                happy_path: Box::new(hp),
+                sad_path: Box::new(sp),
+            },
+            rt,
+        );
+    }
+
+    pub fn dispatch(
+        e0: ExprNode,
+        method_name: Id,
+        args: Vec<ExprNode>,
+        static_class: ClassId,
+        rt: ReturnType,
+    ) -> Self {
+        Self {
+            kind: ExprKind::Dispatch {
+                expr: Box::new(e0),
+                name: method_name,
+                args,
+                static_class,
+            },
+            ty: rt,
+        }
     }
 }
 

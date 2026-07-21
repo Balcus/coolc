@@ -27,19 +27,27 @@ impl ReturnType {
 #[derive(Debug, PartialEq)]
 pub struct MethodInfo {
     formal_info: Vec<FormalInfo>,
-    return_type: ReturnType,
+    rt: ReturnType,
 }
 
 impl MethodInfo {
-    pub fn new(formal_info: Vec<FormalInfo>, return_type: ReturnType) -> Self {
+    pub fn new(formal_info: Vec<FormalInfo>, rt: ReturnType) -> Self {
         Self {
             formal_info,
-            return_type,
+            rt,
         }
     }
 
+    pub fn formals(&self) -> &Vec<FormalInfo> {
+        &self.formal_info
+    }
+
+    pub fn rt(&self) -> &ReturnType {
+        &self.rt
+    }
+
     pub fn has_same_signature(&self, other: &MethodInfo) -> bool {
-        self.return_type == other.return_type
+        self.rt == other.rt
             && self.formal_info.len() == other.formal_info.len()
             && self
                 .formal_info
@@ -58,6 +66,10 @@ pub struct FormalInfo {
 impl FormalInfo {
     pub fn new(name: ObjectId, ty: TypeId) -> Self {
         Self { name, ty }
+    }
+
+    pub fn ty(&self) -> TypeId {
+        self.ty
     }
 }
 
@@ -94,14 +106,14 @@ impl MethodTable {
                                 .map(|p| FormalInfo::new(p.name, p.type_dec))
                                 .collect();
 
-                            let return_type = match type_dec {
+                            let rt = match type_dec {
                                 parse_tree::TypeName::SelfType => ReturnType::SelfType,
                                 parse_tree::TypeName::Type(id) => ReturnType::Type(*id),
                             };
 
                             let method_info = MethodInfo {
                                 formal_info,
-                                return_type,
+                                rt,
                             };
 
                             if let Err(error) = table.insert(defining_class, *name, method_info) {

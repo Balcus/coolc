@@ -4,7 +4,7 @@ use coolc::lexer::LexerWrapper;
 use coolc::parser;
 use coolc::semantic_analysis::inheritance_tree::InheritanceTree;
 use coolc::string_table::StringTable;
-use std::fs;
+use std::{fs, println};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -45,7 +45,10 @@ fn main() {
     };
 
     if cli.verbose {
+        println!("Generated Parse Tree:");
         println!("{:#?}", program);
+        println!("{:#?}", s_table);
+
     } else {
         println!("{} passed parser checks", cli.path);
     }

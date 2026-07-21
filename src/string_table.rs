@@ -5,6 +5,7 @@ pub const INT_ID: usize = 1;
 pub const BOOL_ID: usize = 2;
 pub const STRING_ID: usize = 3;
 
+#[derive(Debug)]
 pub struct StringTable {
     pub map: HashMap<String, usize>,
 }
