@@ -16,13 +16,11 @@ use crate::{
 // rethink how to propagate errors, maybe a struct field would be better
 // one single return type variant (currently we have both ReturnType and parse_tree::TypeName)
 // MAYBE we can just annotate the previous tree instead of creating a new one but it would be painful to match on valid and invalid every time
+// if that is not an option i think a better approach would be to consume the parse tree in order to generate the ast
 // actually useful error informations
 // can we NOT USE UNREACHABLE ????
 // Only one semantic error for type mismatch
-
-type TypeId = usize;
-type ObjectId = usize;
-type ClassId = usize;
+// Limit the semantic errors and create more general ones
 
 pub mod inheritance_tree;
 pub mod method_table;
@@ -46,6 +44,7 @@ pub enum SemanticError {
     // Method Related
     RedefinedMethodInSameClass,
     WrongOverrideSignature,
+    UndefinedMethod(usize, usize),
 
     // Attribute Related
     AttributedMismatchedTypes,
@@ -59,6 +58,8 @@ pub enum SemanticError {
     InvalidNegationType,
     TypeMismatch,
     WrongNumberOfArguments,
+
+    InvalidBlockConstruct,
 }
 
 pub enum ObjKind {
@@ -141,7 +142,7 @@ impl SemanticAnalyzer {
     fn type_check_class(
         &mut self,
         class: &parse_tree::Class,
-        obj_env: &mut SymbolTable<ObjectId, ObjInfo>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ClassNode, Vec<SemanticError>> {
         let mut err = Vec::new();
         let mut ast_features = Vec::new();
@@ -201,9 +202,9 @@ impl SemanticAnalyzer {
 
     fn type_check_method(
         &mut self,
-        current_class: ClassId,
+        current_class: usize,
         method: &parse_tree::Feature,
-        obj_env: &mut SymbolTable<ObjectId, ObjInfo>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::FeatureNode, Vec<SemanticError>> {
         obj_env.enter_scope();
 
@@ -216,9 +217,9 @@ impl SemanticAnalyzer {
 
     fn type_check_attribute(
         &mut self,
-        current_class: ClassId,
+        current_class: usize,
         attribute: &parse_tree::Feature,
-        obj_env: &mut SymbolTable<ObjectId, ObjInfo>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::FeatureNode, Vec<SemanticError>> {
         let (name, type_dec, init) = match attribute {
             parse_tree::Feature::Attribute {
@@ -249,11 +250,11 @@ impl SemanticAnalyzer {
 
     fn type_check_attrib_init(
         &mut self,
-        current_class: ClassId,
-        _name: ObjectId,
+        current_class: usize,
+        _name: usize,
         type_dec: TypeName,
         init: &Box<parse_tree::Expr>,
-        obj_env: &mut SymbolTable<ObjectId, ObjInfo>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, Vec<SemanticError>> {
         let expr = self.type_check_expr(current_class, init, obj_env)?;
 
@@ -266,9 +267,9 @@ impl SemanticAnalyzer {
 
     fn type_check_expr(
         &mut self,
-        class_id: ClassId,
+        class_id: usize,
         expr: &parse_tree::Expr,
-        obj_env: &mut SymbolTable<ObjectId, ObjInfo>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, Vec<SemanticError>> {
         let mut err = Vec::new();
 
@@ -279,32 +280,29 @@ impl SemanticAnalyzer {
             parse_tree::Expr::Object(name) => self.type_check_object(class_id, *name, obj_env)?,
             parse_tree::Expr::SelfExpr => ExprNode::self_expr(),
             parse_tree::Expr::Assignment { var, expr } => {
-                match self.type_check_assignment(class_id, var, expr, obj_env) {
-                    Ok(expr_node) => expr_node,
-                    Err(mut errors) => {
-                        err.append(&mut errors);
-                        return Err(err);
-                    }
-                }
+                self.type_check_assignment(class_id, var, expr, obj_env)?
             }
-            parse_tree::Expr::Dispatch { expr, name, args } => todo!(),
+            parse_tree::Expr::Dispatch { expr, name, args } => {
+                self.type_check_dispatch(class_id, expr, *name, args, obj_env)?
+            }
             parse_tree::Expr::StaticDispatch {
                 expr,
                 type_dec,
                 name,
                 args,
-            } => todo!(),
-            parse_tree::Expr::SelfDispatch { name, args } => todo!(),
+            } => {
+                self.type_check_static_dispatch(class_id, expr, *type_dec, *name, args, obj_env)?
+            }
+            parse_tree::Expr::SelfDispatch { name, args } => {
+                self.type_check_self_dispatch(class_id, *name, args, obj_env)?
+            }
             parse_tree::Expr::Conditional {
                 cond,
                 happy_path,
                 sad_path,
-            } => match self.type_check_conditional(class_id, cond, happy_path, sad_path, obj_env) {
-                Ok(_) => todo!(),
-                Err(_) => todo!(),
-            },
+            } => self.type_check_conditional(class_id, cond, happy_path, sad_path, obj_env)?,
             parse_tree::Expr::Loop { cond, body } => todo!(),
-            parse_tree::Expr::Block(exprs) => todo!(),
+            parse_tree::Expr::Block(exprs) => self.type_check_block(class_id, exprs, obj_env)?,
             parse_tree::Expr::Let {
                 name,
                 type_dec,
@@ -315,48 +313,18 @@ impl SemanticAnalyzer {
             parse_tree::Expr::New(type_name) => todo!(),
             parse_tree::Expr::IsVoid(expr) => todo!(),
             parse_tree::Expr::Add(a, b) => {
-                match self.type_check_arith(class_id, a, b, ArithOp::Add, obj_env) {
-                    Ok(expr_node) => expr_node,
-                    Err(mut errors) => {
-                        err.append(&mut errors);
-                        return Err(err);
-                    }
-                }
+                self.type_check_arith(class_id, a, b, ArithOp::Add, obj_env)?
             }
             parse_tree::Expr::Sub(a, b) => {
-                match self.type_check_arith(class_id, a, b, ArithOp::Sub, obj_env) {
-                    Ok(expr_node) => expr_node,
-                    Err(mut errors) => {
-                        err.append(&mut errors);
-                        return Err(err);
-                    }
-                }
+                self.type_check_arith(class_id, a, b, ArithOp::Sub, obj_env)?
             }
             parse_tree::Expr::Mul(a, b) => {
-                match self.type_check_arith(class_id, a, b, ArithOp::Mul, obj_env) {
-                    Ok(expr_node) => expr_node,
-                    Err(mut errors) => {
-                        err.append(&mut errors);
-                        return Err(err);
-                    }
-                }
+                self.type_check_arith(class_id, a, b, ArithOp::Mul, obj_env)?
             }
             parse_tree::Expr::Div(a, b) => {
-                match self.type_check_arith(class_id, a, b, ArithOp::Div, obj_env) {
-                    Ok(expr_node) => expr_node,
-                    Err(mut errors) => {
-                        err.append(&mut errors);
-                        return Err(err);
-                    }
-                }
+                self.type_check_arith(class_id, a, b, ArithOp::Div, obj_env)?
             }
-            parse_tree::Expr::Neg(expr) => match self.type_check_neg(class_id, expr, obj_env) {
-                Ok(expr_node) => expr_node,
-                Err(mut errors) => {
-                    err.append(&mut errors);
-                    return Err(err);
-                }
-            },
+            parse_tree::Expr::Neg(expr) => self.type_check_neg(class_id, expr, obj_env)?,
             parse_tree::Expr::Lt(expr, expr1) => todo!(),
             parse_tree::Expr::Eq(expr, expr1) => todo!(),
             parse_tree::Expr::Le(expr, expr1) => todo!(),
@@ -371,54 +339,163 @@ impl SemanticAnalyzer {
         Ok(expr_node)
     }
 
+    fn type_check_not(
+        &mut self,
+        class_id: usize,
+        expr: &Box<parse_tree::Expr>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
+    ) -> Result<ast::ExprNode, Vec<SemanticError>> {
+        let typed_expr = self.type_check_expr(class_id, expr, obj_env)?;
+
+        if !self.is_subtype(class_id, &typed_expr.ty, &ReturnType::Type(BOOL_ID)) {
+            return Err(vec![SemanticError::TypeMismatch]);
+        };
+
+        Ok(ast::ExprNode::new(
+            ExprKind::Not(Box::new(typed_expr)),
+            ReturnType::Type(BOOL_ID),
+        ))
+    }
+
     fn type_check_conditional(
         &mut self,
-        current_class: ClassId,
+        current_class: usize,
         predicate: &Box<parse_tree::Expr>,
         hp: &Box<parse_tree::Expr>,
         sp: &Box<parse_tree::Expr>,
-        obj_env: &mut SymbolTable<ObjectId, ObjInfo>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, Vec<SemanticError>> {
-        let mut err = Vec::new();
-
-        let predicate = match self.type_check_expr(current_class, predicate, obj_env) {
-            Ok(node) => node,
-            Err(mut errors) => {
-                err.append(&mut errors);
-                return Err(err);
-            }
-        };
+        let predicate = self.type_check_expr(current_class, predicate, obj_env)?;
 
         if !self.is_subtype(current_class, &predicate.ty, &ReturnType::Type(BOOL_ID)) {
             return Err(vec![SemanticError::TypeMismatch]);
         }
 
-        let hp: ExprNode = match self.type_check_expr(current_class, hp, obj_env) {
-            Ok(node) => node,
-            Err(mut errors) => {
-                err.append(&mut errors);
-                return Err(err);
-            }
-        };
-
-        let sp = match self.type_check_expr(current_class, sp, obj_env) {
-            Ok(node) => node,
-            Err(mut errors) => {
-                err.append(&mut errors);
-                return Err(err);
-            }
-        };
-
+        let hp: ExprNode = self.type_check_expr(current_class, hp, obj_env)?;
+        let sp = self.type_check_expr(current_class, sp, obj_env)?;
         let rt = self.lub(current_class, &sp.ty, &hp.ty);
 
         Ok(ExprNode::conditional(predicate, sp, hp, rt))
     }
 
+    fn type_check_block(
+        &mut self,
+        class_id: usize,
+        exprs: &Vec<parse_tree::Expr>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
+    ) -> Result<ast::ExprNode, Vec<SemanticError>> {
+        let typed_expr: Vec<ExprNode> = exprs
+            .iter()
+            .map(|e| self.type_check_expr(class_id, e, obj_env))
+            .collect::<Result<_, _>>()?;
+
+        let rt = typed_expr
+            .last()
+            .ok_or(vec![SemanticError::InvalidBlockConstruct])?
+            .ty
+            .clone();
+
+        Ok(ExprNode::new(ExprKind::Block(typed_expr), rt))
+    }
+
+    fn type_check_self_dispatch(
+        &mut self,
+        current_class: usize,
+        method_name: usize,
+        args: &Vec<parse_tree::Expr>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
+    ) -> Result<ast::ExprNode, Vec<SemanticError>> {
+        let typed_args: Vec<_> = args
+            .iter()
+            .map(|arg| self.type_check_expr(current_class, arg, obj_env))
+            .collect::<Result<_, _>>()?;
+
+        let rt = self.check_method_call(
+            current_class,
+            current_class,
+            &ReturnType::SelfType,
+            method_name,
+            &typed_args,
+        )?;
+
+        Ok(ExprNode::new(
+            ExprKind::SelfDispatch {
+                name: method_name,
+                args: typed_args,
+                static_class: current_class,
+            },
+            rt,
+        ))
+    }
+
+    fn type_check_static_dispatch(
+        &mut self,
+        current_class: usize,
+        e0: &Box<parse_tree::Expr>,
+        t: usize,
+        method_name: usize,
+        args: &Vec<parse_tree::Expr>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
+    ) -> Result<ast::ExprNode, Vec<SemanticError>> {
+        let e0 = self.type_check_expr(current_class, e0, obj_env)?;
+
+        if !self.is_subtype(current_class, &e0.ty, &ReturnType::Type(t)) {
+            return Err(vec![SemanticError::TypeMismatch]);
+        }
+
+        let typed_args: Vec<_> = args
+            .iter()
+            .map(|arg| self.type_check_expr(current_class, arg, obj_env))
+            .collect::<Result<_, _>>()?;
+
+        let rt = self.check_method_call(current_class, t, &e0.ty, method_name, &typed_args)?;
+        Ok(ExprNode::new(
+            ExprKind::StaticDispatch {
+                expr: Box::new(e0),
+                type_dec: t,
+                name: method_name,
+                args: typed_args,
+            },
+            rt,
+        ))
+    }
+
+    fn check_method_call(
+        &mut self,
+        current_class: usize,
+        t0: usize,
+        self_ty: &ReturnType,
+        name: usize,
+        args: &[ast::ExprNode],
+    ) -> Result<ReturnType, Vec<SemanticError>> {
+        let method_info = self
+            .method_table
+            .lookup(&self.inheritance_tree, t0, name)
+            .ok_or_else(|| vec![SemanticError::UndefinedMethod(current_class, name)])?;
+
+        let formals = method_info.formals();
+
+        if formals.len() != args.len() {
+            return Err(vec![SemanticError::WrongNumberOfArguments]);
+        }
+
+        for (formal, arg) in formals.iter().zip(args.iter()) {
+            if !self.is_subtype(current_class, &arg.ty, &ReturnType::Type(formal.ty())) {
+                return Err(vec![SemanticError::TypeMismatch]);
+            }
+        }
+
+        Ok(match method_info.rt() {
+            ReturnType::SelfType => self_ty.clone(),
+            ty => ty.clone(),
+        })
+    }
+
     fn type_check_object(
         &mut self,
-        current_class: ClassId,
-        name: ObjectId,
-        obj_env: &mut SymbolTable<ObjectId, ObjInfo>,
+        current_class: usize,
+        name: usize,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, Vec<SemanticError>> {
         match obj_env.lookup(&name) {
             Some(info) => Ok(ast::ExprNode::new(ExprKind::Object(name), info.ty.clone())),
@@ -428,32 +505,27 @@ impl SemanticAnalyzer {
 
     fn type_check_neg(
         &mut self,
-        current_class: ClassId,
+        current_class: usize,
         expr: &Box<parse_tree::Expr>,
-        obj_env: &mut SymbolTable<ObjectId, ObjInfo>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, Vec<SemanticError>> {
-        let mut err = Vec::new();
-        let typed_expr = match self.type_check_expr(current_class, expr, obj_env) {
-            Ok(expr_node) => expr_node,
-            Err(mut errors) => {
-                err.append(&mut errors);
-                return Err(err);
-            }
-        };
+        let typed_expr = self.type_check_expr(current_class, expr, obj_env)?;
         if !self.is_subtype(current_class, &typed_expr.ty, &ReturnType::Type(INT_ID)) {
-            err.push(SemanticError::InvalidNegationType);
-            return Err(err);
+            return Err(vec![SemanticError::InvalidNegationType]);
         }
 
-        Ok(typed_expr)
+        Ok(ExprNode::new(
+            ExprKind::Neg(Box::new(typed_expr)),
+            ReturnType::Type(INT_ID),
+        ))
     }
 
     fn type_check_assignment(
         &mut self,
-        current_class: ClassId,
+        current_class: usize,
         var: &parse_tree::Var,
         expr: &Box<parse_tree::Expr>,
-        obj_env: &mut SymbolTable<ObjectId, ObjInfo>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, Vec<SemanticError>> {
         let mut err = Vec::new();
 
@@ -492,11 +564,11 @@ impl SemanticAnalyzer {
 
     fn type_check_arith(
         &mut self,
-        current_class: ClassId,
+        current_class: usize,
         a: &Box<parse_tree::Expr>,
         b: &Box<parse_tree::Expr>,
         op: ArithOp,
-        obj_env: &mut SymbolTable<ObjectId, ObjInfo>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, Vec<SemanticError>> {
         let mut err = Vec::new();
         let a = self.type_check_expr(current_class, a, obj_env)?;
@@ -535,16 +607,13 @@ impl SemanticAnalyzer {
 
     fn type_check_dispatch(
         &mut self,
-        current_class: ClassId,
+        current_class: usize,
         e0: &Box<parse_tree::Expr>,
         name: usize,
         args: &Vec<parse_tree::Expr>,
-        obj_env: &mut SymbolTable<ObjectId, ObjInfo>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, Vec<SemanticError>> {
-        let e0 = match self.type_check_expr(current_class, e0, obj_env) {
-            Ok(node) => node,
-            Err(_) => todo!(),
-        };
+        let e0 = self.type_check_expr(current_class, e0, obj_env)?;
 
         let t0 = match &e0.ty {
             ReturnType::SelfType => current_class,
@@ -556,29 +625,9 @@ impl SemanticAnalyzer {
             .map(|arg| self.type_check_expr(current_class, arg, obj_env))
             .collect::<Result<_, _>>()?;
 
-        let rt = match self.method_table.lookup(&self.inheritance_tree, t0, name) {
-            Some(method_info) => {
-                let formals = method_info.formals();
+        let rt = self.check_method_call(current_class, t0, &e0.ty, name, &typed_args)?;
 
-                if formals.len() != typed_args.len() {
-                    return Err(vec![SemanticError::WrongNumberOfArguments]);
-                }
-
-                for (formal, arg) in formals.iter().zip(typed_args.iter()) {
-                    if !self.is_subtype(current_class, &arg.ty, &ReturnType::Type(formal.ty())) {
-                        return Err(vec![SemanticError::TypeMismatch]);
-                    }
-                }
-
-                match method_info.rt() {
-                    ReturnType::SelfType => e0.ty.clone(),
-                    ty => ty.clone(),
-                }
-            }
-            None => todo!(),
-        };
-
-        Ok(ExprNode::dispatch(e0, name, typed_args, current_class, rt))
+        Ok(ExprNode::dispatch(e0, name, typed_args, t0, rt))
     }
 
     fn check_overrides(&self, program: &parse_tree::Program) -> Result<(), Vec<SemanticError>> {
@@ -631,7 +680,7 @@ impl SemanticAnalyzer {
         Ok(())
     }
 
-    fn is_subtype(&self, current_class: ClassId, sub: &ReturnType, sup: &ReturnType) -> bool {
+    fn is_subtype(&self, current_class: usize, sub: &ReturnType, sup: &ReturnType) -> bool {
         match (sub, sup) {
             (ReturnType::SelfType, ReturnType::SelfType) => true,
             (ReturnType::SelfType, ReturnType::Type(t)) => {
@@ -642,7 +691,7 @@ impl SemanticAnalyzer {
         }
     }
 
-    fn lub(&self, current_class: ClassId, a: &ReturnType, b: &ReturnType) -> ReturnType {
+    fn lub(&self, current_class: usize, a: &ReturnType, b: &ReturnType) -> ReturnType {
         let lhs = match a {
             ReturnType::SelfType => current_class,
             ReturnType::Type(id) => *id,
