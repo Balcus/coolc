@@ -90,10 +90,10 @@ Comma<T>: Vec<T> = {
 };
 
 // Helper type for a single binding (x: Type or x: Type <- y)
-Binding: (parse_tree::Id, parse_tree::Id, Option<Box<parse_tree::Expr>>) = {
-    <n: "ID"> ":" <t: "TYPE"> =>
+Binding: (parse_tree::Id, parse_tree::TypeName, Option<Box<parse_tree::Expr>>) = {
+    <n: "ID"> ":" <t: Type> =>
         (n, t, None),
-    <n: "ID"> ":" <t: "TYPE"> "<-" <e: FullExpr> =>
+    <n: "ID"> ":" <t: Type> "<-" <e: FullExpr> =>
         (n, t, Some(Box::new(e))),
 }
 

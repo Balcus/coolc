@@ -174,7 +174,7 @@ pub enum ExprKind {
 
     Let {
         name: Id,
-        type_dec: Id,
+        type_dec: ReturnType,
         init: Option<Box<ExprNode>>,
         body: Box<ExprNode>,
     },

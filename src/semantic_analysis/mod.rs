@@ -21,6 +21,7 @@ use crate::{
 // can we NOT USE UNREACHABLE ????
 // Only one semantic error for type mismatch
 // Limit the semantic errors and create more general ones
+// SELF_TYPE will not work first time for sure!!
 
 pub mod inheritance_tree;
 pub mod method_table;
@@ -308,7 +309,10 @@ impl SemanticAnalyzer {
                 type_dec,
                 init,
                 body,
-            } => todo!(),
+            } => match init {
+                Some(init) => self.type_check_let_init(class_id, *name, type_dec, init, body, obj_env)?,
+                None => self.type_check_let_no_init(class_id, *name, type_dec, body, obj_env)?,
+            },
             parse_tree::Expr::Case { cond, branches } => todo!(),
             parse_tree::Expr::New(type_name) => todo!(),
             parse_tree::Expr::IsVoid(expr) => todo!(),
@@ -337,6 +341,80 @@ impl SemanticAnalyzer {
         }
 
         Ok(expr_node)
+    }
+
+    fn type_check_let_init(
+        &mut self,
+        class_id: usize,
+        var_name: usize,
+        type_dec: &TypeName,
+        init: &Box<parse_tree::Expr>,
+        body: &Box<parse_tree::Expr>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
+    ) -> Result<ast::ExprNode, Vec<SemanticError>> {
+        let declared_ty = ReturnType::from(*type_dec);
+
+        let e1 = self.type_check_expr(class_id, init, obj_env)?;
+
+        if !self.is_subtype(class_id, &e1.ty, &declared_ty) {
+            return Err(vec![SemanticError::TypeMismatch]);
+        };
+
+        obj_env.enter_scope();
+        obj_env.add_id(var_name, ObjInfo::new(declared_ty.clone(), ObjKind::Local));
+
+        let e2 = match self.type_check_expr(class_id, body, obj_env) {
+            Ok(node) => {
+                obj_env.exit_scope();
+                node
+            }
+            Err(e) => {
+                obj_env.exit_scope();
+                return Err(e);
+            }
+        };
+
+        let t2 = e2.ty.clone();
+
+        Ok(ExprNode::new(
+            ExprKind::Let {
+                name: var_name,
+                type_dec: declared_ty,
+                init: Some(Box::new(e1)),
+                body: Box::new(e2),
+            },
+            t2,
+        ))
+    }
+
+    fn type_check_let_no_init(
+        &mut self,
+        class_id: usize,
+        var_name: usize,
+        type_dec: &TypeName,
+        body: &Box<parse_tree::Expr>,
+        obj_env: &mut SymbolTable<usize, ObjInfo>,
+    ) -> Result<ast::ExprNode, Vec<SemanticError>> {
+        let declared_ty = ReturnType::from(*type_dec);
+
+        obj_env.enter_scope();
+        obj_env.add_id(var_name, ObjInfo::new(declared_ty.clone(), ObjKind::Local));
+
+        let e1 = match self.type_check_expr(class_id, body, obj_env) {
+            Ok(node) => {
+                obj_env.exit_scope();
+                node
+            }
+            Err(e) => {
+                obj_env.exit_scope();
+                return Err(e)
+            }
+        };
+
+        let t0 = declared_ty.clone();
+        let t1 = e1.ty.clone();
+
+        Ok(ExprNode::new(ExprKind::Let { name: var_name, type_dec: t0, init: None, body: Box::new(e1) }, t1))
     }
 
     fn type_check_not(
@@ -527,29 +605,22 @@ impl SemanticAnalyzer {
         expr: &Box<parse_tree::Expr>,
         obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, Vec<SemanticError>> {
-        let mut err = Vec::new();
-
         let ast_var = match var {
             parse_tree::Var::Id(id) => *id,
             parse_tree::Var::SelfValue => {
-                err.push(SemanticError::AssignmentToSelf);
-                return Err(err);
+                return Err(vec![SemanticError::AssignmentToSelf]);
             }
         };
 
         let declared_ty = match obj_env.lookup(&ast_var) {
             Some(info) => info.ty.clone(),
-            None => {
-                err.push(SemanticError::UndeclaredIdentifier);
-                return Err(err);
-            }
+            None => return Err(vec![SemanticError::UndeclaredIdentifier]),
         };
 
         let expr = self.type_check_expr(current_class, expr, obj_env)?;
 
         if !self.is_subtype(current_class, &expr.ty, &declared_ty) {
-            err.push(SemanticError::AssignmentTypeMismatch);
-            return Err(err);
+            return Err(vec![SemanticError::AssignmentTypeMismatch]);
         }
 
         let ty = expr.ty.clone();

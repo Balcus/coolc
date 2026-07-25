@@ -103,7 +103,7 @@ pub enum Expr {
 
     Let {
         name: Id,
-        type_dec: Id,
+        type_dec: TypeName,
         init: Option<Box<Expr>>,
         body: Box<Expr>,
     },

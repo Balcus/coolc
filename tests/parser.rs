@@ -1166,7 +1166,7 @@ mod succeds_parsing {
                         type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
                         body: Box::new(parse_tree::Expr::Let {
                             name: i(&mut s_table, "x"),
-                            type_dec: i(&mut s_table, "Int"),
+                            type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
                             init: None,
                             body: Box::new(parse_tree::Expr::Block(vec![
                                 parse_tree::Expr::Assignment {
@@ -1217,15 +1217,15 @@ mod succeds_parsing {
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(parse_tree::Expr::Let {
                         name: i(&mut s_table, "x"),
-                        type_dec: i(&mut s_table, "Int"),
+                        type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
                         init: None,
                         body: Box::new(parse_tree::Expr::Let {
                             name: i(&mut s_table, "y"),
-                            type_dec: i(&mut s_table, "Int"),
+                            type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
                             init: Some(Box::new(parse_tree::Expr::IntConstant(5))),
                             body: Box::new(parse_tree::Expr::Let {
                                 name: i(&mut s_table, "z"),
-                                type_dec: i(&mut s_table, "Bool"),
+                                type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Bool")),
                                 init: None,
                                 body: Box::new(parse_tree::Expr::Block(vec![
                                     parse_tree::Expr::Assignment {
@@ -1272,11 +1272,11 @@ mod succeds_parsing {
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
                     body: Box::new(parse_tree::Expr::Let {
                         name: i(&mut s_table, "x"),
-                        type_dec: i(&mut s_table, "Int"),
+                        type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
                         init: Some(Box::new(parse_tree::Expr::IntConstant(1))),
                         body: Box::new(parse_tree::Expr::Let {
                             name: i(&mut s_table, "y"),
-                            type_dec: i(&mut s_table, "Int"),
+                            type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
                             init: Some(Box::new(parse_tree::Expr::IntConstant(2))),
                             body: Box::new(parse_tree::Expr::Add(
                                 Box::new(parse_tree::Expr::Object(i(&mut s_table, "x"))),
@@ -1323,11 +1323,11 @@ mod succeds_parsing {
                     body: Box::new(parse_tree::Expr::Block(vec![
                         parse_tree::Expr::Let {
                             name: i(&mut s_table, "x"),
-                            type_dec: i(&mut s_table, "Int"),
+                            type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
                             init: Some(Box::new(parse_tree::Expr::IntConstant(1))),
                             body: Box::new(parse_tree::Expr::Let {
                                 name: i(&mut s_table, "y"),
-                                type_dec: i(&mut s_table, "Int"),
+                                type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
                                 init: Some(Box::new(parse_tree::Expr::IntConstant(2))),
                                 body: Box::new(parse_tree::Expr::Add(
                                     Box::new(parse_tree::Expr::Object(i(&mut s_table, "x"))),
