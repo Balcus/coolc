@@ -1,13 +1,10 @@
-use crate::{
-    semantic_analysis::method_table::ReturnType,
-    string_table::{BOOL_ID, INT_ID, STRING_ID},
-};
+use crate::semantic_analysis::method_table::ReturnType;
 use std::usize;
 
 type Id = usize;
 type ClassId = usize;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Root {
     pub classes: Vec<ClassNode>,
 }
@@ -18,7 +15,7 @@ impl Root {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ClassNode {
     pub name: ClassId,
     pub parent: Option<ClassId>,
@@ -35,7 +32,7 @@ impl ClassNode {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum FeatureNode {
     Attribute {
         name: Id,
@@ -60,13 +57,13 @@ impl FeatureNode {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FormalNode {
     pub name: Id,
     pub type_dec: ClassId,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ExprNode {
     pub kind: ExprKind,
     pub ty: ReturnType,
@@ -76,57 +73,9 @@ impl ExprNode {
     pub fn new(kind: ExprKind, ty: ReturnType) -> Self {
         Self { kind, ty }
     }
-
-    pub fn bool_const(value: &bool) -> Self {
-        return ExprNode::new(ExprKind::BoolConstant(*value), ReturnType::Type(BOOL_ID));
-    }
-
-    pub fn int_const(value: &i64) -> Self {
-        return ExprNode::new(ExprKind::IntConstant(*value), ReturnType::Type(INT_ID));
-    }
-
-    pub fn string_const(value: &usize) -> Self {
-        return ExprNode::new(
-            ExprKind::StringConstant(*value),
-            ReturnType::Type(STRING_ID),
-        );
-    }
-
-    pub fn self_expr() -> Self {
-        return ExprNode::new(ExprKind::SelfExpr, ReturnType::SelfType);
-    }
-
-    pub fn conditional(predicate: ExprNode, sp: ExprNode, hp: ExprNode, rt: ReturnType) -> Self {
-        return ExprNode::new(
-            ExprKind::Conditional {
-                cond: Box::new(predicate),
-                happy_path: Box::new(hp),
-                sad_path: Box::new(sp),
-            },
-            rt,
-        );
-    }
-
-    pub fn dispatch(
-        e0: ExprNode,
-        method_name: Id,
-        args: Vec<ExprNode>,
-        static_class: ClassId,
-        rt: ReturnType,
-    ) -> Self {
-        Self {
-            kind: ExprKind::Dispatch {
-                expr: Box::new(e0),
-                name: method_name,
-                args,
-                static_class,
-            },
-            ty: rt,
-        }
-    }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ExprKind {
     BoolConstant(bool),
     IntConstant(i64),
@@ -200,13 +149,13 @@ pub enum ExprKind {
     Not(Box<ExprNode>),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Var {
     Id(Id),
     SelfValue,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CaseBranchNode {
     pub name: Id,
     pub type_dec: Id,

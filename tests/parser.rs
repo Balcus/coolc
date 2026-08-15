@@ -1542,7 +1542,9 @@ mod succeds_parsing {
 }
 
 mod fail_parsing {
-    use coolc::{lexer::ErrorKind, utils};
+    use core::panic;
+
+use coolc::{lexer::ErrorKind, utils};
 
     use super::*;
 
@@ -1652,9 +1654,16 @@ mod fail_parsing {
             lalrpop_util::ParseError::UnrecognizedToken { .. }
         ));
 
-        let parse_tree::Class::Valid { features, .. } = &program.classes[0] else {
-            panic!()
+        let features = match program.classes.get(0) {
+            Some(class) => {
+                match class {
+                    parse_tree::Class::Valid { features, .. } => features,
+                    parse_tree::Class::Invalid => panic!("Expected a valid class definition"),
+                }
+            },
+            None => panic!("Expected at least one class in the program"),
         };
+
         assert_eq!(features.len(), 3);
 
         let x = i(&mut s_table, "x");

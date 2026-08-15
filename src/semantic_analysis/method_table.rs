@@ -4,15 +4,10 @@ use crate::{
 };
 use std::collections::HashMap;
 
-type ClassId = usize;
-type MethodId = usize;
-type TypeId = usize;
-type ObjectId = usize;
-
 #[derive(Debug, PartialEq, Clone)]
 pub enum ReturnType {
     SelfType,
-    Type(TypeId),
+    Type(usize),
 }
 
 impl ReturnType {
@@ -32,10 +27,7 @@ pub struct MethodInfo {
 
 impl MethodInfo {
     pub fn new(formal_info: Vec<FormalInfo>, rt: ReturnType) -> Self {
-        Self {
-            formal_info,
-            rt,
-        }
+        Self { formal_info, rt }
     }
 
     pub fn formals(&self) -> &Vec<FormalInfo> {
@@ -59,23 +51,27 @@ impl MethodInfo {
 
 #[derive(Debug, PartialEq)]
 pub struct FormalInfo {
-    name: ObjectId,
-    ty: TypeId,
+    name: usize,
+    ty: usize,
 }
 
 impl FormalInfo {
-    pub fn new(name: ObjectId, ty: TypeId) -> Self {
+    pub fn new(name: usize, ty: usize) -> Self {
         Self { name, ty }
     }
 
-    pub fn ty(&self) -> TypeId {
+    pub fn ty(&self) -> usize {
         self.ty
+    }
+
+    pub fn name(&self) -> usize {
+        self.name
     }
 }
 
 #[derive(Debug)]
 pub struct MethodTable {
-    inner: HashMap<(ClassId, MethodId), MethodInfo>,
+    inner: HashMap<(usize, usize), MethodInfo>,
 }
 
 impl MethodTable {
@@ -111,10 +107,7 @@ impl MethodTable {
                                 parse_tree::TypeName::Type(id) => ReturnType::Type(*id),
                             };
 
-                            let method_info = MethodInfo {
-                                formal_info,
-                                rt,
-                            };
+                            let method_info = MethodInfo { formal_info, rt };
 
                             if let Err(error) = table.insert(defining_class, *name, method_info) {
                                 errors.push(error);
@@ -134,8 +127,8 @@ impl MethodTable {
 
     fn insert(
         &mut self,
-        class_id: ClassId,
-        method_id: MethodId,
+        class_id: usize,
+        method_id: usize,
         method_info: MethodInfo,
     ) -> Result<(), SemanticError> {
         if self.inner.contains_key(&(class_id, method_id)) {
@@ -146,19 +139,15 @@ impl MethodTable {
         Ok(())
     }
 
-    pub fn get(&self, class_id: ClassId, method_id: MethodId) -> Option<&MethodInfo> {
+    pub fn get(&self, class_id: usize, method_id: usize) -> Option<&MethodInfo> {
         self.inner.get(&(class_id, method_id))
-    }
-
-    pub fn contains(&self, class_id: ClassId, method_id: MethodId) -> bool {
-        self.inner.contains_key(&(class_id, method_id))
     }
 
     pub fn lookup(
         &self,
         inheritance: &InheritanceTree,
-        class_id: ClassId,
-        method_id: MethodId,
+        class_id: usize,
+        method_id: usize,
     ) -> Option<&MethodInfo> {
         let mut current = Some(class_id);
 

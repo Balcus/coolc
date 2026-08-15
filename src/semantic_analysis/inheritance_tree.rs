@@ -1,14 +1,13 @@
 use crate::{
     parse_tree::{Class, Program},
     semantic_analysis::SemanticError,
+    string_table::OBJECT_ID,
 };
 use std::collections::{HashMap, HashSet};
 
-type ClassId = usize;
-
 #[derive(Debug)]
 pub struct InheritanceTree {
-    inner: HashMap<ClassId, Option<ClassId>>,
+    inner: HashMap<usize, Option<usize>>,
 }
 
 impl InheritanceTree {
@@ -19,6 +18,8 @@ impl InheritanceTree {
 
         let mut err = Vec::new();
 
+        tree.inner.insert(OBJECT_ID, None);
+
         for class in &ast.classes {
             if let Class::Valid { name, parent, .. } = class {
                 if tree.inner.contains_key(name) {
@@ -26,7 +27,14 @@ impl InheritanceTree {
                     continue;
                 }
 
-                tree.inner.insert(*name, *parent);
+                // Insert object in the class hierarchy
+                let parent = match parent {
+                    Some(parent) => Some(*parent),
+                    None if *name != OBJECT_ID => Some(OBJECT_ID),
+                    None => None,
+                };
+
+                tree.inner.insert(*name, parent);
             }
         }
 
@@ -47,7 +55,7 @@ impl InheritanceTree {
         Ok(tree)
     }
 
-    pub fn contains(&self, class: ClassId) -> bool {
+    pub fn contains(&self, class: usize) -> bool {
         self.inner.contains_key(&class)
     }
 
@@ -68,7 +76,7 @@ impl InheritanceTree {
         false
     }
 
-    pub fn is_ancestor(&self, ancestor: ClassId, descendant: ClassId) -> bool {
+    pub fn is_ancestor(&self, ancestor: usize, descendant: usize) -> bool {
         let mut current = descendant;
 
         while let Some(parent) = self.parent(current) {
@@ -82,45 +90,44 @@ impl InheritanceTree {
         false
     }
 
-    pub fn is_subtype(&self, subtype: ClassId, supertype: ClassId) -> bool {
+    pub fn is_subtype(&self, subtype: usize, supertype: usize) -> bool {
         subtype == supertype || self.is_ancestor(supertype, subtype)
     }
 
-    pub fn parent(&self, class: ClassId) -> Option<ClassId> {
+    pub fn parent(&self, class: usize) -> Option<usize> {
         self.inner.get(&class).copied().flatten()
     }
 
-    pub fn lub(&self, a: ClassId, b: ClassId) -> ClassId {
+    pub fn lub(&self, a: usize, b: usize) -> usize {
         let mut a_anc = HashSet::new();
-
         let mut current = Some(a);
         while let Some(class) = current {
             a_anc.insert(class);
             current = self.parent(class);
         }
-
         current = Some(b);
         while let Some(class) = current {
             if a_anc.contains(&class) {
                 return class;
             }
-
             current = self.parent(class);
-        }
+        };
 
         unreachable!(
             "There needs to be at least one common ancestor between any 2 classes in COOL!"
         );
+
+        0
     }
 }
 
 #[cfg(test)]
 mod test {
     use crate::{
+        semantic_analysis::OBJECT_ID,
         semantic_analysis::{SemanticError, inheritance_tree::InheritanceTree},
         utils::parse_program,
     };
-
     #[test]
     fn valid_hierarchy() {
         let (s_table, program) = parse_program(
@@ -139,7 +146,7 @@ mod test {
         let c = s_table.lookup("C").unwrap();
         let d = s_table.lookup("D").unwrap();
 
-        assert_eq!(tree.parent(a), None);
+        assert_eq!(tree.parent(a), Some(OBJECT_ID));
         assert_eq!(tree.parent(b), Some(a));
         assert_eq!(tree.parent(c), Some(a));
         assert_eq!(tree.parent(d), Some(b));
@@ -188,6 +195,7 @@ mod test {
 
         assert_eq!(errors.len(), 1);
         assert_eq!(errors[0], SemanticError::DuplicateClass);
+        println!("{:#?}", errors)
     }
 
     #[test]
