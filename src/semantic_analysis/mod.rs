@@ -28,6 +28,7 @@ pub mod inheritance_tree;
 pub mod method_table;
 pub mod symbol_table;
 
+#[derive(Debug)]
 pub enum ArithOp {
     Add,
     Sub,
@@ -35,6 +36,7 @@ pub enum ArithOp {
     Div,
 }
 
+#[derive(Debug)]
 pub enum CompOp {
     Lt,
     Le,
@@ -69,6 +71,7 @@ pub enum SemanticError {
     InvalidBlockConstruct,
 }
 
+#[derive(Debug)]
 pub enum ObjKind {
     Local,
     Formal,
@@ -76,6 +79,7 @@ pub enum ObjKind {
     SelfObject,
 }
 
+#[derive(Debug)]
 pub struct ObjInfo {
     ty: ReturnType,
     kind: ObjKind,
@@ -87,6 +91,7 @@ impl ObjInfo {
     }
 }
 
+#[derive(Debug)]
 pub struct SemanticAnalyzer {
     inheritance_tree: InheritanceTree,
     method_table: MethodTable,
@@ -146,6 +151,7 @@ impl SemanticAnalyzer {
         Ok(ast::Root::new(classes))
     }
 
+    // a class with no parent should by default have the parent Object
     fn type_check_class(
         &mut self,
         class: &parse_tree::Class,

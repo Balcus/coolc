@@ -1,6 +1,7 @@
 mod succeds_type_check {
-    use std::{assert_eq, vec};
-
+    use core::panic;
+use std::{assert_eq, println, vec};
+    use test_case::test_case;
     use coolc::{
         ast,
         semantic_analysis::{SemanticAnalyzer, method_table::ReturnType},
@@ -72,5 +73,35 @@ mod succeds_type_check {
         };
 
         assert_eq!(ast, expected);
+    }
+
+    #[test_case("arith.cl", include_str!("../examples/arith.cl"); "arith")]
+    #[test_case("atoi.cl", include_str!("../examples/atoi.cl"); "atoi")]
+    #[test_case("atoi_test.cl", include_str!("../examples/atoi_test.cl"); "atoi_test")]
+    #[test_case("book_list.cl", include_str!("../examples/book_list.cl"); "book_list")]
+    #[test_case("cells.cl", include_str!("../examples/cells.cl"); "cells")]
+    #[test_case("complex.cl", include_str!("../examples/complex.cl"); "complex")]
+    #[test_case("cool.cl", include_str!("../examples/cool.cl"); "cool")]
+    #[test_case("hairyscary.cl", include_str!("../examples/hairyscary.cl"); "hairyscary")]
+    #[test_case("hello_world.cl", include_str!("../examples/hello_world.cl"); "hello_world")]
+    #[test_case("io.cl", include_str!("../examples/io.cl"); "io")]
+    #[test_case("lam.cl", include_str!("../examples/lam.cl"); "lam")]
+    #[test_case("life.cl", include_str!("../examples/life.cl"); "life")]
+    #[test_case("list.cl", include_str!("../examples/list.cl"); "list")]
+    #[test_case("new_complex.cl", include_str!("../examples/new_complex.cl"); "new_complex")]
+    #[test_case("palindrome.cl", include_str!("../examples/palindrome.cl"); "palindrome")]
+    #[test_case("primes.cl", include_str!("../examples/primes.cl"); "primes")]
+    #[test_case("sort_list.cl", include_str!("../examples/sort_list.cl"); "sort_list")]
+    fn type_check_examples(_: &str, input: &str) {
+        let (s_table, program) = parse_program(input);
+        let ast = SemanticAnalyzer::analyze(&program);
+        match ast {
+            Ok(_) => todo!(),
+            Err(e) => {
+                println!("{:#?}", e);
+                println!("{:#?}", s_table);
+                panic!("Failed type checking");
+            },
+        }
     }
 }
