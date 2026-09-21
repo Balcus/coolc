@@ -1,13 +1,9 @@
-mod succeds_type_check {
+mod succeeds_type_check {
     use core::panic;
 use std::{assert_eq, println, vec};
     use test_case::test_case;
-    use coolc::{
-        ast,
-        semantic_analysis::{SemanticAnalyzer, method_table::ReturnType},
-        string_table::{BOOL_ID, INT_ID, STRING_ID},
-        utils::parse_program,
-    };
+    use coolc::{ast, semantic_analysis::{SemanticAnalyzer, method_table::ReturnType}, utils::parse_program};
+    use coolc::semantic_analysis::builtins::{BOOL_ID, INT_ID, STRING_ID};
 
     #[test]
     fn object_inheritance() {
@@ -75,6 +71,22 @@ use std::{assert_eq, println, vec};
         assert_eq!(ast, expected);
     }
 
+    #[test]
+    fn test_hairyscary() {
+        let (_, program) = parse_program(include_str!("../examples/hairyscary.cl"));
+        let res = SemanticAnalyzer::analyze(&program);
+        match res {
+            Ok(_) => {
+                assert!(true);
+            }
+            Err(e) => {
+                println!("{:#?}", e);
+                assert!(false);
+            }
+        }
+        // assert!(SemanticAnalyzer::analyze(&program).is_ok());
+    }
+
     #[test_case("arith.cl", include_str!("../examples/arith.cl"); "arith")]
     #[test_case("atoi.cl", include_str!("../examples/atoi.cl"); "atoi")]
     #[test_case("atoi_test.cl", include_str!("../examples/atoi_test.cl"); "atoi_test")]
@@ -93,15 +105,7 @@ use std::{assert_eq, println, vec};
     #[test_case("primes.cl", include_str!("../examples/primes.cl"); "primes")]
     #[test_case("sort_list.cl", include_str!("../examples/sort_list.cl"); "sort_list")]
     fn type_check_examples(_: &str, input: &str) {
-        let (s_table, program) = parse_program(input);
-        let ast = SemanticAnalyzer::analyze(&program);
-        match ast {
-            Ok(_) => todo!(),
-            Err(e) => {
-                println!("{:#?}", e);
-                println!("{:#?}", s_table);
-                panic!("Failed type checking");
-            },
-        }
+        let (_, program) = parse_program(input);
+        assert!(SemanticAnalyzer::analyze(&program).is_ok());
     }
 }

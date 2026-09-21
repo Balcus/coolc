@@ -2,31 +2,28 @@
 use core::panic;
 use std::{todo, unreachable, vec};
 
-use crate::{
-    ast::{self, ExprKind, ExprNode, FeatureNode},
-    parse_tree::{self, TypeName},
-    semantic_analysis::{
-        inheritance_tree::InheritanceTree,
-        method_table::{FormalInfo, MethodInfo, MethodTable, ReturnType},
-        symbol_table::SymbolTable,
-    },
-    string_table::{BOOL_ID, INT_ID, OBJECT_ID, STRING_ID},
-};
-
+use crate::{ast::{self, ExprKind, ExprNode, FeatureNode}, parse_tree::{self, TypeName}, semantic_analysis::{
+    inheritance_tree::InheritanceTree,
+    method_table::{FormalInfo, MethodInfo, MethodTable, ReturnType},
+    symbol_table::SymbolTable,
+}};
+use crate::semantic_analysis::builtins::{BOOL_ID, INT_ID, OBJECT_ID, STRING_ID};
 // TODO: NEEDS BIG REFACTOR
 // rethink how to propagate errors, maybe a struct field would be better
 // one single return type variant (currently we have both ReturnType and parse_tree::TypeName)
 // MAYBE we can just annotate the previous tree instead of creating a new one but it would be painful to match on valid and invalid every time
 // if that is not an option i think a better approach would be to consume the parse tree in order to generate the ast
-// actually useful error informations
+// actually useful error information
 // can we NOT USE UNREACHABLE ????
 // Only one semantic error for type mismatch
 // Limit the semantic errors and create more general ones
 // SELF_TYPE will not work first time for sure!!
+// Seed the environment with the base classes and methods for them:
 
 pub mod inheritance_tree;
 pub mod method_table;
 pub mod symbol_table;
+pub mod builtins;
 
 #[derive(Debug)]
 pub enum ArithOp {

@@ -1,7 +1,7 @@
+use crate::semantic_analysis::builtins::{BOOL_ID, BUILTINS, INT_ID, OBJECT_ID, STRING_ID};
 use crate::{
     parse_tree::{Class, Program},
     semantic_analysis::SemanticError,
-    string_table::OBJECT_ID,
 };
 use std::collections::{HashMap, HashSet};
 
@@ -18,7 +18,7 @@ impl InheritanceTree {
 
         let mut err = Vec::new();
 
-        tree.inner.insert(OBJECT_ID, None);
+        tree.seed();
 
         for class in &ast.classes {
             if let Class::Valid { name, parent, .. } = class {
@@ -30,8 +30,7 @@ impl InheritanceTree {
                 // Insert object in the class hierarchy
                 let parent = match parent {
                     Some(parent) => Some(*parent),
-                    None if *name != OBJECT_ID => Some(OBJECT_ID),
-                    None => None,
+                    None => Some(OBJECT_ID),
                 };
 
                 tree.inner.insert(*name, parent);
@@ -53,6 +52,12 @@ impl InheritanceTree {
         }
 
         Ok(tree)
+    }
+
+    pub fn seed(&mut self) {
+        for class in BUILTINS {
+            self.inner.insert(class.id, class.parent);
+        }
     }
 
     pub fn contains(&self, class: usize) -> bool {
@@ -111,7 +116,7 @@ impl InheritanceTree {
                 return class;
             }
             current = self.parent(class);
-        };
+        }
 
         unreachable!(
             "There needs to be at least one common ancestor between any 2 classes in COOL!"
@@ -123,11 +128,36 @@ impl InheritanceTree {
 
 #[cfg(test)]
 mod test {
+    use crate::semantic_analysis::builtins::{BOOL_ID, INT_ID, IO_ID, OBJECT_ID, STRING_ID};
     use crate::{
-        semantic_analysis::OBJECT_ID,
         semantic_analysis::{SemanticError, inheritance_tree::InheritanceTree},
         utils::parse_program,
     };
+
+    #[test]
+    fn is_seeded() {
+        let (s_table, program) = parse_program(
+            r#"
+                class A {};
+            "#,
+        );
+
+        let tree = InheritanceTree::build(&program).unwrap();
+        let a = s_table.lookup("A").unwrap();
+
+        assert_eq!(tree.parent(a), Some(OBJECT_ID));
+
+        assert!(tree.contains(OBJECT_ID));
+        assert!(tree.contains(BOOL_ID));
+        assert!(tree.contains(STRING_ID));
+        assert!(tree.contains(INT_ID));
+        assert!(tree.contains(IO_ID));
+
+        assert_eq!(tree.parent(BOOL_ID), Some(OBJECT_ID));
+        assert_eq!(tree.parent(STRING_ID), Some(OBJECT_ID));
+        assert_eq!(tree.parent(INT_ID), Some(OBJECT_ID));
+        assert_eq!(tree.parent(IO_ID), Some(OBJECT_ID));
+    }
     #[test]
     fn valid_hierarchy() {
         let (s_table, program) = parse_program(
@@ -195,7 +225,6 @@ mod test {
 
         assert_eq!(errors.len(), 1);
         assert_eq!(errors[0], SemanticError::DuplicateClass);
-        println!("{:#?}", errors)
     }
 
     #[test]

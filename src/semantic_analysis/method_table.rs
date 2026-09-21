@@ -1,3 +1,4 @@
+use crate::semantic_analysis::builtins::BUILTINS;
 use crate::{
     parse_tree::{self, TypeName},
     semantic_analysis::{SemanticError, inheritance_tree::InheritanceTree},
@@ -75,12 +76,28 @@ pub struct MethodTable {
 }
 
 impl MethodTable {
+    fn seed(&mut self) {
+        for class in BUILTINS {
+            for m in class.methods {
+                let formals = m
+                    .params
+                    .iter()
+                    .map(|&(name, ty)| FormalInfo::new(name, ty))
+                    .collect();
+
+                self.inner
+                    .insert((class.id, m.name), MethodInfo::new(formals, m.rt.clone()));
+            }
+        }
+    }
+
     pub fn build(program: &parse_tree::Program) -> Result<Self, Vec<SemanticError>> {
         let mut table = Self {
             inner: HashMap::new(),
         };
 
         let mut errors = Vec::new();
+        table.seed();
 
         for class in &program.classes {
             match class {
@@ -169,6 +186,95 @@ pub mod test {
         semantic_analysis::method_table::{FormalInfo, MethodInfo, MethodTable, ReturnType},
         utils::parse_program,
     };
+    use crate::semantic_analysis::builtins::{
+        ABORT_ID, CONCAT_ID, COPY_ID, I_ID, IN_INT_ID, IN_STRING_ID, INT_ID, IO_ID, L_ID,
+        LENGTH_ID, OBJECT_ID, OUT_INT_ID, OUT_STRING_ID, S_ID, STRING_ID, SUBSTR_ID,
+        TYPE_NAME_ID, X_ID,
+    };
+
+    #[test]
+    fn builtin_methods_are_seeded() {
+        let (_, program) = parse_program("class A {};");
+        let tbl = MethodTable::build(&program).unwrap();
+
+        // Object
+        assert_eq!(
+            tbl.get(OBJECT_ID, ABORT_ID),
+            Some(&MethodInfo::new(vec![], ReturnType::Type(OBJECT_ID)))
+        );
+        assert_eq!(
+            tbl.get(OBJECT_ID, TYPE_NAME_ID),
+            Some(&MethodInfo::new(vec![], ReturnType::Type(STRING_ID)))
+        );
+        assert_eq!(
+            tbl.get(OBJECT_ID, COPY_ID),
+            Some(&MethodInfo::new(vec![], ReturnType::SelfType))
+        );
+
+        // IO
+        assert_eq!(
+            tbl.get(IO_ID, OUT_STRING_ID),
+            Some(&MethodInfo::new(
+                vec![FormalInfo::new(X_ID, STRING_ID)],
+                ReturnType::SelfType
+            ))
+        );
+        assert_eq!(
+            tbl.get(IO_ID, OUT_INT_ID),
+            Some(&MethodInfo::new(
+                vec![FormalInfo::new(X_ID, INT_ID)],
+                ReturnType::SelfType
+            ))
+        );
+        assert_eq!(
+            tbl.get(IO_ID, IN_STRING_ID),
+            Some(&MethodInfo::new(vec![], ReturnType::Type(STRING_ID)))
+        );
+        assert_eq!(
+            tbl.get(IO_ID, IN_INT_ID),
+            Some(&MethodInfo::new(vec![], ReturnType::Type(INT_ID)))
+        );
+
+        // String
+        assert_eq!(
+            tbl.get(STRING_ID, LENGTH_ID),
+            Some(&MethodInfo::new(vec![], ReturnType::Type(INT_ID)))
+        );
+        assert_eq!(
+            tbl.get(STRING_ID, CONCAT_ID),
+            Some(&MethodInfo::new(
+                vec![FormalInfo::new(S_ID, STRING_ID)],
+                ReturnType::Type(STRING_ID)
+            ))
+        );
+        assert_eq!(
+            tbl.get(STRING_ID, SUBSTR_ID),
+            Some(&MethodInfo::new(
+                vec![FormalInfo::new(I_ID, INT_ID), FormalInfo::new(L_ID, INT_ID)],
+                ReturnType::Type(STRING_ID)
+            ))
+        );
+    }
+
+    #[test]
+    fn seeding_does_not_break_user_methods() {
+        use crate::semantic_analysis::builtins::OBJECT_ID;
+
+        let (s_table, program) = parse_program(
+            r#"
+        class A {
+            foo() : Int { 0 };
+        };
+    "#,
+        );
+
+        let tbl = MethodTable::build(&program).unwrap();
+        let a = s_table.lookup("A").unwrap();
+        let foo = s_table.lookup("foo").unwrap();
+
+        assert!(tbl.get(a, foo).is_some());
+        assert!(tbl.get(OBJECT_ID, foo).is_none());
+    }
 
     #[test]
     fn valid_methods() {

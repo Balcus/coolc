@@ -26,7 +26,7 @@ fn i(s_table: &mut StringTable, s: &str) -> usize {
     s_table.insert(s.to_string())
 }
 
-mod succeds_parsing {
+mod succeeds_parsing {
     use super::*;
     use test_case::test_case;
 
