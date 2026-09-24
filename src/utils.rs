@@ -38,7 +38,7 @@ pub fn parse_program(input: &str) -> (StringTable, Program) {
 
     let tokens = Box::new(LexerWrapper::new(input, &mut string_table, "".to_string()));
 
-    let mut parser = parser::Parser::new(&mut errors);
+    let mut parser = parser::Parser::new("", &mut errors);
     let program = parser.parse(tokens).unwrap();
 
     (string_table, program)

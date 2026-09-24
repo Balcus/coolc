@@ -149,7 +149,7 @@ impl MethodTable {
         method_info: MethodInfo,
     ) -> Result<(), SemanticError> {
         if self.inner.contains_key(&(class_id, method_id)) {
-            return Err(SemanticError::RedefinedMethodInSameClass);
+            return Err(SemanticError { kind: super::SemanticErrorKind::RedefinedMethod { class: class_id, method: method_id }, span: None });
         }
 
         self.inner.insert((class_id, method_id), method_info);

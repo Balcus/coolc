@@ -2,7 +2,7 @@ use clap::Parser;
 use coolc::diagnostic::Diagnostic;
 use coolc::lexer::LexerWrapper;
 use coolc::parser;
-use coolc::semantic_analysis::inheritance_tree::InheritanceTree;
+use coolc::semantic_analysis::SemanticAnalyzer;
 use coolc::string_table::StringTable;
 use std::{fs, println};
 
@@ -34,7 +34,7 @@ fn main() {
 
     let tokens = Box::new(LexerWrapper::new(&input, &mut s_table, cli.path.clone()));
 
-    let mut parser = parser::Parser::new(&mut errors);
+    let mut parser = parser::Parser::new(&cli.path, &mut errors);
 
     let program = match parser.parse(tokens) {
         Some(program) => program,
@@ -48,18 +48,18 @@ fn main() {
         println!("Generated Parse Tree:");
         println!("{:#?}", program);
         println!("{:#?}", s_table);
-
     } else {
         println!("{} passed parser checks", cli.path);
     }
 
-    let _inheritance_tree = match InheritanceTree::build(&program) {
-        Ok(tree) => tree,
-        Err(errors) => {
-            for err in errors {
-                println!("{:#?}", err);
-            }
-            return;
+    match SemanticAnalyzer::analyze(&program) {
+        Ok(_ast) => {
+            println!("{} passed semantic checks", cli.path);
         }
-    };
+        Err(semantic_errors) => {
+            todo!()
+            // let mut diagnostic = Diagnostic::new(cli.path.clone(), input.clone(), semantic_errors);
+            // diagnostic.emit_errors();
+        }
+    }
 }

@@ -1,3 +1,5 @@
+use crate::utils::Span;
+
 pub type Id = usize;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -57,8 +59,29 @@ pub struct CaseBranch {
     pub body: Box<Expr>,
 }
 
+#[derive(Debug, Clone)]
+pub struct Expr {
+    pub kind: ExprKind,
+    pub span: Span,
+}
+
+impl Expr {
+    pub fn new(kind: ExprKind, file: &str, start: usize, end: usize) -> Self {
+        Self {
+            kind,
+            span: Span::new(file.to_string(), start, end),
+        }
+    }
+}
+
+impl PartialEq for Expr {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
-pub enum Expr {
+pub enum ExprKind {
     BoolConstant(bool),
     IntConstant(i64),
     StringConstant(Id),

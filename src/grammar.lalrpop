@@ -7,7 +7,7 @@
  * Parser needs to work for programs contained in a single file
  *
  * Error Handling:
- * The parser should recover at leparse_tree in the following situations:
+ * The parser should recover in the following situations:
  * - if error in class definition but class terminated properly and next class is syntactically correct,
  * the parser should be able to start from next class definition
  *
@@ -24,8 +24,9 @@
 use crate::lexer::{Token, ErrorToken};
 use lalrpop_util::ErrorRecovery;
 use crate::parse_tree;
+use crate::utils::Span;
 
-grammar<'err>(errors: &'err mut Vec<ErrorRecovery<usize, Token, ErrorToken>>);
+grammar<'err>(file: &'err str, errors: &'err mut Vec<ErrorRecovery<usize, Token, ErrorToken>>);
 
 extern {
     type Location = usize;
@@ -90,11 +91,11 @@ Comma<T>: Vec<T> = {
 };
 
 // Helper type for a single binding (x: Type or x: Type <- y)
-Binding: (parse_tree::Id, parse_tree::TypeName, Option<Box<parse_tree::Expr>>) = {
-    <n: "ID"> ":" <t: Type> =>
-        (n, t, None),
-    <n: "ID"> ":" <t: Type> "<-" <e: FullExpr> =>
-        (n, t, Some(Box::new(e))),
+Binding: (parse_tree::Id, parse_tree::TypeName, Option<Box<parse_tree::Expr>>, Span) = {
+    <l:@L> <n: "ID"> ":" <t: Type> <r:@R> =>
+        (n, t, None, Span::new(file.to_string(), l, r)),
+    <l:@L> <n: "ID"> ":" <t: Type> "<-" <e: FullExpr> <r:@R> =>
+        (n, t, Some(Box::new(e)), Span::new(file.to_string(), l, r)),
 }
 
 FullExpr: parse_tree::Expr = {
@@ -142,7 +143,7 @@ Feature: parse_tree::Feature = {
             init: Some(Box::new(expr))
         },
 
-    // Method with single expression body
+    // Method
     <name: "ID"> "(" <params: Comma<Formal>> ")" ":" <type_dec: Type> "{" <expr: FullExpr> "}" ";" =>
         parse_tree::Feature::Method {
             name,
@@ -152,12 +153,20 @@ Feature: parse_tree::Feature = {
         },
 
     // Method with block body
-    <name: "ID"> "(" <params: Comma<Formal>> ")" ":" <type_dec: Type> "{" <body: (<FullExpr> ";")+> "}" ";" =>
+    <name: "ID"> "(" <params: Comma<Formal>> ")" ":" <type_dec: Type>
+    "{" <body: (<FullExpr> ";")+> "}" ";" =>
         parse_tree::Feature::Method {
             name,
             params,
             type_dec,
-            body: Box::new(parse_tree::Expr::Block(body)),
+            body: Box::new(
+                parse_tree::Expr::new(
+                    parse_tree::ExprKind::Block(body),
+                    file,
+                    0,
+                    0,
+                )
+            ),
         },
 
     // Invalid features
@@ -194,112 +203,143 @@ Type: parse_tree::TypeName = {
 }
 
 Expr: parse_tree::Expr = {
-    // Constnats & Identifiers
+    // Constants & Identifiers
     #[precedence(level="0")]
-    <n: "integer"> => parse_tree::Expr::IntConstant(n),
-    <s: "string"> => parse_tree::Expr::StringConstant(s),
-    <b: "boolean"> => parse_tree::Expr::BoolConstant(b),
-    <o: "ID"> => parse_tree::Expr::Object(o),
-    "self" => parse_tree::Expr::SelfExpr,
+    <l:@L> <n: "integer"> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::IntConstant(n), file, l, r),
+    <l:@L> <s: "string"> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::StringConstant(s), file, l, r),
+    <l:@L> <b: "boolean"> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::BoolConstant(b), file, l, r),
+    <l:@L> <o: "ID"> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::Object(o), file, l, r),
+    <l:@L> "self" <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::SelfExpr, file, l, r),
     <e: Paren> => e,
 
     // Control flow
-    "if" <cond: FullExpr> "then" <happy_path: FullExpr> "else" <sad_path: FullExpr> "fi" =>
-        parse_tree::Expr::Conditional {
-            cond: Box::new(cond),
-            happy_path: Box::new(happy_path),
-            sad_path: Box::new(sad_path)
-        },
+    <l:@L> "if" <cond: FullExpr> "then" <happy_path: FullExpr> "else" <sad_path: FullExpr> "fi" <r:@R> =>
+        parse_tree::Expr::new(
+            parse_tree::ExprKind::Conditional {
+                cond: Box::new(cond),
+                happy_path: Box::new(happy_path),
+                sad_path: Box::new(sad_path),
+            },
+            file, l, r,
+        ),
 
-    "while" <cond: FullExpr> "loop" <body: FullExpr> "pool" =>
-        parse_tree::Expr::Loop {
-            cond: Box::new(cond),
-            body: Box::new(body),
-        },
+    <l:@L> "while" <cond: FullExpr> "loop" <body: FullExpr> "pool" <r:@R> =>
+        parse_tree::Expr::new(
+            parse_tree::ExprKind::Loop { cond: Box::new(cond), body: Box::new(body) },
+            file, l, r,
+        ),
 
-    "{" <body: (<FullExpr> ";")+> "}" => parse_tree::Expr::Block(body),
+    <l:@L> "{" <body: (<FullExpr> ";")+> "}" <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::Block(body), file, l, r),
 
-    "case" <cond: FullExpr> "of" <branches: (<Branch> ";")+> "esac" =>
-        parse_tree::Expr::Case {
-            cond: Box::new(cond),
-            branches
-        },
+    <l:@L> "case" <cond: FullExpr> "of" <branches: (<Branch> ";")+> "esac" <r:@R> =>
+        parse_tree::Expr::new(
+            parse_tree::ExprKind::Case { cond: Box::new(cond), branches },
+            file, l, r,
+        ),
 
-    // New
-    "new" <type_dec: Type> => parse_tree::Expr::New(type_dec),
+    <l:@L> "new" <type_dec: Type> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::New(type_dec), file, l, r),
 
     // Dispatch
     #[precedence(level="1")] #[assoc(side="left")]
-    <expr: Expr> "." <name: "ID"> "(" <args: Comma<FullExpr>> ")" =>
-        parse_tree::Expr::Dispatch {
-            expr: Box::new(expr),
-            name,
-            args
-        },
+    <l:@L> <expr: Expr> "." <name: "ID"> "(" <args: Comma<FullExpr>> ")" <r:@R> =>
+        parse_tree::Expr::new(
+            parse_tree::ExprKind::Dispatch { expr: Box::new(expr), name, args },
+            file, l, r,
+        ),
 
-    <name: "ID"> "(" <args: Comma<FullExpr>> ")" =>
-        parse_tree::Expr::SelfDispatch {
-            name,
-            args
-        },
+    <l:@L> <name: "ID"> "(" <args: Comma<FullExpr>> ")" <r:@R> =>
+        parse_tree::Expr::new(
+            parse_tree::ExprKind::SelfDispatch { name, args },
+            file, l, r,
+        ),
 
-    <expr: Expr> "@" <type_dec: "TYPE"> "." <name: "ID"> "(" <args: Comma<FullExpr>> ")" =>
-        parse_tree::Expr::StaticDispatch {
-            name,
-            expr: Box::new(expr),
-            type_dec,
-            args
-        },
+    <l:@L> <expr: Expr> "@" <type_dec: "TYPE"> "." <name: "ID"> "(" <args: Comma<FullExpr>> ")" <r:@R> =>
+        parse_tree::Expr::new(
+            parse_tree::ExprKind::StaticDispatch { expr: Box::new(expr), type_dec, name, args },
+            file, l, r,
+        ),
 
-    // isVoid & negation
+    // isvoid & negation
     #[precedence(level="2")]
-    "~" <e: Expr> => parse_tree::Expr::Neg(Box::new(e)),
-    "isvoid" <e: Expr> => parse_tree::Expr::IsVoid(Box::new(e)),
+    <l:@L> "~" <e: Expr> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::Neg(Box::new(e)), file, l, r),
+    <l:@L> "isvoid" <e: Expr> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::IsVoid(Box::new(e)), file, l, r),
 
     // Arithmetic
     #[precedence(level="3")] #[assoc(side="left")]
-    <e1: Expr> "*" <e2: Expr> => parse_tree::Expr::Mul(Box::new(e1), Box::new(e2)),
-    <e1: Expr> "/" <e2: Expr> => parse_tree::Expr::Div(Box::new(e1), Box::new(e2)),
+    <l:@L> <e1: Expr> "*" <e2: Expr> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::Mul(Box::new(e1), Box::new(e2)), file, l, r),
+    <l:@L> <e1: Expr> "/" <e2: Expr> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::Div(Box::new(e1), Box::new(e2)), file, l, r),
 
     #[precedence(level="4")] #[assoc(side="left")]
-    <e1: Expr> "+" <e2: Expr> => parse_tree::Expr::Add(Box::new(e1), Box::new(e2)),
-    <e1: Expr> "-" <e2: Expr> => parse_tree::Expr::Sub(Box::new(e1), Box::new(e2)),
+    <l:@L> <e1: Expr> "+" <e2: Expr> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::Add(Box::new(e1), Box::new(e2)), file, l, r),
+    <l:@L> <e1: Expr> "-" <e2: Expr> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::Sub(Box::new(e1), Box::new(e2)), file, l, r),
 
     // Comparison
     #[precedence(level="5")] #[assoc(side="none")]
-    <e1: Expr> ">" <e2: Expr> => parse_tree::Expr::Lt(Box::new(e2), Box::new(e1)),
-    <e1: Expr> ">=" <e2: Expr> => parse_tree::Expr::Le(Box::new(e2), Box::new(e1)),
-    <e1: Expr> "<" <e2: Expr> => parse_tree::Expr::Lt(Box::new(e1), Box::new(e2)),
-    <e1: Expr> "<=" <e2: Expr> => parse_tree::Expr::Le(Box::new(e1), Box::new(e2)),
-    <e1: Expr> "=" <e2: Expr> => parse_tree::Expr::Eq(Box::new(e1), Box::new(e2)),
+    <l:@L> <e1: Expr> ">" <e2: Expr> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::Lt(Box::new(e2), Box::new(e1)), file, l, r),
+    <l:@L> <e1: Expr> ">=" <e2: Expr> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::Le(Box::new(e2), Box::new(e1)), file, l, r),
+    <l:@L> <e1: Expr> "<" <e2: Expr> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::Lt(Box::new(e1), Box::new(e2)), file, l, r),
+    <l:@L> <e1: Expr> "<=" <e2: Expr> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::Le(Box::new(e1), Box::new(e2)), file, l, r),
+    <l:@L> <e1: Expr> "=" <e2: Expr> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::Eq(Box::new(e1), Box::new(e2)), file, l, r),
 
     // Not
     #[precedence(level="6")]
-    "not" <e: Expr> => parse_tree::Expr::Not(Box::new(e)),
+    <l:@L> "not" <e: Expr> <r:@R> =>
+        parse_tree::Expr::new(parse_tree::ExprKind::Not(Box::new(e)), file, l, r),
 
     // Assignment
     #[precedence(level="7")] #[assoc(side="right")]
-    <var: "ID"> "<-" <expr: FullExpr> => parse_tree::Expr::Assignment { var: parse_tree::Var::Id(var) , expr: Box::new(expr) },
-    "self" "<-" <expr: FullExpr> => parse_tree::Expr::Assignment { var: parse_tree::Var::SelfValue, expr: Box::new(expr) },
+    <l:@L> <var: "ID"> "<-" <expr: FullExpr> <r:@R> =>
+        parse_tree::Expr::new(
+            parse_tree::ExprKind::Assignment { var: parse_tree::Var::Id(var), expr: Box::new(expr) },
+            file, l, r,
+        ),
+    <l:@L> "self" "<-" <expr: FullExpr> <r:@R> =>
+        parse_tree::Expr::new(
+            parse_tree::ExprKind::Assignment { var: parse_tree::Var::SelfValue, expr: Box::new(expr) },
+            file, l, r,
+        ),
 
     // Let
     #[precedence(level="8")]
-    "let" <first: Binding> <rest: ("," <Binding>)*> "in" <body: FullExpr> => {
+    <l:@L> "let" <first: Binding> <rest: ("," <Binding>)*> "in" <body: FullExpr> <r:@R> => {
         let mut bindings = vec![first];
         bindings.extend(rest);
 
-        bindings.into_iter().rev().fold(body, |inner_body, (name, type_dec, init)| {
-            parse_tree::Expr::Let {
-                name,
-                type_dec,
-                init,
-                body: Box::new(inner_body),
+        let mut result = bindings.into_iter().rev().fold(body, |inner_body, (name, type_dec, init, span)| {
+            parse_tree::Expr {
+                kind: parse_tree::ExprKind::Let {
+                    name,
+                    type_dec,
+                    init,
+                    body: Box::new(inner_body),
+                },
+                span,
             }
-        })
+        });
+        result.span = Span::new(file.to_string(), l, r);
+        result
     },
 
     <e: !> ";" => {
         errors.push(<>);
-        parse_tree::Expr::Invalid
+        parse_tree::Expr::new(parse_tree::ExprKind::Invalid, file, 0, 0)
     },
 }

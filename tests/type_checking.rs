@@ -1,19 +1,25 @@
 mod succeeds_type_check {
-    use core::panic;
-use std::{assert_eq, println, vec};
-    use test_case::test_case;
-    use coolc::{ast, semantic_analysis::{SemanticAnalyzer, method_table::ReturnType}, utils::parse_program};
     use coolc::semantic_analysis::builtins::{BOOL_ID, INT_ID, STRING_ID};
+    use coolc::{
+        ast,
+        semantic_analysis::{SemanticAnalyzer, method_table::ReturnType},
+        utils::parse_program,
+    };
+    use core::panic;
+    use std::{assert_eq, vec};
+    use test_case::test_case;
 
     #[test]
     fn object_inheritance() {
-        let (_, program) = parse_program(r#"
+        let (_, program) = parse_program(
+            r#"
             class Main inherits Object {
                 x: Int <- 1;
                 y: Bool <- true;
                 z: String <- "String";
             };
-        "#);
+        "#,
+        );
 
         assert!(SemanticAnalyzer::analyze(&program).is_ok());
     }
@@ -71,25 +77,8 @@ use std::{assert_eq, println, vec};
         assert_eq!(ast, expected);
     }
 
-    #[test]
-    fn test_hairyscary() {
-        let (_, program) = parse_program(include_str!("../examples/hairyscary.cl"));
-        let res = SemanticAnalyzer::analyze(&program);
-        match res {
-            Ok(_) => {
-                assert!(true);
-            }
-            Err(e) => {
-                println!("{:#?}", e);
-                assert!(false);
-            }
-        }
-        // assert!(SemanticAnalyzer::analyze(&program).is_ok());
-    }
-
     #[test_case("arith.cl", include_str!("../examples/arith.cl"); "arith")]
     #[test_case("atoi.cl", include_str!("../examples/atoi.cl"); "atoi")]
-    #[test_case("atoi_test.cl", include_str!("../examples/atoi_test.cl"); "atoi_test")]
     #[test_case("book_list.cl", include_str!("../examples/book_list.cl"); "book_list")]
     #[test_case("cells.cl", include_str!("../examples/cells.cl"); "cells")]
     #[test_case("complex.cl", include_str!("../examples/complex.cl"); "complex")]

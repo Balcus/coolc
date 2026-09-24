@@ -1,7 +1,9 @@
 use coolc::{
-    parse_tree, grammar,
+    grammar,
     lexer::{ErrorToken, LexerWrapper, Token},
+    parse_tree::{self, ExprKind},
     string_table::StringTable,
+    utils::Span,
 };
 use lalrpop_util::{ErrorRecovery, ParseError};
 
@@ -11,6 +13,7 @@ fn parse(
     errors: &mut Vec<ErrorRecovery<usize, Token, ErrorToken>>,
 ) -> Result<parse_tree::Program, ParseError<usize, Token, ErrorToken>> {
     let program = grammar::ProgramParser::new().parse(
+        "test",
         errors,
         LexerWrapper::new(input, s_table, String::from("test")),
     )?;
@@ -24,6 +27,17 @@ fn parse(
 
 fn i(s_table: &mut StringTable, s: &str) -> usize {
     s_table.insert(s.to_string())
+}
+
+fn e(kind: ExprKind) -> parse_tree::Expr {
+    parse_tree::Expr {
+        kind,
+        span: Span::default(),
+    }
+}
+
+fn b(kind: ExprKind) -> Box<parse_tree::Expr> {
+    Box::new(e(kind))
 }
 
 mod succeeds_parsing {
@@ -50,7 +64,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Attribute {
                     name: i(&mut s_table, "x"),
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    init: Some(Box::new(parse_tree::Expr::IntConstant(10))),
+                    init: Some(b(ExprKind::IntConstant(10))),
                 }],
             }],
         };
@@ -87,17 +101,17 @@ mod succeeds_parsing {
                     parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "x"),
                         type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                        init: Some(Box::new(parse_tree::Expr::IntConstant(10))),
+                        init: Some(b(ExprKind::IntConstant(10))),
                     },
                     parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "y"),
                         type_dec: parse_tree::TypeName::Type(i(&mut s_table, "String")),
-                        init: Some(Box::new(parse_tree::Expr::StringConstant(hello_world))),
+                        init: Some(b(ExprKind::StringConstant(hello_world))),
                     },
                     parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "z"),
                         type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Bool")),
-                        init: Some(Box::new(parse_tree::Expr::BoolConstant(false))),
+                        init: Some(b(ExprKind::BoolConstant(false))),
                     },
                     parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "a"),
@@ -206,7 +220,7 @@ mod succeeds_parsing {
                     features: vec![parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "x"),
                         type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                        init: Some(Box::new(parse_tree::Expr::IntConstant(1))),
+                        init: Some(b(ExprKind::IntConstant(1))),
                     }],
                 },
                 parse_tree::Class::Valid {
@@ -215,7 +229,7 @@ mod succeeds_parsing {
                     features: vec![parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "y"),
                         type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Bool")),
-                        init: Some(Box::new(parse_tree::Expr::BoolConstant(true))),
+                        init: Some(b(ExprKind::BoolConstant(true))),
                     }],
                 },
                 parse_tree::Class::Valid {
@@ -224,7 +238,7 @@ mod succeeds_parsing {
                     features: vec![parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "z"),
                         type_dec: parse_tree::TypeName::Type(string_id),
-                        init: Some(Box::new(parse_tree::Expr::StringConstant(string_id))),
+                        init: Some(b(ExprKind::StringConstant(string_id))),
                     }],
                 },
             ],
@@ -255,7 +269,7 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "doStuff"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::IntConstant(42)),
+                    body: b(ExprKind::IntConstant(42)),
                 }],
             }],
         };
@@ -288,7 +302,7 @@ mod succeeds_parsing {
                         type_dec: i(&mut s_table, "Object"),
                     }],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(parse_tree::Expr::BoolConstant(false)),
+                    body: b(ExprKind::BoolConstant(false)),
                 }],
             }],
         };
@@ -321,7 +335,7 @@ mod succeeds_parsing {
                         type_dec: i(&mut s_table, "Int"),
                     }],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::IntConstant(42)),
+                    body: b(ExprKind::IntConstant(42)),
                 }],
             }],
         };
@@ -361,9 +375,9 @@ mod succeeds_parsing {
                         },
                     ],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Assignment {
+                    body: b(ExprKind::Assignment {
                         var: parse_tree::Var::Id(i(&mut s_table, "from")),
-                        expr: Box::new(parse_tree::Expr::Object(to_id)),
+                        expr: b(ExprKind::Object(to_id)),
                     }),
                 }],
             }],
@@ -394,10 +408,10 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Conditional {
-                        cond: Box::new(parse_tree::Expr::BoolConstant(true)),
-                        happy_path: Box::new(parse_tree::Expr::IntConstant(1)),
-                        sad_path: Box::new(parse_tree::Expr::IntConstant(0)),
+                    body: b(ExprKind::Conditional {
+                        cond: b(ExprKind::BoolConstant(true)),
+                        happy_path: b(ExprKind::IntConstant(1)),
+                        sad_path: b(ExprKind::IntConstant(0)),
                     }),
                 }],
             }],
@@ -428,9 +442,9 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Loop {
-                        cond: Box::new(parse_tree::Expr::BoolConstant(true)),
-                        body: Box::new(parse_tree::Expr::IntConstant(1)),
+                    body: b(ExprKind::Loop {
+                        cond: b(ExprKind::BoolConstant(true)),
+                        body: b(ExprKind::IntConstant(1)),
                     }),
                 }],
             }],
@@ -461,7 +475,7 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Block(vec![parse_tree::Expr::IntConstant(42)])),
+                    body: b(ExprKind::Block(vec![e(ExprKind::IntConstant(42))])),
                 }],
             }],
         };
@@ -491,10 +505,10 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Block(vec![
-                        parse_tree::Expr::IntConstant(1),
-                        parse_tree::Expr::IntConstant(2),
-                        parse_tree::Expr::IntConstant(3),
+                    body: b(ExprKind::Block(vec![
+                        e(ExprKind::IntConstant(1)),
+                        e(ExprKind::IntConstant(2)),
+                        e(ExprKind::IntConstant(3)),
                     ])),
                 }],
             }],
@@ -525,7 +539,7 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Object")),
-                    body: Box::new(parse_tree::Expr::New(parse_tree::TypeName::Type(i(
+                    body: b(ExprKind::New(parse_tree::TypeName::Type(i(
                         &mut s_table,
                         "Object",
                     )))),
@@ -558,7 +572,7 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(parse_tree::Expr::IsVoid(Box::new(parse_tree::Expr::IntConstant(42)))),
+                    body: b(ExprKind::IsVoid(b(ExprKind::IntConstant(42)))),
                 }],
             }],
         };
@@ -588,7 +602,7 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Neg(Box::new(parse_tree::Expr::IntConstant(42)))),
+                    body: b(ExprKind::Neg(b(ExprKind::IntConstant(42)))),
                 }],
             }],
         };
@@ -618,7 +632,7 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(parse_tree::Expr::Not(Box::new(parse_tree::Expr::BoolConstant(true)))),
+                    body: b(ExprKind::Not(b(ExprKind::BoolConstant(true)))),
                 }],
             }],
         };
@@ -648,9 +662,9 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Add(
-                        Box::new(parse_tree::Expr::IntConstant(1)),
-                        Box::new(parse_tree::Expr::IntConstant(2)),
+                    body: b(ExprKind::Add(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::IntConstant(2)),
                     )),
                 }],
             }],
@@ -681,9 +695,9 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Sub(
-                        Box::new(parse_tree::Expr::IntConstant(5)),
-                        Box::new(parse_tree::Expr::IntConstant(3)),
+                    body: b(ExprKind::Sub(
+                        b(ExprKind::IntConstant(5)),
+                        b(ExprKind::IntConstant(3)),
                     )),
                 }],
             }],
@@ -714,9 +728,9 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Mul(
-                        Box::new(parse_tree::Expr::IntConstant(3)),
-                        Box::new(parse_tree::Expr::IntConstant(4)),
+                    body: b(ExprKind::Mul(
+                        b(ExprKind::IntConstant(3)),
+                        b(ExprKind::IntConstant(4)),
                     )),
                 }],
             }],
@@ -747,9 +761,9 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Div(
-                        Box::new(parse_tree::Expr::IntConstant(10)),
-                        Box::new(parse_tree::Expr::IntConstant(2)),
+                    body: b(ExprKind::Div(
+                        b(ExprKind::IntConstant(10)),
+                        b(ExprKind::IntConstant(2)),
                     )),
                 }],
             }],
@@ -780,9 +794,9 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(parse_tree::Expr::Lt(
-                        Box::new(parse_tree::Expr::IntConstant(1)),
-                        Box::new(parse_tree::Expr::IntConstant(2)),
+                    body: b(ExprKind::Lt(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::IntConstant(2)),
                     )),
                 }],
             }],
@@ -813,9 +827,9 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(parse_tree::Expr::Le(
-                        Box::new(parse_tree::Expr::IntConstant(1)),
-                        Box::new(parse_tree::Expr::IntConstant(2)),
+                    body: b(ExprKind::Le(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::IntConstant(2)),
                     )),
                 }],
             }],
@@ -848,9 +862,9 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: Vec::new(),
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(parse_tree::Expr::Lt(
-                        Box::new(parse_tree::Expr::IntConstant(1)),
-                        Box::new(parse_tree::Expr::IntConstant(2)),
+                    body: b(ExprKind::Lt(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::IntConstant(2)),
                     )),
                 }],
             }],
@@ -883,9 +897,9 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: Vec::new(),
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(parse_tree::Expr::Le(
-                        Box::new(parse_tree::Expr::IntConstant(1)),
-                        Box::new(parse_tree::Expr::IntConstant(2)),
+                    body: b(ExprKind::Le(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::IntConstant(2)),
                     )),
                 }],
             }],
@@ -916,9 +930,9 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(parse_tree::Expr::Eq(
-                        Box::new(parse_tree::Expr::IntConstant(1)),
-                        Box::new(parse_tree::Expr::IntConstant(1)),
+                    body: b(ExprKind::Eq(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::IntConstant(1)),
                     )),
                 }],
             }],
@@ -949,12 +963,12 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Case {
-                        cond: Box::new(parse_tree::Expr::IntConstant(42)),
+                    body: b(ExprKind::Case {
+                        cond: b(ExprKind::IntConstant(42)),
                         branches: vec![parse_tree::CaseBranch {
                             name: i(&mut s_table, "x"),
                             type_dec: i(&mut s_table, "Int"),
-                            body: Box::new(parse_tree::Expr::IntConstant(1)),
+                            body: b(ExprKind::IntConstant(1)),
                         }],
                     }),
                 }],
@@ -986,18 +1000,18 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Case {
-                        cond: Box::new(parse_tree::Expr::IntConstant(42)),
+                    body: b(ExprKind::Case {
+                        cond: b(ExprKind::IntConstant(42)),
                         branches: vec![
                             parse_tree::CaseBranch {
                                 name: i(&mut s_table, "x"),
                                 type_dec: i(&mut s_table, "Int"),
-                                body: Box::new(parse_tree::Expr::IntConstant(1)),
+                                body: b(ExprKind::IntConstant(1)),
                             },
                             parse_tree::CaseBranch {
                                 name: i(&mut s_table, "y"),
                                 type_dec: i(&mut s_table, "Bool"),
-                                body: Box::new(parse_tree::Expr::IntConstant(2)),
+                                body: b(ExprKind::IntConstant(2)),
                             },
                         ],
                     }),
@@ -1030,11 +1044,11 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Add(
-                        Box::new(parse_tree::Expr::IntConstant(1)),
-                        Box::new(parse_tree::Expr::Mul(
-                            Box::new(parse_tree::Expr::IntConstant(2)),
-                            Box::new(parse_tree::Expr::IntConstant(3)),
+                    body: b(ExprKind::Add(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::Mul(
+                            b(ExprKind::IntConstant(2)),
+                            b(ExprKind::IntConstant(3)),
                         )),
                     )),
                 }],
@@ -1066,12 +1080,12 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "test"),
                     params: vec![],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Mul(
-                        Box::new(parse_tree::Expr::Add(
-                            Box::new(parse_tree::Expr::IntConstant(1)),
-                            Box::new(parse_tree::Expr::IntConstant(2)),
+                    body: b(ExprKind::Mul(
+                        b(ExprKind::Add(
+                            b(ExprKind::IntConstant(1)),
+                            b(ExprKind::IntConstant(2)),
                         )),
-                        Box::new(parse_tree::Expr::IntConstant(3)),
+                        b(ExprKind::IntConstant(3)),
                     )),
                 }],
             }],
@@ -1099,12 +1113,12 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "main"),
                     params: Vec::new(),
                     type_dec: parse_tree::TypeName::SelfType,
-                    body: Box::new(parse_tree::Expr::SelfDispatch {
+                    body: b(ExprKind::SelfDispatch {
                         name: i(&mut s_table, "out_string"),
-                        args: vec![parse_tree::Expr::StringConstant(i(
+                        args: vec![e(ExprKind::StringConstant(i(
                             &mut s_table,
                             "Hello, World.\n",
-                        ))],
+                        )))],
                     }),
                 }],
             }],
@@ -1146,9 +1160,9 @@ mod succeeds_parsing {
                         name: i(&mut s_table, "main"),
                         params: Vec::new(),
                         type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                        body: Box::new(parse_tree::Expr::SelfDispatch {
+                        body: b(ExprKind::SelfDispatch {
                             name: i(&mut s_table, "plus"),
-                            args: vec![parse_tree::Expr::IntConstant(1), parse_tree::Expr::IntConstant(2)],
+                            args: vec![e(ExprKind::IntConstant(1)), e(ExprKind::IntConstant(2))],
                         }),
                     },
                     parse_tree::Feature::Method {
@@ -1164,19 +1178,19 @@ mod succeeds_parsing {
                             },
                         ],
                         type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                        body: Box::new(parse_tree::Expr::Let {
+                        body: b(ExprKind::Let {
                             name: i(&mut s_table, "x"),
                             type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
                             init: None,
-                            body: Box::new(parse_tree::Expr::Block(vec![
-                                parse_tree::Expr::Assignment {
+                            body: b(ExprKind::Block(vec![
+                                e(ExprKind::Assignment {
                                     var: parse_tree::Var::Id(i(&mut s_table, "x")),
-                                    expr: Box::new(parse_tree::Expr::Add(
-                                        Box::new(parse_tree::Expr::Object(i(&mut s_table, "num1"))),
-                                        Box::new(parse_tree::Expr::Object(i(&mut s_table, "num2"))),
+                                    expr: b(ExprKind::Add(
+                                        b(ExprKind::Object(i(&mut s_table, "num1"))),
+                                        b(ExprKind::Object(i(&mut s_table, "num2"))),
                                     )),
-                                },
-                                parse_tree::Expr::Object(i(&mut s_table, "x")),
+                                }),
+                                e(ExprKind::Object(i(&mut s_table, "x"))),
                             ])),
                         }),
                     },
@@ -1215,24 +1229,24 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "main"),
                     params: Vec::new(),
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Let {
+                    body: b(ExprKind::Let {
                         name: i(&mut s_table, "x"),
                         type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
                         init: None,
-                        body: Box::new(parse_tree::Expr::Let {
+                        body: b(ExprKind::Let {
                             name: i(&mut s_table, "y"),
                             type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                            init: Some(Box::new(parse_tree::Expr::IntConstant(5))),
-                            body: Box::new(parse_tree::Expr::Let {
+                            init: Some(b(ExprKind::IntConstant(5))),
+                            body: b(ExprKind::Let {
                                 name: i(&mut s_table, "z"),
                                 type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Bool")),
                                 init: None,
-                                body: Box::new(parse_tree::Expr::Block(vec![
-                                    parse_tree::Expr::Assignment {
+                                body: b(ExprKind::Block(vec![
+                                    e(ExprKind::Assignment {
                                         var: parse_tree::Var::Id(i(&mut s_table, "x")),
-                                        expr: Box::new(parse_tree::Expr::IntConstant(1)),
-                                    },
-                                    parse_tree::Expr::Object(i(&mut s_table, "y")),
+                                        expr: b(ExprKind::IntConstant(1)),
+                                    }),
+                                    e(ExprKind::Object(i(&mut s_table, "y"))),
                                 ])),
                             }),
                         }),
@@ -1270,17 +1284,17 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "main"),
                     params: Vec::new(),
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Let {
+                    body: b(ExprKind::Let {
                         name: i(&mut s_table, "x"),
                         type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                        init: Some(Box::new(parse_tree::Expr::IntConstant(1))),
-                        body: Box::new(parse_tree::Expr::Let {
+                        init: Some(b(ExprKind::IntConstant(1))),
+                        body: b(ExprKind::Let {
                             name: i(&mut s_table, "y"),
                             type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                            init: Some(Box::new(parse_tree::Expr::IntConstant(2))),
-                            body: Box::new(parse_tree::Expr::Add(
-                                Box::new(parse_tree::Expr::Object(i(&mut s_table, "x"))),
-                                Box::new(parse_tree::Expr::Object(i(&mut s_table, "y"))),
+                            init: Some(b(ExprKind::IntConstant(2))),
+                            body: b(ExprKind::Add(
+                                b(ExprKind::Object(i(&mut s_table, "x"))),
+                                b(ExprKind::Object(i(&mut s_table, "y"))),
                             )),
                         }),
                     }),
@@ -1320,22 +1334,22 @@ mod succeeds_parsing {
                     name: i(&mut s_table, "main"),
                     params: Vec::new(),
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(parse_tree::Expr::Block(vec![
-                        parse_tree::Expr::Let {
+                    body: b(ExprKind::Block(vec![
+                        e(ExprKind::Let {
                             name: i(&mut s_table, "x"),
                             type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                            init: Some(Box::new(parse_tree::Expr::IntConstant(1))),
-                            body: Box::new(parse_tree::Expr::Let {
+                            init: Some(b(ExprKind::IntConstant(1))),
+                            body: b(ExprKind::Let {
                                 name: i(&mut s_table, "y"),
                                 type_dec: parse_tree::TypeName::Type(i(&mut s_table, "Int")),
-                                init: Some(Box::new(parse_tree::Expr::IntConstant(2))),
-                                body: Box::new(parse_tree::Expr::Add(
-                                    Box::new(parse_tree::Expr::Object(i(&mut s_table, "x"))),
-                                    Box::new(parse_tree::Expr::Object(i(&mut s_table, "y"))),
+                                init: Some(b(ExprKind::IntConstant(2))),
+                                body: b(ExprKind::Add(
+                                    b(ExprKind::Object(i(&mut s_table, "x"))),
+                                    b(ExprKind::Object(i(&mut s_table, "y"))),
                                 )),
                             }),
-                        },
-                        parse_tree::Expr::IntConstant(3),
+                        }),
+                        e(ExprKind::IntConstant(3)),
                     ])),
                 }],
             }],
@@ -1394,7 +1408,8 @@ mod succeeds_parsing {
             };
         };"#;
 
-        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        let res = parse(input, &mut s_table, &mut errors);
+        assert!(res.is_ok());
         assert!(errors.is_empty());
     }
 
@@ -1449,64 +1464,58 @@ mod succeeds_parsing {
                         type_dec: i(&mut s_table, "Int"),
                     }],
                     type_dec: parse_tree::TypeName::Type(i(&mut s_table, "String")),
-                    body: Box::new(parse_tree::Expr::Conditional {
-                        cond: Box::new(parse_tree::Expr::Eq(
-                            Box::new(parse_tree::Expr::Add(
-                                Box::new(parse_tree::Expr::Add(
-                                    Box::new(parse_tree::Expr::Conditional {
-                                        cond: Box::new(parse_tree::Expr::Eq(
-                                            Box::new(parse_tree::Expr::SelfDispatch {
+                    body: b(ExprKind::Conditional {
+                        cond: b(ExprKind::Eq(
+                            b(ExprKind::Add(
+                                b(ExprKind::Add(
+                                    b(ExprKind::Conditional {
+                                        cond: b(ExprKind::Eq(
+                                            b(ExprKind::SelfDispatch {
                                                 name: i(&mut s_table, "cell"),
-                                                args: vec![parse_tree::Expr::Object(i(
+                                                args: vec![e(ExprKind::Object(i(
                                                     &mut s_table,
                                                     "position",
-                                                ))],
+                                                )))],
                                             }),
-                                            Box::new(parse_tree::Expr::StringConstant(i(
-                                                &mut s_table,
-                                                "X",
-                                            ))),
+                                            b(ExprKind::StringConstant(i(&mut s_table, "X"))),
                                         )),
-                                        happy_path: Box::new(parse_tree::Expr::IntConstant(1)),
-                                        sad_path: Box::new(parse_tree::Expr::IntConstant(0)),
+                                        happy_path: b(ExprKind::IntConstant(1)),
+                                        sad_path: b(ExprKind::IntConstant(0)),
                                     }),
-                                    Box::new(parse_tree::Expr::Conditional {
-                                        cond: Box::new(parse_tree::Expr::Eq(
-                                            Box::new(parse_tree::Expr::SelfDispatch {
+                                    b(ExprKind::Conditional {
+                                        cond: b(ExprKind::Eq(
+                                            b(ExprKind::SelfDispatch {
                                                 name: i(&mut s_table, "cell_left_neighbor"),
-                                                args: vec![parse_tree::Expr::Object(i(
+                                                args: vec![e(ExprKind::Object(i(
                                                     &mut s_table,
                                                     "position",
-                                                ))],
+                                                )))],
                                             }),
-                                            Box::new(parse_tree::Expr::StringConstant(i(
-                                                &mut s_table,
-                                                "X",
-                                            ))),
+                                            b(ExprKind::StringConstant(i(&mut s_table, "X"))),
                                         )),
-                                        happy_path: Box::new(parse_tree::Expr::IntConstant(1)),
-                                        sad_path: Box::new(parse_tree::Expr::IntConstant(0)),
+                                        happy_path: b(ExprKind::IntConstant(1)),
+                                        sad_path: b(ExprKind::IntConstant(0)),
                                     }),
                                 )),
-                                Box::new(parse_tree::Expr::Conditional {
-                                    cond: Box::new(parse_tree::Expr::Eq(
-                                        Box::new(parse_tree::Expr::SelfDispatch {
+                                b(ExprKind::Conditional {
+                                    cond: b(ExprKind::Eq(
+                                        b(ExprKind::SelfDispatch {
                                             name: i(&mut s_table, "cell_right_neighbor"),
-                                            args: vec![parse_tree::Expr::Object(i(
+                                            args: vec![e(ExprKind::Object(i(
                                                 &mut s_table,
                                                 "position",
-                                            ))],
+                                            )))],
                                         }),
-                                        Box::new(parse_tree::Expr::StringConstant(i(&mut s_table, "X"))),
+                                        b(ExprKind::StringConstant(i(&mut s_table, "X"))),
                                     )),
-                                    happy_path: Box::new(parse_tree::Expr::IntConstant(1)),
-                                    sad_path: Box::new(parse_tree::Expr::IntConstant(0)),
+                                    happy_path: b(ExprKind::IntConstant(1)),
+                                    sad_path: b(ExprKind::IntConstant(0)),
                                 }),
                             )),
-                            Box::new(parse_tree::Expr::IntConstant(1)),
+                            b(ExprKind::IntConstant(1)),
                         )),
-                        happy_path: Box::new(parse_tree::Expr::StringConstant(i(&mut s_table, "X"))),
-                        sad_path: Box::new(parse_tree::Expr::StringConstant(i(&mut s_table, "."))),
+                        happy_path: b(ExprKind::StringConstant(i(&mut s_table, "X"))),
+                        sad_path: b(ExprKind::StringConstant(i(&mut s_table, "."))),
                     }),
                 }],
             }],
@@ -1544,7 +1553,7 @@ mod succeeds_parsing {
 mod fail_parsing {
     use core::panic;
 
-use coolc::{lexer::ErrorKind, utils};
+    use coolc::{lexer::ErrorKind, utils};
 
     use super::*;
 
@@ -1643,6 +1652,7 @@ use coolc::{lexer::ErrorKind, utils};
 
         let program = grammar::ProgramParser::new()
             .parse(
+                "test",
                 &mut errors,
                 LexerWrapper::new(input, &mut s_table, String::from("test")),
             )
@@ -1655,11 +1665,9 @@ use coolc::{lexer::ErrorKind, utils};
         ));
 
         let features = match program.classes.get(0) {
-            Some(class) => {
-                match class {
-                    parse_tree::Class::Valid { features, .. } => features,
-                    parse_tree::Class::Invalid => panic!("Expected a valid class definition"),
-                }
+            Some(class) => match class {
+                parse_tree::Class::Valid { features, .. } => features,
+                parse_tree::Class::Invalid => panic!("Expected a valid class definition"),
             },
             None => panic!("Expected at least one class in the program"),
         };
@@ -1689,6 +1697,7 @@ use coolc::{lexer::ErrorKind, utils};
 
         let program = grammar::ProgramParser::new()
             .parse(
+                "test",
                 &mut errors,
                 LexerWrapper::new(input, &mut s_table, String::from("test")),
             )
