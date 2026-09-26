@@ -1,14 +1,14 @@
+use crate::semantic_analysis::SemanticErrorKind::InheritanceCycle;
+use crate::semantic_analysis::builtins::{BUILTINS, OBJECT_ID};
 use crate::{
-    ast::{Class, Program},
+    parse_tree::{Class, Program},
     semantic_analysis::SemanticError,
 };
 use std::collections::{HashMap, HashSet};
 
-type ClassId = usize;
-
 #[derive(Debug)]
 pub struct InheritanceTree {
-    inner: HashMap<ClassId, Option<ClassId>>,
+    inner: HashMap<usize, Option<usize>>,
 }
 
 impl InheritanceTree {
@@ -19,25 +19,42 @@ impl InheritanceTree {
 
         let mut err = Vec::new();
 
+        tree.seed();
+
         for class in &ast.classes {
             if let Class::Valid { name, parent, .. } = class {
                 if tree.inner.contains_key(name) {
-                    err.push(SemanticError::DuplicateClass);
+                    err.push(SemanticError {
+                        kind: super::SemanticErrorKind::DuplicateClass { name: *name },
+                        span: None,
+                    });
                     continue;
                 }
 
-                tree.inner.insert(*name, *parent);
+                // Insert object in the class hierarchy
+                let parent = match parent {
+                    Some(parent) => Some(*parent),
+                    None => Some(OBJECT_ID),
+                };
+
+                tree.inner.insert(*name, parent);
             }
         }
 
         for parent in tree.inner.values().filter_map(|&p| p) {
             if !tree.inner.contains_key(&parent) {
-                err.push(SemanticError::NonExistentClass(parent));
+                err.push(SemanticError {
+                    kind: super::SemanticErrorKind::UndefinedClass { name: parent },
+                    span: None,
+                });
             }
         }
 
         if tree.has_cycle() {
-            err.push(SemanticError::InheritanceCycle);
+            err.push(SemanticError {
+                kind: InheritanceCycle,
+                span: None,
+            });
         }
 
         if !err.is_empty() {
@@ -47,7 +64,13 @@ impl InheritanceTree {
         Ok(tree)
     }
 
-    pub fn contains(&self, class: ClassId) -> bool {
+    pub fn seed(&mut self) {
+        for class in BUILTINS {
+            self.inner.insert(class.id, class.parent);
+        }
+    }
+
+    pub fn contains(&self, class: usize) -> bool {
         self.inner.contains_key(&class)
     }
 
@@ -68,7 +91,7 @@ impl InheritanceTree {
         false
     }
 
-    pub fn is_ancestor(&self, ancestor: ClassId, descendant: ClassId) -> bool {
+    pub fn is_ancestor(&self, ancestor: usize, descendant: usize) -> bool {
         let mut current = descendant;
 
         while let Some(parent) = self.parent(current) {
@@ -82,78 +105,89 @@ impl InheritanceTree {
         false
     }
 
-    pub fn is_subtype(&self, subtype: ClassId, supertype: ClassId) -> bool {
+    pub fn is_subtype(&self, subtype: usize, supertype: usize) -> bool {
         subtype == supertype || self.is_ancestor(supertype, subtype)
     }
 
-    pub fn parent(&self, class: ClassId) -> Option<ClassId> {
+    pub fn parent(&self, class: usize) -> Option<usize> {
         self.inner.get(&class).copied().flatten()
     }
 
-    pub fn lub(&self, a: ClassId, b: ClassId) -> ClassId {
+    #[allow(unreachable_code)]
+    pub fn lub(&self, a: usize, b: usize) -> usize {
         let mut a_anc = HashSet::new();
-
         let mut current = Some(a);
         while let Some(class) = current {
             a_anc.insert(class);
             current = self.parent(class);
         }
-
         current = Some(b);
         while let Some(class) = current {
             if a_anc.contains(&class) {
                 return class;
             }
-
             current = self.parent(class);
         }
 
         unreachable!(
             "There needs to be at least one common ancestor between any 2 classes in COOL!"
         );
+
+        0
     }
 }
 
 #[cfg(test)]
 mod test {
+    use crate::semantic_analysis::builtins::{BOOL_ID, INT_ID, IO_ID, OBJECT_ID, STRING_ID};
     use crate::{
-        lexer::LexerWrapper,
-        parser,
-        semantic_analysis::{SemanticError, inheritance_tree::InheritanceTree},
-        string_table::StringTable,
+        semantic_analysis::{SemanticError, SemanticErrorKind, inheritance_tree::InheritanceTree},
+        utils::parse_program,
     };
 
-    fn build_tree(input: &str) -> (StringTable, Result<InheritanceTree, Vec<SemanticError>>) {
-        let mut s_table = StringTable::new();
-        let mut errors = Vec::new();
+    #[test]
+    fn is_seeded() {
+        let (s_table, program) = parse_program(
+            r#"
+                class A {};
+            "#,
+        );
 
-        let tokens = Box::new(LexerWrapper::new(input, &mut s_table, "".to_string()));
-        let mut parser = parser::Parser::new(&mut errors);
+        let tree = InheritanceTree::build(&program).unwrap();
+        let a = s_table.lookup("A").unwrap();
 
-        let program = parser.parse(tokens).unwrap();
-        let tree = InheritanceTree::build(&program);
+        assert_eq!(tree.parent(a), Some(OBJECT_ID));
 
-        (s_table, tree)
+        assert!(tree.contains(OBJECT_ID));
+        assert!(tree.contains(BOOL_ID));
+        assert!(tree.contains(STRING_ID));
+        assert!(tree.contains(INT_ID));
+        assert!(tree.contains(IO_ID));
+
+        assert_eq!(tree.parent(BOOL_ID), Some(OBJECT_ID));
+        assert_eq!(tree.parent(STRING_ID), Some(OBJECT_ID));
+        assert_eq!(tree.parent(INT_ID), Some(OBJECT_ID));
+        assert_eq!(tree.parent(IO_ID), Some(OBJECT_ID));
     }
-
     #[test]
     fn valid_hierarchy() {
-        let input = r#"
-            class A {};
-            class B inherits A {};
-            class C inherits A {};
-            class D inherits B {};
-        "#;
+        let (s_table, program) = parse_program(
+            r#"
+                class A {};
+                class B inherits A {};
+                class C inherits A {};
+                class D inherits B {};
+            "#,
+        );
 
-        let (s_table, tree) = build_tree(input);
-        let tree = tree.unwrap();
+        let tree = InheritanceTree::build(&program).unwrap();
 
         let a = s_table.lookup("A").unwrap();
         let b = s_table.lookup("B").unwrap();
         let c = s_table.lookup("C").unwrap();
         let d = s_table.lookup("D").unwrap();
 
-        assert_eq!(tree.parent(a), None);
+        assert_eq!(tree.parent(a), Some(OBJECT_ID));
         assert_eq!(tree.parent(b), Some(a));
         assert_eq!(tree.parent(c), Some(a));
         assert_eq!(tree.parent(d), Some(b));
@@ -161,59 +195,79 @@ mod test {
 
     #[test]
     fn circular_hierarchy() {
-        let (_, tree) = build_tree(
+        let (_, program) = parse_program(
             r#"
                 class A inherits B {};
                 class B inherits A {};
             "#,
         );
 
-        let errors = tree.unwrap_err();
+        let errors = InheritanceTree::build(&program).unwrap_err();
 
         assert_eq!(errors.len(), 1);
-        assert_eq!(errors[0], SemanticError::InheritanceCycle);
+        assert_eq!(
+            errors[0],
+            SemanticError {
+                kind: SemanticErrorKind::InheritanceCycle,
+                span: None
+            }
+        );
     }
 
     #[test]
     fn nonexistent_parent() {
-        let (s_table, tree) = build_tree(
+        let (s_table, program) = parse_program(
             r#"
                 class A inherits B {};
             "#,
         );
 
         let b = s_table.lookup("B").unwrap();
-        let errors = tree.unwrap_err();
+        let errors = InheritanceTree::build(&program).unwrap_err();
 
         assert_eq!(errors.len(), 1);
-        assert_eq!(errors[0], SemanticError::NonExistentClass(b));
+        assert_eq!(
+            errors[0],
+            SemanticError {
+                kind: SemanticErrorKind::UndefinedClass { name: b },
+                span: None
+            }
+        );
     }
 
     #[test]
     fn duplicate_class() {
-        let (_, tree) = build_tree(
+        let (s_table, program) = parse_program(
             r#"
                 class A {};
                 class A {};
             "#,
         );
 
-        let errors = tree.unwrap_err();
+        let errors = InheritanceTree::build(&program).unwrap_err();
+        let a = s_table.lookup("A").unwrap();
 
         assert_eq!(errors.len(), 1);
-        assert_eq!(errors[0], SemanticError::DuplicateClass);
+        assert_eq!(
+            errors[0],
+            SemanticError {
+                kind: SemanticErrorKind::DuplicateClass { name: a },
+                span: None
+            }
+        );
     }
 
     #[test]
     fn subtype_and_ancestor() {
-        let input = r#"
-            class A {};
-            class B inherits A {};
-            class C inherits B {};
-        "#;
+        let (s_table, program) = parse_program(
+            r#"
+                class A {};
+                class B inherits A {};
+                class C inherits B {};
+            "#,
+        );
 
-        let (s_table, tree) = build_tree(input);
-        let tree = tree.unwrap();
+        let tree = InheritanceTree::build(&program).unwrap();
 
         let a = s_table.lookup("A").unwrap();
         let b = s_table.lookup("B").unwrap();
@@ -235,15 +289,16 @@ mod test {
 
     #[test]
     fn lub() {
-        let input = r#"
-            class A {};
-            class B inherits A {};
-            class C inherits A {};
-            class D inherits B {};
-        "#;
+        let (s_table, program) = parse_program(
+            r#"
+                class A {};
+                class B inherits A {};
+                class C inherits A {};
+                class D inherits B {};
+            "#,
+        );
 
-        let (s_table, tree) = build_tree(input);
-        let tree = tree.unwrap();
+        let tree = InheritanceTree::build(&program).unwrap();
 
         let a = s_table.lookup("A").unwrap();
         let b = s_table.lookup("B").unwrap();

@@ -6,9 +6,31 @@
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/target/debug/coolc",
-            "args": ["${input:programArgs}"],
+            "args": [
+                "${input:programArgs}"
+            ],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "cargo build",
+        },
+        {
+            "name": "Debug atoi test",
+            "type": "lldb",
+            "request": "launch",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test",
+                    "type_checking"
+                ],
+                "filter": {
+                    "name": "type_checking"
+                }
+            },
+            "args": [
+                "atoi"
+            ],
+            "cwd": "${workspaceFolder}"
         }
     ],
     "inputs": [

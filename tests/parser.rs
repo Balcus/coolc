@@ -1,7 +1,9 @@
 use coolc::{
-    ast, grammar,
+    grammar,
     lexer::{ErrorToken, LexerWrapper, Token},
+    parse_tree::{self, ExprKind},
     string_table::StringTable,
+    utils::{ReturnType, Span},
 };
 use lalrpop_util::{ErrorRecovery, ParseError};
 
@@ -9,8 +11,9 @@ fn parse(
     input: &str,
     s_table: &mut StringTable,
     errors: &mut Vec<ErrorRecovery<usize, Token, ErrorToken>>,
-) -> Result<ast::Program, ParseError<usize, Token, ErrorToken>> {
+) -> Result<parse_tree::Program, ParseError<usize, Token, ErrorToken>> {
     let program = grammar::ProgramParser::new().parse(
+        "test",
         errors,
         LexerWrapper::new(input, s_table, String::from("test")),
     )?;
@@ -26,7 +29,18 @@ fn i(s_table: &mut StringTable, s: &str) -> usize {
     s_table.insert(s.to_string())
 }
 
-mod succeds_parsing {
+fn e(kind: ExprKind) -> parse_tree::Expr {
+    parse_tree::Expr {
+        kind,
+        span: Span::default(),
+    }
+}
+
+fn b(kind: ExprKind) -> Box<parse_tree::Expr> {
+    Box::new(e(kind))
+}
+
+mod succeeds_parsing {
     use super::*;
     use test_case::test_case;
 
@@ -43,14 +57,14 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Attribute {
+                features: vec![parse_tree::Feature::Attribute {
                     name: i(&mut s_table, "x"),
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    init: Some(Box::new(ast::Expr::IntConstant(10))),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    init: Some(b(ExprKind::IntConstant(10))),
                 }],
             }],
         };
@@ -79,44 +93,44 @@ mod succeds_parsing {
 
         let hello_world = i(&mut s_table, "Hello World");
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![
-                    ast::Feature::Attribute {
+                    parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "x"),
-                        type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                        init: Some(Box::new(ast::Expr::IntConstant(10))),
+                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                        init: Some(b(ExprKind::IntConstant(10))),
                     },
-                    ast::Feature::Attribute {
+                    parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "y"),
-                        type_dec: ast::TypeName::Type(i(&mut s_table, "String")),
-                        init: Some(Box::new(ast::Expr::StringConstant(hello_world))),
+                        type_dec: ReturnType::Type(i(&mut s_table, "String")),
+                        init: Some(b(ExprKind::StringConstant(hello_world))),
                     },
-                    ast::Feature::Attribute {
+                    parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "z"),
-                        type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
-                        init: Some(Box::new(ast::Expr::BoolConstant(false))),
+                        type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                        init: Some(b(ExprKind::BoolConstant(false))),
                     },
-                    ast::Feature::Attribute {
+                    parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "a"),
-                        type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
+                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
                         init: None,
                     },
-                    ast::Feature::Attribute {
+                    parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "b"),
-                        type_dec: ast::TypeName::Type(i(&mut s_table, "String")),
+                        type_dec: ReturnType::Type(i(&mut s_table, "String")),
                         init: None,
                     },
-                    ast::Feature::Attribute {
+                    parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "c"),
-                        type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
+                        type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
                         init: None,
                     },
-                    ast::Feature::Attribute {
+                    parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "d"),
-                        type_dec: ast::TypeName::Type(i(&mut s_table, "IO")),
+                        type_dec: ReturnType::Type(i(&mut s_table, "IO")),
                         init: None,
                     },
                 ],
@@ -143,29 +157,29 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
+        let expected = parse_tree::Program {
             classes: vec![
-                ast::Class::Valid {
+                parse_tree::Class::Valid {
                     name: i(&mut s_table, "Main"),
                     parent: None,
                     features: Vec::new(),
                 },
-                ast::Class::Valid {
+                parse_tree::Class::Valid {
                     name: i(&mut s_table, "A"),
                     parent: None,
                     features: Vec::new(),
                 },
-                ast::Class::Valid {
+                parse_tree::Class::Valid {
                     name: i(&mut s_table, "B"),
                     parent: Some(i(&mut s_table, "A")),
                     features: Vec::new(),
                 },
-                ast::Class::Valid {
+                parse_tree::Class::Valid {
                     name: i(&mut s_table, "C"),
                     parent: Some(i(&mut s_table, "B")),
                     features: Vec::new(),
                 },
-                ast::Class::Valid {
+                parse_tree::Class::Valid {
                     name: i(&mut s_table, "D"),
                     parent: Some(i(&mut s_table, "A")),
                     features: Vec::new(),
@@ -198,33 +212,33 @@ mod succeds_parsing {
 
         let string_id = i(&mut s_table, "String");
         let mut errors = Vec::new();
-        let expected = ast::Program {
+        let expected = parse_tree::Program {
             classes: vec![
-                ast::Class::Valid {
+                parse_tree::Class::Valid {
                     name: i(&mut s_table, "Main"),
                     parent: None,
-                    features: vec![ast::Feature::Attribute {
+                    features: vec![parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "x"),
-                        type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                        init: Some(Box::new(ast::Expr::IntConstant(1))),
+                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                        init: Some(b(ExprKind::IntConstant(1))),
                     }],
                 },
-                ast::Class::Valid {
+                parse_tree::Class::Valid {
                     name: i(&mut s_table, "Test"),
                     parent: None,
-                    features: vec![ast::Feature::Attribute {
+                    features: vec![parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "y"),
-                        type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
-                        init: Some(Box::new(ast::Expr::BoolConstant(true))),
+                        type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                        init: Some(b(ExprKind::BoolConstant(true))),
                     }],
                 },
-                ast::Class::Valid {
+                parse_tree::Class::Valid {
                     name: i(&mut s_table, "Test2"),
                     parent: None,
-                    features: vec![ast::Feature::Attribute {
+                    features: vec![parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "z"),
-                        type_dec: ast::TypeName::Type(string_id),
-                        init: Some(Box::new(ast::Expr::StringConstant(string_id))),
+                        type_dec: ReturnType::Type(string_id),
+                        init: Some(b(ExprKind::StringConstant(string_id))),
                     }],
                 },
             ],
@@ -247,15 +261,15 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "doStuff"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::IntConstant(42)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::IntConstant(42)),
                 }],
             }],
         };
@@ -277,18 +291,18 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "isNull"),
-                    params: vec![ast::Formal {
+                    params: vec![parse_tree::Formal {
                         name: i(&mut s_table, "o"),
                         type_dec: i(&mut s_table, "Object"),
                     }],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(ast::Expr::BoolConstant(false)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    body: b(ExprKind::BoolConstant(false)),
                 }],
             }],
         };
@@ -310,18 +324,18 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "add"),
-                    params: vec![ast::Formal {
+                    params: vec![parse_tree::Formal {
                         name: i(&mut s_table, "x"),
                         type_dec: i(&mut s_table, "Int"),
                     }],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::IntConstant(42)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::IntConstant(42)),
                 }],
             }],
         };
@@ -344,26 +358,26 @@ mod succeds_parsing {
 
         let to_id = i(&mut s_table, "to");
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "changeValue"),
                     params: vec![
-                        ast::Formal {
+                        parse_tree::Formal {
                             name: i(&mut s_table, "from"),
                             type_dec: i(&mut s_table, "Int"),
                         },
-                        ast::Formal {
+                        parse_tree::Formal {
                             name: to_id,
                             type_dec: i(&mut s_table, "Int"),
                         },
                     ],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Assignment {
-                        var: ast::Var::Id(i(&mut s_table, "from")),
-                        expr: Box::new(ast::Expr::Object(to_id)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Assignment {
+                        var: parse_tree::Var::Id(i(&mut s_table, "from")),
+                        expr: b(ExprKind::Object(to_id)),
                     }),
                 }],
             }],
@@ -386,18 +400,18 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Conditional {
-                        cond: Box::new(ast::Expr::BoolConstant(true)),
-                        happy_path: Box::new(ast::Expr::IntConstant(1)),
-                        sad_path: Box::new(ast::Expr::IntConstant(0)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Conditional {
+                        cond: b(ExprKind::BoolConstant(true)),
+                        happy_path: b(ExprKind::IntConstant(1)),
+                        sad_path: b(ExprKind::IntConstant(0)),
                     }),
                 }],
             }],
@@ -420,17 +434,17 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Loop {
-                        cond: Box::new(ast::Expr::BoolConstant(true)),
-                        body: Box::new(ast::Expr::IntConstant(1)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Loop {
+                        cond: b(ExprKind::BoolConstant(true)),
+                        body: b(ExprKind::IntConstant(1)),
                     }),
                 }],
             }],
@@ -453,15 +467,15 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Block(vec![ast::Expr::IntConstant(42)])),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Block(vec![e(ExprKind::IntConstant(42))])),
                 }],
             }],
         };
@@ -483,18 +497,18 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Block(vec![
-                        ast::Expr::IntConstant(1),
-                        ast::Expr::IntConstant(2),
-                        ast::Expr::IntConstant(3),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Block(vec![
+                        e(ExprKind::IntConstant(1)),
+                        e(ExprKind::IntConstant(2)),
+                        e(ExprKind::IntConstant(3)),
                     ])),
                 }],
             }],
@@ -517,18 +531,15 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Object")),
-                    body: Box::new(ast::Expr::New(ast::TypeName::Type(i(
-                        &mut s_table,
-                        "Object",
-                    )))),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Object")),
+                    body: b(ExprKind::New(ReturnType::Type(i(&mut s_table, "Object")))),
                 }],
             }],
         };
@@ -550,15 +561,15 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(ast::Expr::IsVoid(Box::new(ast::Expr::IntConstant(42)))),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    body: b(ExprKind::IsVoid(b(ExprKind::IntConstant(42)))),
                 }],
             }],
         };
@@ -580,15 +591,15 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Neg(Box::new(ast::Expr::IntConstant(42)))),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Neg(b(ExprKind::IntConstant(42)))),
                 }],
             }],
         };
@@ -610,15 +621,15 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(ast::Expr::Not(Box::new(ast::Expr::BoolConstant(true)))),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    body: b(ExprKind::Not(b(ExprKind::BoolConstant(true)))),
                 }],
             }],
         };
@@ -640,17 +651,17 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Add(
-                        Box::new(ast::Expr::IntConstant(1)),
-                        Box::new(ast::Expr::IntConstant(2)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Add(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::IntConstant(2)),
                     )),
                 }],
             }],
@@ -673,17 +684,17 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Sub(
-                        Box::new(ast::Expr::IntConstant(5)),
-                        Box::new(ast::Expr::IntConstant(3)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Sub(
+                        b(ExprKind::IntConstant(5)),
+                        b(ExprKind::IntConstant(3)),
                     )),
                 }],
             }],
@@ -706,17 +717,17 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Mul(
-                        Box::new(ast::Expr::IntConstant(3)),
-                        Box::new(ast::Expr::IntConstant(4)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Mul(
+                        b(ExprKind::IntConstant(3)),
+                        b(ExprKind::IntConstant(4)),
                     )),
                 }],
             }],
@@ -739,17 +750,17 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Div(
-                        Box::new(ast::Expr::IntConstant(10)),
-                        Box::new(ast::Expr::IntConstant(2)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Div(
+                        b(ExprKind::IntConstant(10)),
+                        b(ExprKind::IntConstant(2)),
                     )),
                 }],
             }],
@@ -772,17 +783,17 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(ast::Expr::Lt(
-                        Box::new(ast::Expr::IntConstant(1)),
-                        Box::new(ast::Expr::IntConstant(2)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    body: b(ExprKind::Lt(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::IntConstant(2)),
                     )),
                 }],
             }],
@@ -805,17 +816,17 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(ast::Expr::Le(
-                        Box::new(ast::Expr::IntConstant(1)),
-                        Box::new(ast::Expr::IntConstant(2)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    body: b(ExprKind::Le(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::IntConstant(2)),
                     )),
                 }],
             }],
@@ -840,17 +851,17 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: Vec::new(),
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(ast::Expr::Lt(
-                        Box::new(ast::Expr::IntConstant(1)),
-                        Box::new(ast::Expr::IntConstant(2)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    body: b(ExprKind::Lt(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::IntConstant(2)),
                     )),
                 }],
             }],
@@ -875,17 +886,17 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: Vec::new(),
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(ast::Expr::Le(
-                        Box::new(ast::Expr::IntConstant(1)),
-                        Box::new(ast::Expr::IntConstant(2)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    body: b(ExprKind::Le(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::IntConstant(2)),
                     )),
                 }],
             }],
@@ -908,17 +919,17 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Bool")),
-                    body: Box::new(ast::Expr::Eq(
-                        Box::new(ast::Expr::IntConstant(1)),
-                        Box::new(ast::Expr::IntConstant(1)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    body: b(ExprKind::Eq(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::IntConstant(1)),
                     )),
                 }],
             }],
@@ -941,20 +952,20 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Case {
-                        cond: Box::new(ast::Expr::IntConstant(42)),
-                        branches: vec![ast::CaseBranch {
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Case {
+                        cond: b(ExprKind::IntConstant(42)),
+                        branches: vec![parse_tree::CaseBranch {
                             name: i(&mut s_table, "x"),
                             type_dec: i(&mut s_table, "Int"),
-                            body: Box::new(ast::Expr::IntConstant(1)),
+                            body: b(ExprKind::IntConstant(1)),
                         }],
                     }),
                 }],
@@ -978,26 +989,26 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Case {
-                        cond: Box::new(ast::Expr::IntConstant(42)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Case {
+                        cond: b(ExprKind::IntConstant(42)),
                         branches: vec![
-                            ast::CaseBranch {
+                            parse_tree::CaseBranch {
                                 name: i(&mut s_table, "x"),
                                 type_dec: i(&mut s_table, "Int"),
-                                body: Box::new(ast::Expr::IntConstant(1)),
+                                body: b(ExprKind::IntConstant(1)),
                             },
-                            ast::CaseBranch {
+                            parse_tree::CaseBranch {
                                 name: i(&mut s_table, "y"),
                                 type_dec: i(&mut s_table, "Bool"),
-                                body: Box::new(ast::Expr::IntConstant(2)),
+                                body: b(ExprKind::IntConstant(2)),
                             },
                         ],
                     }),
@@ -1022,19 +1033,19 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Add(
-                        Box::new(ast::Expr::IntConstant(1)),
-                        Box::new(ast::Expr::Mul(
-                            Box::new(ast::Expr::IntConstant(2)),
-                            Box::new(ast::Expr::IntConstant(3)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Add(
+                        b(ExprKind::IntConstant(1)),
+                        b(ExprKind::Mul(
+                            b(ExprKind::IntConstant(2)),
+                            b(ExprKind::IntConstant(3)),
                         )),
                     )),
                 }],
@@ -1058,20 +1069,20 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Mul(
-                        Box::new(ast::Expr::Add(
-                            Box::new(ast::Expr::IntConstant(1)),
-                            Box::new(ast::Expr::IntConstant(2)),
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Mul(
+                        b(ExprKind::Add(
+                            b(ExprKind::IntConstant(1)),
+                            b(ExprKind::IntConstant(2)),
                         )),
-                        Box::new(ast::Expr::IntConstant(3)),
+                        b(ExprKind::IntConstant(3)),
                     )),
                 }],
             }],
@@ -1091,20 +1102,20 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: Some(i(&mut s_table, "IO")),
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "main"),
                     params: Vec::new(),
-                    type_dec: ast::TypeName::SelfType,
-                    body: Box::new(ast::Expr::SelfDispatch {
+                    type_dec: ReturnType::SelfType,
+                    body: b(ExprKind::SelfDispatch {
                         name: i(&mut s_table, "out_string"),
-                        args: vec![ast::Expr::StringConstant(i(
+                        args: vec![e(ExprKind::StringConstant(i(
                             &mut s_table,
                             "Hello, World.\n",
-                        ))],
+                        )))],
                     }),
                 }],
             }],
@@ -1137,46 +1148,46 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
                 features: vec![
-                    ast::Feature::Method {
+                    parse_tree::Feature::Method {
                         name: i(&mut s_table, "main"),
                         params: Vec::new(),
-                        type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                        body: Box::new(ast::Expr::SelfDispatch {
+                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                        body: b(ExprKind::SelfDispatch {
                             name: i(&mut s_table, "plus"),
-                            args: vec![ast::Expr::IntConstant(1), ast::Expr::IntConstant(2)],
+                            args: vec![e(ExprKind::IntConstant(1)), e(ExprKind::IntConstant(2))],
                         }),
                     },
-                    ast::Feature::Method {
+                    parse_tree::Feature::Method {
                         name: i(&mut s_table, "plus"),
                         params: vec![
-                            ast::Formal {
+                            parse_tree::Formal {
                                 name: i(&mut s_table, "num1"),
                                 type_dec: i(&mut s_table, "Int"),
                             },
-                            ast::Formal {
+                            parse_tree::Formal {
                                 name: i(&mut s_table, "num2"),
                                 type_dec: i(&mut s_table, "Int"),
                             },
                         ],
-                        type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                        body: Box::new(ast::Expr::Let {
+                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                        body: b(ExprKind::Let {
                             name: i(&mut s_table, "x"),
-                            type_dec: i(&mut s_table, "Int"),
+                            type_dec: ReturnType::Type(i(&mut s_table, "Int")),
                             init: None,
-                            body: Box::new(ast::Expr::Block(vec![
-                                ast::Expr::Assignment {
-                                    var: ast::Var::Id(i(&mut s_table, "x")),
-                                    expr: Box::new(ast::Expr::Add(
-                                        Box::new(ast::Expr::Object(i(&mut s_table, "num1"))),
-                                        Box::new(ast::Expr::Object(i(&mut s_table, "num2"))),
+                            body: b(ExprKind::Block(vec![
+                                e(ExprKind::Assignment {
+                                    var: parse_tree::Var::Id(i(&mut s_table, "x")),
+                                    expr: b(ExprKind::Add(
+                                        b(ExprKind::Object(i(&mut s_table, "num1"))),
+                                        b(ExprKind::Object(i(&mut s_table, "num2"))),
                                     )),
-                                },
-                                ast::Expr::Object(i(&mut s_table, "x")),
+                                }),
+                                e(ExprKind::Object(i(&mut s_table, "x"))),
                             ])),
                         }),
                     },
@@ -1207,32 +1218,32 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "main"),
                     params: Vec::new(),
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Let {
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Let {
                         name: i(&mut s_table, "x"),
-                        type_dec: i(&mut s_table, "Int"),
+                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
                         init: None,
-                        body: Box::new(ast::Expr::Let {
+                        body: b(ExprKind::Let {
                             name: i(&mut s_table, "y"),
-                            type_dec: i(&mut s_table, "Int"),
-                            init: Some(Box::new(ast::Expr::IntConstant(5))),
-                            body: Box::new(ast::Expr::Let {
+                            type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                            init: Some(b(ExprKind::IntConstant(5))),
+                            body: b(ExprKind::Let {
                                 name: i(&mut s_table, "z"),
-                                type_dec: i(&mut s_table, "Bool"),
+                                type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
                                 init: None,
-                                body: Box::new(ast::Expr::Block(vec![
-                                    ast::Expr::Assignment {
-                                        var: ast::Var::Id(i(&mut s_table, "x")),
-                                        expr: Box::new(ast::Expr::IntConstant(1)),
-                                    },
-                                    ast::Expr::Object(i(&mut s_table, "y")),
+                                body: b(ExprKind::Block(vec![
+                                    e(ExprKind::Assignment {
+                                        var: parse_tree::Var::Id(i(&mut s_table, "x")),
+                                        expr: b(ExprKind::IntConstant(1)),
+                                    }),
+                                    e(ExprKind::Object(i(&mut s_table, "y"))),
                                 ])),
                             }),
                         }),
@@ -1262,25 +1273,25 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "main"),
                     params: Vec::new(),
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Let {
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Let {
                         name: i(&mut s_table, "x"),
-                        type_dec: i(&mut s_table, "Int"),
-                        init: Some(Box::new(ast::Expr::IntConstant(1))),
-                        body: Box::new(ast::Expr::Let {
+                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                        init: Some(b(ExprKind::IntConstant(1))),
+                        body: b(ExprKind::Let {
                             name: i(&mut s_table, "y"),
-                            type_dec: i(&mut s_table, "Int"),
-                            init: Some(Box::new(ast::Expr::IntConstant(2))),
-                            body: Box::new(ast::Expr::Add(
-                                Box::new(ast::Expr::Object(i(&mut s_table, "x"))),
-                                Box::new(ast::Expr::Object(i(&mut s_table, "y"))),
+                            type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                            init: Some(b(ExprKind::IntConstant(2))),
+                            body: b(ExprKind::Add(
+                                b(ExprKind::Object(i(&mut s_table, "x"))),
+                                b(ExprKind::Object(i(&mut s_table, "y"))),
                             )),
                         }),
                     }),
@@ -1312,30 +1323,30 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "main"),
                     params: Vec::new(),
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "Int")),
-                    body: Box::new(ast::Expr::Block(vec![
-                        ast::Expr::Let {
+                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    body: b(ExprKind::Block(vec![
+                        e(ExprKind::Let {
                             name: i(&mut s_table, "x"),
-                            type_dec: i(&mut s_table, "Int"),
-                            init: Some(Box::new(ast::Expr::IntConstant(1))),
-                            body: Box::new(ast::Expr::Let {
+                            type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                            init: Some(b(ExprKind::IntConstant(1))),
+                            body: b(ExprKind::Let {
                                 name: i(&mut s_table, "y"),
-                                type_dec: i(&mut s_table, "Int"),
-                                init: Some(Box::new(ast::Expr::IntConstant(2))),
-                                body: Box::new(ast::Expr::Add(
-                                    Box::new(ast::Expr::Object(i(&mut s_table, "x"))),
-                                    Box::new(ast::Expr::Object(i(&mut s_table, "y"))),
+                                type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                                init: Some(b(ExprKind::IntConstant(2))),
+                                body: b(ExprKind::Add(
+                                    b(ExprKind::Object(i(&mut s_table, "x"))),
+                                    b(ExprKind::Object(i(&mut s_table, "y"))),
                                 )),
                             }),
-                        },
-                        ast::Expr::IntConstant(3),
+                        }),
+                        e(ExprKind::IntConstant(3)),
                     ])),
                 }],
             }],
@@ -1394,7 +1405,8 @@ mod succeds_parsing {
             };
         };"#;
 
-        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        let res = parse(input, &mut s_table, &mut errors);
+        assert!(res.is_ok());
         assert!(errors.is_empty());
     }
 
@@ -1438,75 +1450,69 @@ mod succeds_parsing {
         assert!(errors.is_empty());
 
         let mut errors = Vec::new();
-        let expected = ast::Program {
-            classes: vec![ast::Class::Valid {
+        let expected = parse_tree::Program {
+            classes: vec![parse_tree::Class::Valid {
                 name: i(&mut s_table, "Main"),
                 parent: None,
-                features: vec![ast::Feature::Method {
+                features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "cell_at_next_evolution"),
-                    params: vec![ast::Formal {
+                    params: vec![parse_tree::Formal {
                         name: i(&mut s_table, "position"),
                         type_dec: i(&mut s_table, "Int"),
                     }],
-                    type_dec: ast::TypeName::Type(i(&mut s_table, "String")),
-                    body: Box::new(ast::Expr::Conditional {
-                        cond: Box::new(ast::Expr::Eq(
-                            Box::new(ast::Expr::Add(
-                                Box::new(ast::Expr::Add(
-                                    Box::new(ast::Expr::Conditional {
-                                        cond: Box::new(ast::Expr::Eq(
-                                            Box::new(ast::Expr::SelfDispatch {
+                    type_dec: ReturnType::Type(i(&mut s_table, "String")),
+                    body: b(ExprKind::Conditional {
+                        cond: b(ExprKind::Eq(
+                            b(ExprKind::Add(
+                                b(ExprKind::Add(
+                                    b(ExprKind::Conditional {
+                                        cond: b(ExprKind::Eq(
+                                            b(ExprKind::SelfDispatch {
                                                 name: i(&mut s_table, "cell"),
-                                                args: vec![ast::Expr::Object(i(
+                                                args: vec![e(ExprKind::Object(i(
                                                     &mut s_table,
                                                     "position",
-                                                ))],
+                                                )))],
                                             }),
-                                            Box::new(ast::Expr::StringConstant(i(
-                                                &mut s_table,
-                                                "X",
-                                            ))),
+                                            b(ExprKind::StringConstant(i(&mut s_table, "X"))),
                                         )),
-                                        happy_path: Box::new(ast::Expr::IntConstant(1)),
-                                        sad_path: Box::new(ast::Expr::IntConstant(0)),
+                                        happy_path: b(ExprKind::IntConstant(1)),
+                                        sad_path: b(ExprKind::IntConstant(0)),
                                     }),
-                                    Box::new(ast::Expr::Conditional {
-                                        cond: Box::new(ast::Expr::Eq(
-                                            Box::new(ast::Expr::SelfDispatch {
+                                    b(ExprKind::Conditional {
+                                        cond: b(ExprKind::Eq(
+                                            b(ExprKind::SelfDispatch {
                                                 name: i(&mut s_table, "cell_left_neighbor"),
-                                                args: vec![ast::Expr::Object(i(
+                                                args: vec![e(ExprKind::Object(i(
                                                     &mut s_table,
                                                     "position",
-                                                ))],
+                                                )))],
                                             }),
-                                            Box::new(ast::Expr::StringConstant(i(
-                                                &mut s_table,
-                                                "X",
-                                            ))),
+                                            b(ExprKind::StringConstant(i(&mut s_table, "X"))),
                                         )),
-                                        happy_path: Box::new(ast::Expr::IntConstant(1)),
-                                        sad_path: Box::new(ast::Expr::IntConstant(0)),
+                                        happy_path: b(ExprKind::IntConstant(1)),
+                                        sad_path: b(ExprKind::IntConstant(0)),
                                     }),
                                 )),
-                                Box::new(ast::Expr::Conditional {
-                                    cond: Box::new(ast::Expr::Eq(
-                                        Box::new(ast::Expr::SelfDispatch {
+                                b(ExprKind::Conditional {
+                                    cond: b(ExprKind::Eq(
+                                        b(ExprKind::SelfDispatch {
                                             name: i(&mut s_table, "cell_right_neighbor"),
-                                            args: vec![ast::Expr::Object(i(
+                                            args: vec![e(ExprKind::Object(i(
                                                 &mut s_table,
                                                 "position",
-                                            ))],
+                                            )))],
                                         }),
-                                        Box::new(ast::Expr::StringConstant(i(&mut s_table, "X"))),
+                                        b(ExprKind::StringConstant(i(&mut s_table, "X"))),
                                     )),
-                                    happy_path: Box::new(ast::Expr::IntConstant(1)),
-                                    sad_path: Box::new(ast::Expr::IntConstant(0)),
+                                    happy_path: b(ExprKind::IntConstant(1)),
+                                    sad_path: b(ExprKind::IntConstant(0)),
                                 }),
                             )),
-                            Box::new(ast::Expr::IntConstant(1)),
+                            b(ExprKind::IntConstant(1)),
                         )),
-                        happy_path: Box::new(ast::Expr::StringConstant(i(&mut s_table, "X"))),
-                        sad_path: Box::new(ast::Expr::StringConstant(i(&mut s_table, "."))),
+                        happy_path: b(ExprKind::StringConstant(i(&mut s_table, "X"))),
+                        sad_path: b(ExprKind::StringConstant(i(&mut s_table, "."))),
                     }),
                 }],
             }],
@@ -1516,32 +1522,37 @@ mod succeds_parsing {
         assert!(errors.is_empty());
     }
 
-    #[test_case("arith.cl", include_str!("../examples/arith.cl"); "arith")]
-    #[test_case("atoi.cl", include_str!("../examples/atoi.cl"); "atoi")]
-    #[test_case("atoi_test.cl", include_str!("../examples/atoi_test.cl"); "atoi_test")]
-    #[test_case("book_list.cl", include_str!("../examples/book_list.cl"); "book_list")]
-    #[test_case("cells.cl", include_str!("../examples/cells.cl"); "cells")]
-    #[test_case("complex.cl", include_str!("../examples/complex.cl"); "complex")]
-    #[test_case("cool.cl", include_str!("../examples/cool.cl"); "cool")]
-    #[test_case("hairyscary.cl", include_str!("../examples/hairyscary.cl"); "hairyscary")]
-    #[test_case("hello_world.cl", include_str!("../examples/hello_world.cl"); "hello_world")]
-    #[test_case("io.cl", include_str!("../examples/io.cl"); "io")]
-    #[test_case("lam.cl", include_str!("../examples/lam.cl"); "lam")]
-    #[test_case("life.cl", include_str!("../examples/life.cl"); "life")]
-    #[test_case("list.cl", include_str!("../examples/list.cl"); "list")]
-    #[test_case("new_complex.cl", include_str!("../examples/new_complex.cl"); "new_complex")]
-    #[test_case("palindrome.cl", include_str!("../examples/palindrome.cl"); "palindrome")]
-    #[test_case("primes.cl", include_str!("../examples/primes.cl"); "primes")]
-    #[test_case("sort_list.cl", include_str!("../examples/sort_list.cl"); "sort_list")]
-    fn parses_examples(_: &str, input: &str) {
+    #[test_case(include_str!("../examples/arith.cl"); "arith")]
+    #[test_case(include_str!("../examples/atoi.cl"); "atoi")]
+    #[test_case(include_str!("../examples/atoi_test.cl"); "atoi_test")]
+    #[test_case(include_str!("../examples/book_list.cl"); "book_list")]
+    #[test_case(include_str!("../examples/cells.cl"); "cells")]
+    #[test_case( include_str!("../examples/complex.cl"); "complex")]
+    #[test_case( include_str!("../examples/cool.cl"); "cool")]
+    #[test_case( include_str!("../examples/hairyscary.cl"); "hairyscary")]
+    #[test_case( include_str!("../examples/hello_world.cl"); "hello_world")]
+    #[test_case(include_str!("../examples/io.cl"); "io")]
+    #[test_case(include_str!("../examples/lam.cl"); "lam")]
+    #[test_case( include_str!("../examples/life.cl"); "life")]
+    #[test_case(include_str!("../examples/list.cl"); "list")]
+    #[test_case( include_str!("../examples/new_complex.cl"); "new_complex")]
+    #[test_case(include_str!("../examples/palindrome.cl"); "palindrome")]
+    #[test_case(include_str!("../examples/primes.cl"); "primes")]
+    #[test_case(include_str!("../examples/sort_list.cl"); "sort_list")]
+    #[test_case(include_str!("../examples/foobar.cl"); "foobar")]
+    #[test_case(include_str!("../examples/sum.cl"); "sum")]
+    fn parses_examples(input: &str) {
         let mut s_table = StringTable::new();
         let mut errors = Vec::new();
-        assert!(parse(input, &mut s_table, &mut errors).is_ok());
+        let res = parse(input, &mut s_table, &mut errors);
+        assert!(res.is_ok(), "Parse failed: {:#?}", res.err());
         assert!(errors.is_empty());
     }
 }
 
 mod fail_parsing {
+    use core::panic;
+
     use coolc::{lexer::ErrorKind, utils};
 
     use super::*;
@@ -1641,6 +1652,7 @@ mod fail_parsing {
 
         let program = grammar::ProgramParser::new()
             .parse(
+                "test",
                 &mut errors,
                 LexerWrapper::new(input, &mut s_table, String::from("test")),
             )
@@ -1652,16 +1664,21 @@ mod fail_parsing {
             lalrpop_util::ParseError::UnrecognizedToken { .. }
         ));
 
-        let ast::Class::Valid { features, .. } = &program.classes[0] else {
-            panic!()
+        let features = match program.classes.get(0) {
+            Some(class) => match class {
+                parse_tree::Class::Valid { features, .. } => features,
+                parse_tree::Class::Invalid => panic!("Expected a valid class definition"),
+            },
+            None => panic!("Expected at least one class in the program"),
         };
+
         assert_eq!(features.len(), 3);
 
         let x = i(&mut s_table, "x");
         let z = i(&mut s_table, "z");
-        assert!(matches!(&features[0], ast::Feature::Attribute { name, .. } if *name == x));
-        assert!(matches!(&features[1], ast::Feature::Invalid));
-        assert!(matches!(&features[2], ast::Feature::Attribute { name, .. } if *name == z));
+        assert!(matches!(&features[0], parse_tree::Feature::Attribute { name, .. } if *name == x));
+        assert!(matches!(&features[1], parse_tree::Feature::Invalid));
+        assert!(matches!(&features[2], parse_tree::Feature::Attribute { name, .. } if *name == z));
     }
 
     #[test]
@@ -1680,6 +1697,7 @@ mod fail_parsing {
 
         let program = grammar::ProgramParser::new()
             .parse(
+                "test",
                 &mut errors,
                 LexerWrapper::new(input, &mut s_table, String::from("test")),
             )
@@ -1687,7 +1705,7 @@ mod fail_parsing {
 
         assert_eq!(errors.len(), 2);
 
-        let ast::Class::Valid { features, .. } = &program.classes[0] else {
+        let parse_tree::Class::Valid { features, .. } = &program.classes[0] else {
             panic!()
         };
         assert_eq!(features.len(), 5);
@@ -1695,10 +1713,10 @@ mod fail_parsing {
         let a = i(&mut s_table, "a");
         let c = i(&mut s_table, "c");
         let e = i(&mut s_table, "e");
-        assert!(matches!(&features[0], ast::Feature::Attribute { name, .. } if *name == a));
-        assert!(matches!(&features[1], ast::Feature::Invalid));
-        assert!(matches!(&features[2], ast::Feature::Attribute { name, .. } if *name == c));
-        assert!(matches!(&features[3], ast::Feature::Invalid));
-        assert!(matches!(&features[4], ast::Feature::Attribute { name, .. } if *name == e));
+        assert!(matches!(&features[0], parse_tree::Feature::Attribute { name, .. } if *name == a));
+        assert!(matches!(&features[1], parse_tree::Feature::Invalid));
+        assert!(matches!(&features[2], parse_tree::Feature::Attribute { name, .. } if *name == c));
+        assert!(matches!(&features[3], parse_tree::Feature::Invalid));
+        assert!(matches!(&features[4], parse_tree::Feature::Attribute { name, .. } if *name == e));
     }
 }
