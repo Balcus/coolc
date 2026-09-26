@@ -1,4 +1,4 @@
-use crate::{parse_tree::Program, lexer::LexerWrapper, parser, string_table::StringTable};
+use crate::{lexer::LexerWrapper, parse_tree::Program, parser, string_table::StringTable};
 
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct Span {
@@ -42,4 +42,10 @@ pub fn parse_program(input: &str) -> (StringTable, Program) {
     let program = parser.parse(tokens).unwrap();
 
     (string_table, program)
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum ReturnType {
+    SelfType,
+    Type(usize),
 }

@@ -1,24 +1,10 @@
 use crate::semantic_analysis::builtins::BUILTINS;
+use crate::utils::ReturnType;
 use crate::{
-    parse_tree::{self, TypeName},
+    parse_tree,
     semantic_analysis::{SemanticError, inheritance_tree::InheritanceTree},
 };
 use std::collections::HashMap;
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum ReturnType {
-    SelfType,
-    Type(usize),
-}
-
-impl ReturnType {
-    pub fn from(ty: TypeName) -> Self {
-        match ty {
-            TypeName::SelfType => Self::SelfType,
-            TypeName::Type(type_id) => Self::Type(type_id),
-        }
-    }
-}
 
 #[derive(Debug, PartialEq)]
 pub struct MethodInfo {
@@ -119,12 +105,10 @@ impl MethodTable {
                                 .map(|p| FormalInfo::new(p.name, p.type_dec))
                                 .collect();
 
-                            let rt = match type_dec {
-                                parse_tree::TypeName::SelfType => ReturnType::SelfType,
-                                parse_tree::TypeName::Type(id) => ReturnType::Type(*id),
+                            let method_info = MethodInfo {
+                                formal_info,
+                                rt: type_dec.clone(),
                             };
-
-                            let method_info = MethodInfo { formal_info, rt };
 
                             if let Err(error) = table.insert(defining_class, *name, method_info) {
                                 errors.push(error);
@@ -149,7 +133,13 @@ impl MethodTable {
         method_info: MethodInfo,
     ) -> Result<(), SemanticError> {
         if self.inner.contains_key(&(class_id, method_id)) {
-            return Err(SemanticError { kind: super::SemanticErrorKind::RedefinedMethod { class: class_id, method: method_id }, span: None });
+            return Err(SemanticError {
+                kind: super::SemanticErrorKind::RedefinedMethod {
+                    class: class_id,
+                    method: method_id,
+                },
+                span: None,
+            });
         }
 
         self.inner.insert((class_id, method_id), method_info);
@@ -182,14 +172,14 @@ impl MethodTable {
 
 #[cfg(test)]
 pub mod test {
+    use crate::semantic_analysis::builtins::{
+        ABORT_ID, CONCAT_ID, COPY_ID, I_ID, IN_INT_ID, IN_STRING_ID, INT_ID, IO_ID, L_ID,
+        LENGTH_ID, OBJECT_ID, OUT_INT_ID, OUT_STRING_ID, S_ID, STRING_ID, SUBSTR_ID, TYPE_NAME_ID,
+        X_ID,
+    };
     use crate::{
         semantic_analysis::method_table::{FormalInfo, MethodInfo, MethodTable, ReturnType},
         utils::parse_program,
-    };
-    use crate::semantic_analysis::builtins::{
-        ABORT_ID, CONCAT_ID, COPY_ID, I_ID, IN_INT_ID, IN_STRING_ID, INT_ID, IO_ID, L_ID,
-        LENGTH_ID, OBJECT_ID, OUT_INT_ID, OUT_STRING_ID, S_ID, STRING_ID, SUBSTR_ID,
-        TYPE_NAME_ID, X_ID,
     };
 
     #[test]

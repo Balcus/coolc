@@ -56,7 +56,7 @@ fn main() {
         Ok(_ast) => {
             println!("{} passed semantic checks", cli.path);
         }
-        Err(semantic_errors) => {
+        Err(_semantic_errors) => {
             todo!()
             // let mut diagnostic = Diagnostic::new(cli.path.clone(), input.clone(), semantic_errors);
             // diagnostic.emit_errors();

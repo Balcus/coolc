@@ -1,33 +1,21 @@
-#![allow(dead_code, unused_variables, unused_imports, unused)]
-use core::panic;
-use std::collections::HashMap;
-use std::{todo, unreachable, vec};
-
-use clap::error::ErrorKind::WrongNumberOfValues;
-
 use crate::semantic_analysis::SemanticErrorKind::{InvalidBlockConstruct, WrongOverrideSignature};
 use crate::semantic_analysis::builtins::{BOOL_ID, INT_ID, OBJECT_ID, STRING_ID};
-use crate::utils::Span;
+use crate::utils::{ReturnType, Span};
 use crate::{
-    ast::{self, ExprKind, ExprNode, FeatureNode},
-    parse_tree::{self, TypeName},
+    ast::{self, ExprKind, ExprNode},
+    parse_tree,
     semantic_analysis::{
         inheritance_tree::InheritanceTree,
-        method_table::{FormalInfo, MethodInfo, MethodTable, ReturnType},
+        method_table::{FormalInfo, MethodInfo, MethodTable},
         symbol_table::SymbolTable,
     },
 };
-// TODO: NEEDS BIG REFACTOR
-// rethink how to propagate errors, maybe a struct field would be better
-// one single return type variant (currently we have both ReturnType and parse_tree::TypeName)
-// MAYBE we can just annotate the previous tree instead of creating a new one but it would be painful to match on valid and invalid every time
-// if that is not an option i think a better approach would be to consume the parse tree in order to generate the ast
-// actually useful error information
+use core::panic;
+use std::collections::HashMap;
+use std::unreachable;
+// TODO: Some refactoring is still needed + tests
+// consume the parse tree in order to generate the ast
 // can we NOT USE UNREACHABLE ????
-// Only one semantic error for type mismatch
-// Limit the semantic errors and create more general ones
-// SELF_TYPE will not work first time for sure!!
-// Seed the environment with the base classes and methods for them:
 
 pub mod builtins;
 pub mod inheritance_tree;
@@ -129,12 +117,12 @@ pub enum ObjKind {
 #[derive(Debug)]
 pub struct ObjInfo {
     ty: ReturnType,
-    kind: ObjKind,
+    _kind: ObjKind,
 }
 
 impl ObjInfo {
     pub fn new(ty: ReturnType, kind: ObjKind) -> Self {
-        Self { ty, kind }
+        Self { ty, _kind: kind }
     }
 }
 
@@ -173,8 +161,7 @@ impl SemanticAnalyzer {
         let mut errors = Vec::new();
         let mut classes = Vec::new();
 
-        // class id -> class, so type_check_class can walk a class's ancestors
-        // and bring their attributes into scope
+        // class id -> class, so type_check_class can walk class ancestors and bring their attributes into scope
         let class_map: HashMap<usize, &parse_tree::Class> = program
             .classes
             .iter()
@@ -227,9 +214,8 @@ impl SemanticAnalyzer {
             _ => unreachable!("Invalid classes should have been filtered out already!"),
         };
 
-        // Inherited attributes: a COOL class sees every attribute of all its
-        // ancestors. Collect the ancestor chain, nearest parent first.
-        // (Terminates: analyze() returns early if InheritanceTree::build found a cycle.)
+        // COOL class see every attribute of all its ancestors
+        // collect the ancestor chain, nearest parent first.
         let mut ancestors = Vec::new();
         let mut current = self.inheritance_tree.parent(class_name);
         while let Some(ancestor) = current {
@@ -237,18 +223,15 @@ impl SemanticAnalyzer {
             current = self.inheritance_tree.parent(ancestor);
         }
 
-        // Bind them farthest-first. Builtin ancestors (Object, IO, ...) aren't in
-        // class_map, but they declare no attributes, so skipping them is correct.
+        // Bind attributes farthest first
+        // Builtin ancestors (Object, IO, ...) declare no attribute so skip them.
         for ancestor in ancestors.into_iter().rev() {
             if let Some(parse_tree::Class::Valid { features, .. }) =
                 class_map.get(&ancestor).copied()
             {
                 for feature in features {
                     if let parse_tree::Feature::Attribute { name, type_dec, .. } = feature {
-                        obj_env.add_id(
-                            *name,
-                            ObjInfo::new(ReturnType::from(*type_dec), ObjKind::Attribute),
-                        );
+                        obj_env.add_id(*name, ObjInfo::new(type_dec.clone(), ObjKind::Attribute));
                     }
                 }
             }
@@ -258,10 +241,7 @@ impl SemanticAnalyzer {
         // attributes cannot have SELF_TYPE as a type in COOL
         for feature in class_features {
             if let parse_tree::Feature::Attribute { name, type_dec, .. } = feature {
-                obj_env.add_id(
-                    *name,
-                    ObjInfo::new(ReturnType::from(*type_dec), ObjKind::Attribute),
-                );
+                obj_env.add_id(*name, ObjInfo::new(type_dec.clone(), ObjKind::Attribute));
             }
         }
 
@@ -372,7 +352,7 @@ impl SemanticAnalyzer {
                 name,
                 type_dec,
                 init,
-            } => (*name, *type_dec, init),
+            } => (*name, type_dec, init),
             _ => unreachable!("Non-attribute features should have been filtered out already!"),
         };
 
@@ -380,7 +360,7 @@ impl SemanticAnalyzer {
             Some(expr) => Some(Box::new(self.type_check_attribute_init(
                 current_class,
                 name,
-                type_dec,
+                type_dec.clone(),
                 expr,
                 obj_env,
             )?)),
@@ -389,7 +369,7 @@ impl SemanticAnalyzer {
 
         Ok(ast::FeatureNode::attribute(
             name,
-            ReturnType::from(type_dec),
+            type_dec.clone(),
             typed_init,
         ))
     }
@@ -398,7 +378,7 @@ impl SemanticAnalyzer {
         &mut self,
         current_class: usize,
         name: usize,
-        type_dec: TypeName,
+        type_dec: ReturnType,
         init: &Box<parse_tree::Expr>,
         obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, SemanticError> {
@@ -434,9 +414,7 @@ impl SemanticAnalyzer {
                 ExprKind::StringConstant(*value),
                 ReturnType::Type(STRING_ID),
             ),
-            parse_tree::ExprKind::Object(name) => {
-                self.type_check_object(class_id, *name, obj_env)?
-            }
+            parse_tree::ExprKind::Object(name) => self.type_check_object(*name, obj_env)?,
             parse_tree::ExprKind::SelfExpr => {
                 ExprNode::new(ExprKind::SelfExpr, ReturnType::SelfType)
             }
@@ -481,10 +459,9 @@ impl SemanticAnalyzer {
             parse_tree::ExprKind::Case { cond, branches } => {
                 self.type_check_expr_case(class_id, cond, branches, obj_env)?
             }
-            parse_tree::ExprKind::New(type_name) => ExprNode::new(
-                ExprKind::New(ReturnType::from(*type_name)),
-                ReturnType::from(*type_name),
-            ),
+            parse_tree::ExprKind::New(type_name) => {
+                ExprNode::new(ExprKind::New(type_name.clone()), type_name.clone())
+            }
             parse_tree::ExprKind::IsVoid(expr) => {
                 self.type_check_expr_is_void(class_id, expr, obj_env)?
             }
@@ -623,19 +600,17 @@ impl SemanticAnalyzer {
         &mut self,
         class_id: usize,
         var_name: usize,
-        type_dec: &TypeName,
+        type_dec: &ReturnType,
         init: &Box<parse_tree::Expr>,
         body: &Box<parse_tree::Expr>,
         obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, SemanticError> {
-        let declared_ty = ReturnType::from(*type_dec);
-
         let e1 = self.type_check_expr(class_id, init, obj_env)?;
 
-        if !self.is_subtype(class_id, &e1.ty, &declared_ty) {
+        if !self.is_subtype(class_id, &e1.ty, &type_dec) {
             return Err(SemanticError {
                 kind: SemanticErrorKind::TypeMismatch {
-                    expected: declared_ty,
+                    expected: type_dec.clone(),
                     found: e1.ty,
                 },
                 span: Some(init.span.clone()),
@@ -643,7 +618,7 @@ impl SemanticAnalyzer {
         };
 
         obj_env.enter_scope();
-        obj_env.add_id(var_name, ObjInfo::new(declared_ty.clone(), ObjKind::Local));
+        obj_env.add_id(var_name, ObjInfo::new(type_dec.clone(), ObjKind::Local));
 
         let e2 = match self.type_check_expr(class_id, body, obj_env) {
             Ok(node) => {
@@ -661,7 +636,7 @@ impl SemanticAnalyzer {
         Ok(ExprNode::new(
             ExprKind::Let {
                 name: var_name,
-                type_dec: declared_ty,
+                type_dec: type_dec.clone(),
                 init: Some(Box::new(e1)),
                 body: Box::new(e2),
             },
@@ -673,14 +648,12 @@ impl SemanticAnalyzer {
         &mut self,
         class_id: usize,
         var_name: usize,
-        type_dec: &TypeName,
+        type_dec: &ReturnType,
         body: &Box<parse_tree::Expr>,
         obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, SemanticError> {
-        let declared_ty = ReturnType::from(*type_dec);
-
         obj_env.enter_scope();
-        obj_env.add_id(var_name, ObjInfo::new(declared_ty.clone(), ObjKind::Local));
+        obj_env.add_id(var_name, ObjInfo::new(type_dec.clone(), ObjKind::Local));
 
         let e1 = match self.type_check_expr(class_id, body, obj_env) {
             Ok(node) => {
@@ -693,7 +666,7 @@ impl SemanticAnalyzer {
             }
         };
 
-        let t0 = declared_ty.clone();
+        let t0 = type_dec.clone();
         let t1 = e1.ty.clone();
 
         Ok(ExprNode::new(
@@ -887,7 +860,6 @@ impl SemanticAnalyzer {
 
     fn type_check_object(
         &mut self,
-        current_class: usize,
         name: usize,
         obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, SemanticError> {
@@ -1183,12 +1155,7 @@ impl SemanticAnalyzer {
                                 .map(|p| FormalInfo::new(p.name, p.type_dec))
                                 .collect();
 
-                            let return_type = match type_dec {
-                                parse_tree::TypeName::SelfType => ReturnType::SelfType,
-                                parse_tree::TypeName::Type(id) => ReturnType::Type(*id),
-                            };
-
-                            let base_method_info = MethodInfo::new(formal_info, return_type);
+                            let base_method_info = MethodInfo::new(formal_info, type_dec.clone());
 
                             if let Some(p) = parent {
                                 if let Some(parent_method_info) = self.method_table.lookup(

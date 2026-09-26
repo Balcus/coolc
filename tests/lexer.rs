@@ -46,7 +46,10 @@ mod succeeds_lexing {
         let Token::StringConstant(id) = tok else {
             panic!("expected StringConstant")
         };
-        assert_eq!(lex.extras.s_table.string_from_id(id).unwrap(), "Hello World!");
+        assert_eq!(
+            lex.extras.s_table.string_from_id(id).unwrap(),
+            "Hello World!"
+        );
     }
 
     #[test]
@@ -1251,12 +1254,20 @@ mod succeeds_lexing {
             Token::Semicolon,
             Token::ObjectIdentifier(table.lookup("out_string").unwrap()),
             Token::LParen,
-            Token::StringConstant(table.lookup("\t2: A slash from the upper left to lower right\n").unwrap()),
+            Token::StringConstant(
+                table
+                    .lookup("\t2: A slash from the upper left to lower right\n")
+                    .unwrap(),
+            ),
             Token::RParen,
             Token::Semicolon,
             Token::ObjectIdentifier(table.lookup("out_string").unwrap()),
             Token::LParen,
-            Token::StringConstant(table.lookup("\t3: A slash from the upper right to lower left\n").unwrap()),
+            Token::StringConstant(
+                table
+                    .lookup("\t3: A slash from the upper right to lower left\n")
+                    .unwrap(),
+            ),
             Token::RParen,
             Token::Semicolon,
             Token::ObjectIdentifier(table.lookup("out_string").unwrap()),
@@ -1558,13 +1569,19 @@ mod succeeds_lexing {
             Token::ObjectIdentifier(table.lookup("out_string").unwrap()),
             Token::LParen,
             Token::StringConstant(
-                table.lookup("Would you like to continue with the next generation? \n").unwrap(),
+                table
+                    .lookup("Would you like to continue with the next generation? \n")
+                    .unwrap(),
             ),
             Token::RParen,
             Token::Semicolon,
             Token::ObjectIdentifier(table.lookup("out_string").unwrap()),
             Token::LParen,
-            Token::StringConstant(table.lookup("Please use lowercase y or n for your answer [y]: ").unwrap()),
+            Token::StringConstant(
+                table
+                    .lookup("Please use lowercase y or n for your answer [y]: ")
+                    .unwrap(),
+            ),
             Token::RParen,
             Token::Semicolon,
             Token::ObjectIdentifier(table.lookup("ans").unwrap()),
@@ -1614,12 +1631,20 @@ mod succeeds_lexing {
             Token::Semicolon,
             Token::ObjectIdentifier(table.lookup("out_string").unwrap()),
             Token::LParen,
-            Token::StringConstant(table.lookup("Would you like to choose a background pattern? \n").unwrap()),
+            Token::StringConstant(
+                table
+                    .lookup("Would you like to choose a background pattern? \n")
+                    .unwrap(),
+            ),
             Token::RParen,
             Token::Semicolon,
             Token::ObjectIdentifier(table.lookup("out_string").unwrap()),
             Token::LParen,
-            Token::StringConstant(table.lookup("Please use lowercase y or n for your answer [n]: ").unwrap()),
+            Token::StringConstant(
+                table
+                    .lookup("Please use lowercase y or n for your answer [n]: ")
+                    .unwrap(),
+            ),
             Token::RParen,
             Token::Semicolon,
             Token::ObjectIdentifier(table.lookup("ans").unwrap()),
@@ -1680,7 +1705,11 @@ mod succeeds_lexing {
             Token::Semicolon,
             Token::ObjectIdentifier(table.lookup("out_string").unwrap()),
             Token::LParen,
-            Token::StringConstant(table.lookup("There are many initial states to choose from. \n").unwrap()),
+            Token::StringConstant(
+                table
+                    .lookup("There are many initial states to choose from. \n")
+                    .unwrap(),
+            ),
             Token::RParen,
             Token::Semicolon,
             Token::While,

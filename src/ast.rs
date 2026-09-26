@@ -1,5 +1,6 @@
-use crate::semantic_analysis::method_table::ReturnType;
 use std::usize;
+
+use crate::utils::ReturnType;
 
 type Id = usize;
 type ClassId = usize;

@@ -1,5 +1,5 @@
 use crate::semantic_analysis::SemanticErrorKind::InheritanceCycle;
-use crate::semantic_analysis::builtins::{BOOL_ID, BUILTINS, INT_ID, OBJECT_ID, STRING_ID};
+use crate::semantic_analysis::builtins::{BUILTINS, OBJECT_ID};
 use crate::{
     parse_tree::{Class, Program},
     semantic_analysis::SemanticError,
@@ -24,7 +24,10 @@ impl InheritanceTree {
         for class in &ast.classes {
             if let Class::Valid { name, parent, .. } = class {
                 if tree.inner.contains_key(name) {
-                    err.push(SemanticError { kind: super::SemanticErrorKind::DuplicateClass { name: *name }, span: None });
+                    err.push(SemanticError {
+                        kind: super::SemanticErrorKind::DuplicateClass { name: *name },
+                        span: None,
+                    });
                     continue;
                 }
 
@@ -40,12 +43,18 @@ impl InheritanceTree {
 
         for parent in tree.inner.values().filter_map(|&p| p) {
             if !tree.inner.contains_key(&parent) {
-                err.push(SemanticError { kind: super::SemanticErrorKind::UndefinedClass { name: parent }, span: None });
+                err.push(SemanticError {
+                    kind: super::SemanticErrorKind::UndefinedClass { name: parent },
+                    span: None,
+                });
             }
         }
 
         if tree.has_cycle() {
-            err.push(SemanticError { kind: InheritanceCycle, span: None });
+            err.push(SemanticError {
+                kind: InheritanceCycle,
+                span: None,
+            });
         }
 
         if !err.is_empty() {
@@ -104,6 +113,7 @@ impl InheritanceTree {
         self.inner.get(&class).copied().flatten()
     }
 
+    #[allow(unreachable_code)]
     pub fn lub(&self, a: usize, b: usize) -> usize {
         let mut a_anc = HashSet::new();
         let mut current = Some(a);
@@ -195,7 +205,13 @@ mod test {
         let errors = InheritanceTree::build(&program).unwrap_err();
 
         assert_eq!(errors.len(), 1);
-        assert_eq!(errors[0], SemanticError {kind: SemanticErrorKind::InheritanceCycle, span: None});
+        assert_eq!(
+            errors[0],
+            SemanticError {
+                kind: SemanticErrorKind::InheritanceCycle,
+                span: None
+            }
+        );
     }
 
     #[test]
@@ -210,7 +226,13 @@ mod test {
         let errors = InheritanceTree::build(&program).unwrap_err();
 
         assert_eq!(errors.len(), 1);
-        assert_eq!(errors[0], SemanticError {kind: SemanticErrorKind::UndefinedClass { name: b }, span: None});
+        assert_eq!(
+            errors[0],
+            SemanticError {
+                kind: SemanticErrorKind::UndefinedClass { name: b },
+                span: None
+            }
+        );
     }
 
     #[test]
@@ -226,7 +248,13 @@ mod test {
         let a = s_table.lookup("A").unwrap();
 
         assert_eq!(errors.len(), 1);
-        assert_eq!(errors[0], SemanticError { kind: SemanticErrorKind::DuplicateClass {name: a}, span: None});
+        assert_eq!(
+            errors[0],
+            SemanticError {
+                kind: SemanticErrorKind::DuplicateClass { name: a },
+                span: None
+            }
+        );
     }
 
     #[test]

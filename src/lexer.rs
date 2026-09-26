@@ -27,11 +27,9 @@ impl<'input, 's: 'input> Iterator for LexerWrapper<'input, 's> {
     type Item = Spanned<Token, usize, ErrorToken>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.token_stream.next().map(|(token, span)| {
-            match token? {
-                Token::Err(error_token) => Err(error_token),
-                tok => Ok((span.start, tok, span.end)),
-            }
+        self.token_stream.next().map(|(token, span)| match token? {
+            Token::Err(error_token) => Err(error_token),
+            tok => Ok((span.start, tok, span.end)),
         })
     }
 }
@@ -39,15 +37,6 @@ impl<'input, 's: 'input> Iterator for LexerWrapper<'input, 's> {
 pub struct LexerExtras<'s> {
     pub s_table: &'s mut StringTable,
     pub file: String,
-}
-
-/// The default constructor for LexerExtras `MUST NOT` be used.
-/// Instead use the `lexer_with_extras`
-/// option when constructing the lexer and pass it a mutable reference to a string table
-impl Default for LexerExtras<'_> {
-    fn default() -> Self {
-        unreachable!("LexerExtras::default() should never be called")
-    }
 }
 
 #[derive(Default, Debug, Clone, PartialEq)]

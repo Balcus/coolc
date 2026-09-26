@@ -24,7 +24,7 @@
 use crate::lexer::{Token, ErrorToken};
 use lalrpop_util::ErrorRecovery;
 use crate::parse_tree;
-use crate::utils::Span;
+use crate::utils::{Span, ReturnType};
 
 grammar<'err>(file: &'err str, errors: &'err mut Vec<ErrorRecovery<usize, Token, ErrorToken>>);
 
@@ -91,7 +91,7 @@ Comma<T>: Vec<T> = {
 };
 
 // Helper type for a single binding (x: Type or x: Type <- y)
-Binding: (parse_tree::Id, parse_tree::TypeName, Option<Box<parse_tree::Expr>>, Span) = {
+Binding: (parse_tree::Id, ReturnType, Option<Box<parse_tree::Expr>>, Span) = {
     <l:@L> <n: "ID"> ":" <t: Type> <r:@R> =>
         (n, t, None, Span::new(file.to_string(), l, r)),
     <l:@L> <n: "ID"> ":" <t: Type> "<-" <e: FullExpr> <r:@R> =>
@@ -197,9 +197,9 @@ Paren: parse_tree::Expr = {
     "(" <e: FullExpr> ")" => e,
 }
 
-Type: parse_tree::TypeName = {
-    <t: "TYPE"> => parse_tree::TypeName::Type(t),
-    "SELF_TYPE" => parse_tree::TypeName::SelfType,
+Type: ReturnType = {
+    <t: "TYPE"> => ReturnType::Type(t),
+    "SELF_TYPE" => ReturnType::SelfType,
 }
 
 Expr: parse_tree::Expr = {

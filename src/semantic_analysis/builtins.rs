@@ -1,4 +1,4 @@
-use crate::semantic_analysis::method_table::ReturnType;
+use crate::utils::ReturnType;
 
 // Builtin classes
 pub const OBJECT_ID: usize = 0;
@@ -29,7 +29,7 @@ pub struct BuiltinMethod {
     pub name: usize,
     pub rt: ReturnType,
     // array of tuples where each tuple represents a parameter with its type
-    pub params: &'static[(usize, usize)],
+    pub params: &'static [(usize, usize)],
 }
 
 pub struct BuiltinClass {
@@ -60,7 +60,7 @@ pub const BUILTINS: &'static [BuiltinClass] = &[
                 name: COPY_ID,
                 rt: ReturnType::SelfType,
                 params: &[],
-            }
+            },
         ],
     },
     BuiltinClass {
@@ -90,7 +90,7 @@ pub const BUILTINS: &'static [BuiltinClass] = &[
                 name: IN_INT_ID,
                 rt: ReturnType::Type(INT_ID),
                 params: &[],
-            }
+            },
         ],
     },
     // Default initialization for variables of type Int is 0
@@ -122,7 +122,7 @@ pub const BUILTINS: &'static [BuiltinClass] = &[
                 name: SUBSTR_ID,
                 rt: ReturnType::Type(STRING_ID),
                 params: &[(I_ID, INT_ID), (L_ID, INT_ID)],
-            }
+            },
         ],
     },
     // Default initialization is false
@@ -130,5 +130,5 @@ pub const BUILTINS: &'static [BuiltinClass] = &[
         id: BOOL_ID,
         parent: Some(OBJECT_ID),
         methods: &[],
-    }
+    },
 ];

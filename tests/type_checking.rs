@@ -1,12 +1,9 @@
 mod succeeds_type_check {
     use coolc::semantic_analysis::builtins::{BOOL_ID, INT_ID, STRING_ID};
-    use coolc::{
-        ast,
-        semantic_analysis::{SemanticAnalyzer, method_table::ReturnType},
-        utils::parse_program,
-    };
+    use coolc::utils::ReturnType;
+    use coolc::{ast, semantic_analysis::SemanticAnalyzer, utils::parse_program};
     use core::panic;
-    use std::{assert_eq, vec};
+    use std::{assert_eq, print, vec};
     use test_case::test_case;
 
     #[test]
@@ -77,24 +74,50 @@ mod succeeds_type_check {
         assert_eq!(ast, expected);
     }
 
-    #[test_case("arith.cl", include_str!("../examples/arith.cl"); "arith")]
-    #[test_case("atoi.cl", include_str!("../examples/atoi.cl"); "atoi")]
-    #[test_case("book_list.cl", include_str!("../examples/book_list.cl"); "book_list")]
-    #[test_case("cells.cl", include_str!("../examples/cells.cl"); "cells")]
-    #[test_case("complex.cl", include_str!("../examples/complex.cl"); "complex")]
-    #[test_case("cool.cl", include_str!("../examples/cool.cl"); "cool")]
-    #[test_case("hairyscary.cl", include_str!("../examples/hairyscary.cl"); "hairyscary")]
-    #[test_case("hello_world.cl", include_str!("../examples/hello_world.cl"); "hello_world")]
-    #[test_case("io.cl", include_str!("../examples/io.cl"); "io")]
-    #[test_case("lam.cl", include_str!("../examples/lam.cl"); "lam")]
-    #[test_case("life.cl", include_str!("../examples/life.cl"); "life")]
-    #[test_case("list.cl", include_str!("../examples/list.cl"); "list")]
-    #[test_case("new_complex.cl", include_str!("../examples/new_complex.cl"); "new_complex")]
-    #[test_case("palindrome.cl", include_str!("../examples/palindrome.cl"); "palindrome")]
-    #[test_case("primes.cl", include_str!("../examples/primes.cl"); "primes")]
-    #[test_case("sort_list.cl", include_str!("../examples/sort_list.cl"); "sort_list")]
-    fn type_check_examples(_: &str, input: &str) {
+    #[test]
+    fn check_errors() {
+        let (_, program) = parse_program(include_str!("../examples/foobar.cl"));
+        let res = SemanticAnalyzer::analyze(&program);
+        match res {
+            Ok(_) => return,
+            Err(e) => print!("{:#?}", e),
+        }
+    }
+
+    #[test_case(include_str!("../examples/arith.cl"); "arith")]
+    #[test_case(include_str!("../examples/atoi.cl"); "atoi")]
+    #[test_case(include_str!("../examples/book_list.cl"); "book_list")]
+    #[test_case(include_str!("../examples/cells.cl"); "cells")]
+    #[test_case(include_str!("../examples/complex.cl"); "complex")]
+    #[test_case(include_str!("../examples/cool.cl"); "cool")]
+    #[test_case(include_str!("../examples/hairyscary.cl"); "hairyscary")]
+    #[test_case(include_str!("../examples/hello_world.cl"); "hello_world")]
+    #[test_case(include_str!("../examples/io.cl"); "io")]
+    #[test_case(include_str!("../examples/lam.cl"); "lam")]
+    #[test_case(include_str!("../examples/life.cl"); "life")]
+    #[test_case(include_str!("../examples/list.cl"); "list")]
+    #[test_case(include_str!("../examples/new_complex.cl"); "new_complex")]
+    #[test_case(include_str!("../examples/palindrome.cl"); "palindrome")]
+    #[test_case(include_str!("../examples/primes.cl"); "primes")]
+    #[test_case(include_str!("../examples/sort_list.cl"); "sort_list")]
+    #[test_case(include_str!("../examples/foobar.cl"); "foobar")]
+    #[test_case(include_str!("../examples/sum.cl"); "sum")]
+    fn type_check_examples(input: &str) {
         let (_, program) = parse_program(input);
-        assert!(SemanticAnalyzer::analyze(&program).is_ok());
+        let res = SemanticAnalyzer::analyze(&program);
+        assert!(res.is_ok(), "Semantic analysis error: {:#?}", res.err());
+    }
+}
+
+mod fails_type_checking {
+
+    use coolc::{semantic_analysis::SemanticAnalyzer, utils::parse_program};
+    use test_case::test_case;
+
+    #[test_case(include_str!("../examples/semantic_errors/mismatched_types/1.cl"); "semantic_errors_mismatched_types_1")]
+    fn type_check_examples(input: &str) {
+        let (_, program) = parse_program(input);
+        let res = SemanticAnalyzer::analyze(&program);
+        assert!(res.is_err())
     }
 }
