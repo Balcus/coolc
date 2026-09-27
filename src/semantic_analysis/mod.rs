@@ -1,8 +1,8 @@
 use crate::semantic_analysis::SemanticErrorKind::{InvalidBlockConstruct, WrongOverrideSignature};
+use crate::semantic_analysis::ast::{ExprKind, ExprNode};
 use crate::semantic_analysis::builtins::{BOOL_ID, INT_ID, OBJECT_ID, STRING_ID};
 use crate::utils::{ReturnType, Span};
 use crate::{
-    ast::{self, ExprKind, ExprNode},
     parse_tree,
     semantic_analysis::{
         inheritance_tree::InheritanceTree,
@@ -14,13 +14,13 @@ use core::panic;
 use std::collections::HashMap;
 use std::unreachable;
 // TODO: Some refactoring is still needed + tests
-// consume the parse tree in order to generate the ast
 // can we NOT USE UNREACHABLE ????
 
 pub mod builtins;
 pub mod inheritance_tree;
 pub mod method_table;
 pub mod symbol_table;
+pub mod ast;
 
 #[derive(Debug)]
 pub enum ArithOp {
@@ -38,8 +38,8 @@ pub enum CompOp {
 
 #[derive(Debug, PartialEq)]
 pub struct SemanticError {
-    kind: SemanticErrorKind,
-    span: Option<Span>,
+    pub kind: SemanticErrorKind,
+    pub span: Option<Span>,
 }
 
 impl SemanticError {
@@ -133,14 +133,14 @@ pub struct SemanticAnalyzer {
 }
 
 impl SemanticAnalyzer {
-    pub fn analyze(program: &parse_tree::Program) -> Result<ast::Root, Vec<SemanticError>> {
+    pub fn analyze(program: parse_tree::Program) -> Result<ast::Root, Vec<SemanticError>> {
         let mut errors = Vec::new();
         let mut analyzer = Self {
-            inheritance_tree: InheritanceTree::build(program)?,
-            method_table: MethodTable::build(program)?,
+            inheritance_tree: InheritanceTree::build(&program)?,
+            method_table: MethodTable::build(&program)?,
         };
 
-        if let Err(e) = analyzer.check_overrides(program) {
+        if let Err(e) = analyzer.check_overrides(&program) {
             errors.extend(e);
         }
 
@@ -156,7 +156,7 @@ impl SemanticAnalyzer {
 
     fn type_check(
         &mut self,
-        program: &parse_tree::Program,
+        program: parse_tree::Program,
     ) -> Result<ast::Root, Vec<SemanticError>> {
         let mut errors = Vec::new();
         let mut classes = Vec::new();
@@ -201,7 +201,7 @@ impl SemanticAnalyzer {
         let mut errors = Vec::new();
         let mut ast_features = Vec::new();
 
-        // Open scope for current class (Oc)
+        // Open scope for current class
         obj_env.enter_scope();
 
         let (class_name, parent, class_features) = match class {

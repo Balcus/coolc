@@ -39,7 +39,7 @@ fn main() {
     let program = match parser.parse(tokens) {
         Some(program) => program,
         None => {
-            Diagnostic::new(cli.path.clone(), input.clone(), errors).emit_errors();
+            Diagnostic::new(cli.path.clone(), input.clone(), errors).emit_errors(&s_table);
             return;
         }
     };
@@ -52,12 +52,13 @@ fn main() {
         println!("{} passed parser checks", cli.path);
     }
 
-    match SemanticAnalyzer::analyze(&program) {
+    match SemanticAnalyzer::analyze(program) {
         Ok(_ast) => {
             println!("{} passed semantic checks", cli.path);
         }
-        Err(_semantic_errors) => {
-            todo!()
+        Err(semantic_errors) => {
+            Diagnostic::from_semantic_errors(cli.path.clone(), input.clone(), semantic_errors)
+                .emit_errors(&s_table);
             // let mut diagnostic = Diagnostic::new(cli.path.clone(), input.clone(), semantic_errors);
             // diagnostic.emit_errors();
         }

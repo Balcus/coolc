@@ -1,7 +1,8 @@
 mod succeeds_type_check {
-    use coolc::semantic_analysis::builtins::{BOOL_ID, INT_ID, STRING_ID};
+    use coolc::semantic_analysis::ast;
+use coolc::semantic_analysis::builtins::{BOOL_ID, INT_ID, STRING_ID};
     use coolc::utils::ReturnType;
-    use coolc::{ast, semantic_analysis::SemanticAnalyzer, utils::parse_program};
+    use coolc::{semantic_analysis::SemanticAnalyzer, utils::parse_program};
     use core::panic;
     use std::{assert_eq, print, vec};
     use test_case::test_case;
@@ -18,7 +19,7 @@ mod succeeds_type_check {
         "#,
         );
 
-        assert!(SemanticAnalyzer::analyze(&program).is_ok());
+        assert!(SemanticAnalyzer::analyze(program).is_ok());
     }
 
     #[test]
@@ -33,7 +34,7 @@ mod succeeds_type_check {
         "#,
         );
 
-        let ast = match SemanticAnalyzer::analyze(&program) {
+        let ast = match SemanticAnalyzer::analyze(program) {
             Ok(p) => p,
             Err(e) => panic!("Failed semantic analysis: {:#?}", e),
         };
@@ -77,7 +78,7 @@ mod succeeds_type_check {
     #[test]
     fn check_errors() {
         let (_, program) = parse_program(include_str!("../examples/foobar.cl"));
-        let res = SemanticAnalyzer::analyze(&program);
+        let res = SemanticAnalyzer::analyze(program);
         match res {
             Ok(_) => return,
             Err(e) => print!("{:#?}", e),
@@ -102,10 +103,12 @@ mod succeeds_type_check {
     #[test_case(include_str!("../examples/sort_list.cl"); "sort_list")]
     #[test_case(include_str!("../examples/foobar.cl"); "foobar")]
     #[test_case(include_str!("../examples/sum.cl"); "sum")]
+    #[test_case(include_str!("../examples/self_type.cl"); "self_type")]
+    #[test_case(include_str!("../examples/inheritance.cl"); "inheritance")]
     fn type_check_examples(input: &str) {
-        let (_, program) = parse_program(input);
-        let res = SemanticAnalyzer::analyze(&program);
-        assert!(res.is_ok(), "Semantic analysis error: {:#?}", res.err());
+        let (s_table, program) = parse_program(input);
+        let res = SemanticAnalyzer::analyze(program);
+        assert!(res.is_ok(), "Semantic analysis error: {:#?}. String Table: {:#?}", res.err(), s_table);
     }
 }
 
@@ -114,10 +117,13 @@ mod fails_type_checking {
     use coolc::{semantic_analysis::SemanticAnalyzer, utils::parse_program};
     use test_case::test_case;
 
-    #[test_case(include_str!("../examples/semantic_errors/mismatched_types/1.cl"); "semantic_errors_mismatched_types_1")]
+    #[test_case(include_str!("../examples/semantic_errors/1.cl"); "semantic_errors_mismatched_types_1")]
+    #[test_case(include_str!("../examples/semantic_errors/2.cl"); "semantic_errors_mismatched_types_2")]
+    #[test_case(include_str!("../examples/semantic_errors/3.cl"); "semantic_errors_mismatched_types_3")]
+    #[test_case(include_str!("../examples/semantic_errors/4.cl"); "semantic_errors_mismatched_types_4")]
     fn type_check_examples(input: &str) {
         let (_, program) = parse_program(input);
-        let res = SemanticAnalyzer::analyze(&program);
+        let res = SemanticAnalyzer::analyze(program);
         assert!(res.is_err())
     }
 }

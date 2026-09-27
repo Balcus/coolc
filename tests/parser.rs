@@ -1541,6 +1541,7 @@ mod succeeds_parsing {
     #[test_case(include_str!("../examples/sort_list.cl"); "sort_list")]
     #[test_case(include_str!("../examples/foobar.cl"); "foobar")]
     #[test_case(include_str!("../examples/sum.cl"); "sum")]
+    #[test_case(include_str!("../examples/self_type.cl"); "self_type")]
     fn parses_examples(input: &str) {
         let mut s_table = StringTable::new();
         let mut errors = Vec::new();

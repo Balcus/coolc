@@ -1,6 +1,5 @@
 use lalrpop_util::lalrpop_mod;
 
-pub mod ast;
 pub mod diagnostic;
 pub mod lexer;
 pub mod parse_tree;
