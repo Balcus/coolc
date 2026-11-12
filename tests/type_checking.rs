@@ -105,6 +105,7 @@ use coolc::semantic_analysis::builtins::{BOOL_ID, INT_ID, STRING_ID};
     #[test_case(include_str!("../examples/sum.cl"); "sum")]
     #[test_case(include_str!("../examples/self_type.cl"); "self_type")]
     #[test_case(include_str!("../examples/inheritance.cl"); "inheritance")]
+    #[test_case(include_str!("../examples/activations.cl"); "activations")]
     fn type_check_examples(input: &str) {
         let (s_table, program) = parse_program(input);
         let res = SemanticAnalyzer::analyze(program);

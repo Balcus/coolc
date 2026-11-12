@@ -2,9 +2,6 @@ use std::usize;
 
 use crate::utils::ReturnType;
 
-type Id = usize;
-type ClassId = usize;
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct Root {
     pub classes: Vec<ClassNode>,
@@ -18,13 +15,13 @@ impl Root {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ClassNode {
-    pub name: ClassId,
-    pub parent: Option<ClassId>,
+    pub name: usize,
+    pub parent: Option<usize>,
     pub features: Vec<FeatureNode>,
 }
 
 impl ClassNode {
-    pub fn new(name: ClassId, parent: Option<ClassId>, features: Vec<FeatureNode>) -> Self {
+    pub fn new(name: usize, parent: Option<usize>, features: Vec<FeatureNode>) -> Self {
         Self {
             name,
             parent,
@@ -36,12 +33,12 @@ impl ClassNode {
 #[derive(Debug, Clone, PartialEq)]
 pub enum FeatureNode {
     Attribute {
-        name: Id,
+        name: usize,
         type_dec: ReturnType,
         init: Option<Box<ExprNode>>,
     },
     Method {
-        name: Id,
+        name: usize,
         params: Vec<FormalNode>,
         return_type: ReturnType,
         body: Box<ExprNode>,
@@ -49,7 +46,7 @@ pub enum FeatureNode {
 }
 
 impl FeatureNode {
-    pub fn attribute(name: Id, type_dec: ReturnType, init: Option<Box<ExprNode>>) -> Self {
+    pub fn attribute(name: usize, type_dec: ReturnType, init: Option<Box<ExprNode>>) -> Self {
         Self::Attribute {
             name,
             type_dec,
@@ -60,8 +57,8 @@ impl FeatureNode {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FormalNode {
-    pub name: Id,
-    pub type_dec: ClassId,
+    pub name: usize,
+    pub type_dec: usize,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -80,8 +77,8 @@ impl ExprNode {
 pub enum ExprKind {
     BoolConstant(bool),
     IntConstant(i64),
-    StringConstant(Id),
-    Object(Id),
+    StringConstant(usize),
+    Object(usize),
     SelfExpr,
 
     Assignment {
@@ -91,22 +88,22 @@ pub enum ExprKind {
 
     Dispatch {
         expr: Box<ExprNode>,
-        name: Id,
+        name: usize,
         args: Vec<ExprNode>,
-        static_class: ClassId,
+        static_class: usize,
     },
 
     StaticDispatch {
         expr: Box<ExprNode>,
-        type_dec: Id,
-        name: Id,
+        type_dec: usize,
+        name: usize,
         args: Vec<ExprNode>,
     },
 
     SelfDispatch {
-        name: Id,
+        name: usize,
         args: Vec<ExprNode>,
-        static_class: ClassId,
+        static_class: usize,
     },
 
     Conditional {
@@ -123,7 +120,7 @@ pub enum ExprKind {
     Block(Vec<ExprNode>),
 
     Let {
-        name: Id,
+        name: usize,
         type_dec: ReturnType,
         init: Option<Box<ExprNode>>,
         body: Box<ExprNode>,
@@ -152,13 +149,13 @@ pub enum ExprKind {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Var {
-    Id(Id),
+    Id(usize),
     SelfValue,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct CaseBranchNode {
-    pub name: Id,
-    pub type_dec: Id,
+    pub name: usize,
+    pub type_dec: usize,
     pub body: Box<ExprNode>,
 }
