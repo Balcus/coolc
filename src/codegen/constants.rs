@@ -177,21 +177,3 @@ pub fn int_const_label(n: usize) -> String {
 pub fn str_const_label(n: usize) -> String {
     format!("str_const{n}")
 }
-
-// --- Section: Local label generator --- //
-
-#[derive(Default)]
-pub struct LabelGen {
-    next: usize,
-}
-
-impl LabelGen {
-    pub fn new() -> Self {
-        Self::default()
-    }
-    pub fn fresh(&mut self) -> String {
-        let l = format!("label{}", self.next);
-        self.next += 1;
-        l
-    }
-}

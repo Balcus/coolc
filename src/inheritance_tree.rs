@@ -114,7 +114,7 @@ impl InheritanceTree {
             current = self.parent(ancestor);
         }
         ancestors.reverse();
-        return ancestors
+        return ancestors;
     }
 
     pub fn is_subtype(&self, subtype: usize, supertype: usize) -> bool {

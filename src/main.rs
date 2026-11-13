@@ -79,6 +79,6 @@ fn main() {
 
     println!("{} passed semantic checks", cli.path);
 
-    let res = codegen(ast_root, &inheritance_tree, &method_table);
+    let res = codegen(ast_root, &method_table, &s_table);
     println!("{res}");
 }

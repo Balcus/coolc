@@ -27,9 +27,9 @@ impl CompileError {
         match self {
             CompileError::LexicalError(error_token) => error_token.message.clone(),
             CompileError::InvalidToken { .. } => "Invalid token".to_string(),
-            CompileError::UnrecognizedEof { expected, .. } => 
-                format!("Unrecognized EOF, expected one of: {}", expected.join(", ")),
-            
+            CompileError::UnrecognizedEof { expected, .. } => {
+                format!("Unrecognized EOF, expected one of: {}", expected.join(", "))
+            }
 
             CompileError::UnrecognizedToken {
                 expected, token, ..
@@ -46,7 +46,13 @@ impl CompileError {
     fn semantic_message(error: &semantic_analysis::SemanticError, s_table: &StringTable) -> String {
         use semantic_analysis::SemanticErrorKind::*;
 
-        let name = |id: &usize| s_table.string_from_id(*id).map(|s| s.as_str()).unwrap_or("<unknown>").to_string();
+        let name = |id: &usize| {
+            s_table
+                .string_from_id(*id)
+                .map(|s| s.as_str())
+                .unwrap_or("<unknown>")
+                .to_string()
+        };
 
         match &error.kind {
             InheritanceCycle => "Inheritance cycle detected".to_string(),
@@ -62,9 +68,9 @@ impl CompileError {
                 name(method),
                 name(class)
             ),
-            UndefinedMethod { class, method } => 
-                format!("Undefined method {} in class {}", name(method), name(class)),
-            
+            UndefinedMethod { class, method } => {
+                format!("Undefined method {} in class {}", name(method), name(class))
+            }
 
             AttributeMismatch { attribute, found } => format!(
                 "Attribute {} has type {:?}, which doesn't match its declaration",
@@ -78,21 +84,21 @@ impl CompileError {
                 found
             ),
 
-            InvalidNegationType { found } => 
-                format!("Invalid operand type for negation: {:?}", found),
-            
+            InvalidNegationType { found } => {
+                format!("Invalid operand type for negation: {:?}", found)
+            }
 
-            TypeMismatch { expected, found } => 
-                format!("Type mismatch: expected {:?}, found {:?}", expected, found),
-            
+            TypeMismatch { expected, found } => {
+                format!("Type mismatch: expected {:?}, found {:?}", expected, found)
+            }
 
             WrongNumberOfArguments { expected, found } => format!(
                 "Wrong number of arguments: expected {}, found {}",
                 expected, found
             ),
-            DuplicateCaseBranchType { ty } => 
-                format!("Duplicate branch type in case expression: {}", name(ty)),
-            
+            DuplicateCaseBranchType { ty } => {
+                format!("Duplicate branch type in case expression: {}", name(ty))
+            }
 
             InvalidBlockConstruct => "Invalid block construct".to_string(),
         }

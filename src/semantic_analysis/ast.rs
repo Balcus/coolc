@@ -15,18 +15,28 @@ impl Root {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ClassNode {
-    pub name: usize,
+    pub id: usize,
     pub parent: Option<usize>,
     pub features: Vec<FeatureNode>,
 }
 
 impl ClassNode {
-    pub fn new(name: usize, parent: Option<usize>, features: Vec<FeatureNode>) -> Self {
+    pub fn new(id: usize, parent: Option<usize>, features: Vec<FeatureNode>) -> Self {
         Self {
-            name,
+            id,
             parent,
             features,
         }
+    }
+
+    pub fn nattr(&self) -> usize {
+        let mut attrs = 0;
+        for feature in &self.features {
+            if let FeatureNode::Attribute { .. } = feature {
+                attrs += 1
+            }
+        }
+        attrs
     }
 }
 

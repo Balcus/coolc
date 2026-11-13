@@ -48,7 +48,7 @@ mod succeeds_type_check {
 
         let expected = ast::Root {
             classes: vec![ast::ClassNode {
-                name: s_table.lookup("Main").unwrap(),
+                id: s_table.lookup("Main").unwrap(),
                 parent: None,
                 features: vec![
                     ast::FeatureNode::Attribute {
@@ -116,7 +116,7 @@ mod succeeds_type_check {
         let main_class = actual
             .classes
             .iter()
-            .find(|class| class.name == class_id)
+            .find(|class| class.id == class_id)
             .expect("Main class should exist in AST");
 
         let expected = vec![
