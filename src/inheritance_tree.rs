@@ -1,4 +1,4 @@
-use crate::semantic_analysis::SemanticErrorKind::InheritanceCycle;
+use crate::semantic_analysis::SemanticErrorKind::{self, InheritanceCycle};
 use crate::semantic_analysis::builtins::{BUILTINS, OBJECT_ID};
 use crate::{
     parse_tree::{Class, Program},
@@ -25,7 +25,7 @@ impl InheritanceTree {
             if let Class::Valid { name, parent, .. } = class {
                 if tree.inner.contains_key(name) {
                     err.push(SemanticError {
-                        kind: super::SemanticErrorKind::DuplicateClass { name: *name },
+                        kind: SemanticErrorKind::DuplicateClass { name: *name },
                         span: None,
                     });
                     continue;
@@ -44,7 +44,7 @@ impl InheritanceTree {
         for parent in tree.inner.values().filter_map(|&p| p) {
             if !tree.inner.contains_key(&parent) {
                 err.push(SemanticError {
-                    kind: super::SemanticErrorKind::UndefinedClass { name: parent },
+                    kind: SemanticErrorKind::UndefinedClass { name: parent },
                     span: None,
                 });
             }
@@ -105,6 +105,18 @@ impl InheritanceTree {
         false
     }
 
+    // Returns list of all ancestors for given class, farthest first
+    pub fn ancestors(&self, class_id: usize) -> Vec<usize> {
+        let mut ancestors = Vec::new();
+        let mut current = self.parent(class_id);
+        while let Some(ancestor) = current {
+            ancestors.push(ancestor);
+            current = self.parent(ancestor);
+        }
+        ancestors.reverse();
+        return ancestors
+    }
+
     pub fn is_subtype(&self, subtype: usize, supertype: usize) -> bool {
         subtype == supertype || self.is_ancestor(supertype, subtype)
     }
@@ -139,11 +151,11 @@ impl InheritanceTree {
 
 #[cfg(test)]
 mod test {
+    use crate::inheritance_tree::InheritanceTree;
+    use crate::inheritance_tree::SemanticError;
+    use crate::inheritance_tree::SemanticErrorKind;
     use crate::semantic_analysis::builtins::{BOOL_ID, INT_ID, IO_ID, OBJECT_ID, STRING_ID};
-    use crate::{
-        semantic_analysis::{SemanticError, SemanticErrorKind, inheritance_tree::InheritanceTree},
-        utils::parse_program,
-    };
+    use crate::utils::parse_program;
 
     #[test]
     fn is_seeded() {

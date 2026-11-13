@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::format;
 
 pub const WORD: i32 = 4;
@@ -93,7 +94,6 @@ pub const MEMMGR_INITIALIZER: &str = "_MemMgr_INITIALIZER";
 pub const MEMMGR_COLLECTOR: &str = "_MemMgr_COLLECTOR";
 pub const MEMMGR_TEST: &str = "_MemMgr_TEST";
 
-
 // Symbols that must be declared in .globl
 
 pub const REQUIRED_GLOBALS: &[&str] = &[
@@ -106,14 +106,15 @@ pub const REQUIRED_GLOBALS: &[&str] = &[
     INT_TAG,
     BOOL_TAG,
     STRING_TAG,
-    "Main_init",
-    "Int_init",
-    "String_init",
-    "Main.main",
     HEAP_START,
     MEMMGR_INITIALIZER,
     MEMMGR_COLLECTOR,
     MEMMGR_TEST,
+    "Main_init",
+    "Int_init",
+    "Bool_init",
+    "String_init",
+    "Main.main",
 ];
 
 // --- Section: GC  --- //

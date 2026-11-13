@@ -1,9 +1,7 @@
+use crate::inheritance_tree::InheritanceTree;
 use crate::semantic_analysis::builtins::BUILTINS;
 use crate::utils::ReturnType;
-use crate::{
-    parse_tree,
-    semantic_analysis::{SemanticError, inheritance_tree::InheritanceTree},
-};
+use crate::{parse_tree, semantic_analysis::SemanticError};
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]

@@ -1,10 +1,12 @@
 mod succeeds_type_check {
+    use coolc::inheritance_tree::InheritanceTree;
     use coolc::semantic_analysis::ast;
-use coolc::semantic_analysis::builtins::{BOOL_ID, INT_ID, STRING_ID};
+    use coolc::semantic_analysis::builtins::{BOOL_ID, INT_ID, STRING_ID};
+    use coolc::semantic_analysis::method_table::MethodTable;
     use coolc::utils::ReturnType;
     use coolc::{semantic_analysis::SemanticAnalyzer, utils::parse_program};
     use core::panic;
-    use std::{assert_eq, print, vec};
+    use std::{assert_eq, vec};
     use test_case::test_case;
 
     #[test]
@@ -19,7 +21,9 @@ use coolc::semantic_analysis::builtins::{BOOL_ID, INT_ID, STRING_ID};
         "#,
         );
 
-        assert!(SemanticAnalyzer::analyze(program).is_ok());
+        let i = InheritanceTree::build(&program).unwrap();
+        let m = MethodTable::build(&program).unwrap();
+        assert!(SemanticAnalyzer::analyze(program, &i, &m).is_ok());
     }
 
     #[test]
@@ -34,7 +38,10 @@ use coolc::semantic_analysis::builtins::{BOOL_ID, INT_ID, STRING_ID};
         "#,
         );
 
-        let ast = match SemanticAnalyzer::analyze(program) {
+        let i = InheritanceTree::build(&program).unwrap();
+        let m = MethodTable::build(&program).unwrap();
+
+        let ast = match SemanticAnalyzer::analyze(program, &i, &m) {
             Ok(p) => p,
             Err(e) => panic!("Failed semantic analysis: {:#?}", e),
         };
@@ -76,13 +83,73 @@ use coolc::semantic_analysis::builtins::{BOOL_ID, INT_ID, STRING_ID};
     }
 
     #[test]
-    fn check_errors() {
-        let (_, program) = parse_program(include_str!("../examples/foobar.cl"));
-        let res = SemanticAnalyzer::analyze(program);
-        match res {
-            Ok(_) => return,
-            Err(e) => print!("{:#?}", e),
-        }
+    fn inherited_attributes() {
+        let (s_table, program) = parse_program(
+            r#"
+        class A {
+            x: Int <- 1;
+        };
+
+        class B inherits A {
+            y: Bool <- true;
+        };
+
+        class Main inherits B {
+            z: String <- "hello";
+        };
+        "#,
+        );
+
+        let i = InheritanceTree::build(&program).unwrap();
+        let m = MethodTable::build(&program).unwrap();
+
+        let actual = match SemanticAnalyzer::analyze(program, &i, &m) {
+            Ok(ast) => ast,
+            Err(e) => panic!("Failed semantic analysis: {:#?}", e),
+        };
+
+        let class_id = s_table.lookup("Main").unwrap();
+        let x_id = s_table.lookup("x").unwrap();
+        let y_id = s_table.lookup("y").unwrap();
+        let z_id = s_table.lookup("z").unwrap();
+
+        let main_class = actual
+            .classes
+            .iter()
+            .find(|class| class.name == class_id)
+            .expect("Main class should exist in AST");
+
+        let expected = vec![
+            ast::FeatureNode::Attribute {
+                name: x_id,
+                type_dec: ReturnType::Type(INT_ID),
+                init: Some(Box::new(ast::ExprNode {
+                    kind: ast::ExprKind::IntConstant(1),
+                    ty: ReturnType::Type(INT_ID),
+                })),
+            },
+            ast::FeatureNode::Attribute {
+                name: y_id,
+                type_dec: ReturnType::Type(BOOL_ID),
+                init: Some(Box::new(ast::ExprNode {
+                    kind: ast::ExprKind::BoolConstant(true),
+                    ty: ReturnType::Type(BOOL_ID),
+                })),
+            },
+            ast::FeatureNode::Attribute {
+                name: z_id,
+                type_dec: ReturnType::Type(STRING_ID),
+                init: Some(Box::new(ast::ExprNode {
+                    kind: ast::ExprKind::StringConstant(s_table.lookup("hello").unwrap()),
+                    ty: ReturnType::Type(STRING_ID),
+                })),
+            },
+        ];
+
+        assert_eq!(
+            main_class.features, expected,
+            "Main should contain its own attributes and all inherited attributes"
+        );
     }
 
     #[test_case(include_str!("../examples/arith.cl"); "arith")]
@@ -108,14 +175,25 @@ use coolc::semantic_analysis::builtins::{BOOL_ID, INT_ID, STRING_ID};
     #[test_case(include_str!("../examples/activations.cl"); "activations")]
     fn type_check_examples(input: &str) {
         let (s_table, program) = parse_program(input);
-        let res = SemanticAnalyzer::analyze(program);
-        assert!(res.is_ok(), "Semantic analysis error: {:#?}. String Table: {:#?}", res.err(), s_table);
+        let i = InheritanceTree::build(&program).unwrap();
+        let m = MethodTable::build(&program).unwrap();
+        let res = SemanticAnalyzer::analyze(program, &i, &m);
+        assert!(
+            res.is_ok(),
+            "Semantic analysis error: {:#?}. String Table: {:#?}",
+            res.err(),
+            s_table
+        );
     }
 }
 
 mod fails_type_checking {
 
-    use coolc::{semantic_analysis::SemanticAnalyzer, utils::parse_program};
+    use coolc::{
+        inheritance_tree::InheritanceTree,
+        semantic_analysis::{SemanticAnalyzer, method_table::MethodTable},
+        utils::parse_program,
+    };
     use test_case::test_case;
 
     #[test_case(include_str!("../examples/semantic_errors/1.cl"); "semantic_errors_mismatched_types_1")]
@@ -124,7 +202,9 @@ mod fails_type_checking {
     #[test_case(include_str!("../examples/semantic_errors/4.cl"); "semantic_errors_mismatched_types_4")]
     fn type_check_examples(input: &str) {
         let (_, program) = parse_program(input);
-        let res = SemanticAnalyzer::analyze(program);
+        let i = InheritanceTree::build(&program).unwrap();
+        let m = MethodTable::build(&program).unwrap();
+        let res = SemanticAnalyzer::analyze(program, &i, &m);
         assert!(res.is_err())
     }
 }
