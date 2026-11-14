@@ -1,74 +1,134 @@
 use std::format;
 
 use crate::{
-    codegen::{
-        TagGen,
-        constants::{EYECATCHER, disptab_label, object_size_words, protobj_label},
-    },
-    semantic_analysis::ast,
-    string_table::StringTable,
+    builtins::{BOOL_ID, INT_ID, STRING_ID},
+    codegen::constants::{EYECATCHER, HEADER_WORDS},
+    utils::Type,
 };
 
-// Produces a skeleton object of type class
-// The produced object must reside in the data area
-pub fn codegen_class(class: ast::ClassNode, tag_gen: &mut TagGen, s_table: &StringTable) -> String {
-    let class_name = s_table.string_from_id(class.id).unwrap();
-    let tag = tag_gen.get();
-    let label = protobj_label(class_name);
-    let disp = disptab_label(class_name);
-    let size = object_size_words(class.nattr());
+pub struct AttrInfo {
+    name: String,
+    ty: Type,
+    offset: usize,
+    owner: usize,
+}
 
-    let mut res = format!(
-        concat!(
-            "        .word   {eyecatcher}\n",
-            "{label}:\n",
-            "        .word   {tag}\n",
-            "        .word   {size}\n",
-            "        .word   {disp}\n",
-        ),
-        eyecatcher = EYECATCHER,
-        label = label,
-        tag = tag,
-        size = size,
-        disp = disp,
-    );
+pub struct MethodInfo {
+    name: usize,
+    impl_class: usize,
+    slot: usize,
+}
 
-    for _ in 0..class.nattr() {
-        res.push_str("        .word   0\n");
+pub struct ClassInfo {
+    id: usize,
+    name: String,
+    tag: usize,
+    parent: Option<usize>,
+    attrs: Vec<AttrInfo>,
+    methods: Vec<MethodInfo>,
+}
+
+impl ClassInfo {
+    pub fn from(
+        id: usize,
+        name: String,
+        tag: usize,
+        parent: Option<usize>,
+        attrs: Vec<AttrInfo>,
+        methods: Vec<MethodInfo>,
+    ) -> Self {
+        Self {
+            id,
+            name,
+            tag,
+            parent,
+            attrs,
+            methods,
+        }
     }
 
-    res
+    pub fn size(&self) -> usize {
+        HEADER_WORDS + self.attrs.len()
+    }
+
+    fn disp_label(&self) -> String {
+        format!("{}_dispTab", self.name)
+    }
+
+    fn proto_obj_label(&self) -> String {
+        format!("{}_protObj", self.name)
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn tag(&self) -> usize {
+        self.tag
+    }
+
+    pub fn genproto(&self) -> String {
+        let mut proto = format!(
+            concat!(
+                "        .word   {eyecatcher}\n",
+                "{label}:\n",
+                "        .word   {tag}\n",
+                "        .word   {size}\n",
+                "        .word   {disp}\n",
+            ),
+            eyecatcher = EYECATCHER,
+            label = self.proto_obj_label(),
+            tag = self.tag,
+            size = self.size(),
+            disp = self.disp_label(),
+        );
+
+        for attr in &self.attrs {
+            let default = match attr.ty {
+                Type::Fixed(id) if id == INT_ID => "int_const0",
+                Type::Fixed(id) if id == BOOL_ID => "bool_const0",
+                Type::Fixed(id) if id == STRING_ID => "str_const0",
+                Type::Fixed(_) | Type::SelfType => "0",
+            };
+            proto.push_str(&format!("        .word   {}\n", default));
+        }
+
+        proto
+    }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::ReturnType;
+    use crate::builtins::OBJECT_ID;
 
+    // class Foo {
+    //     first : Object;
+    //     second : Object;
+    // };
     #[test]
     fn check_codegen_class() {
-        let mut s_table = StringTable::new();
-        let foo = s_table.insert(String::from("Foo"));
-        let first = s_table.insert(String::from("first"));
-        let second = s_table.insert(String::from("second"));
-
-        let object_ty = ReturnType::Type(crate::semantic_analysis::builtins::OBJECT_ID);
-
-        let class = ast::ClassNode::new(
-            foo,
-            None,
+        let foo = ClassInfo::from(
+            5,
+            String::from("Foo"),
+            5,
+            Some(OBJECT_ID),
             vec![
-                ast::FeatureNode::attribute(first, object_ty.clone(), None),
-                ast::FeatureNode::attribute(second, object_ty, None),
+                AttrInfo {
+                    name: String::from("first"),
+                    ty: Type::Fixed(OBJECT_ID),
+                    offset: 12,
+                    owner: 5,
+                },
+                AttrInfo {
+                    name: String::from("second"),
+                    ty: Type::Fixed(OBJECT_ID),
+                    offset: 16,
+                    owner: 5,
+                },
             ],
+            Vec::new(),
         );
-
-        let mut tag_gen = TagGen::new();
-        for _ in 0..5 {
-            tag_gen.get();
-        }
-
-        let out = codegen_class(class, &mut tag_gen, &s_table);
 
         let expected = concat!(
             "        .word   -1\n",
@@ -79,6 +139,7 @@ mod test {
             "        .word   0\n",
             "        .word   0\n",
         );
-        assert_eq!(out, expected);
+
+        assert_eq!(foo.genproto(), expected);
     }
 }

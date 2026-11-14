@@ -1,6 +1,6 @@
 use std::usize;
 
-use crate::utils::ReturnType;
+use crate::utils::Type;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Root {
@@ -44,19 +44,19 @@ impl ClassNode {
 pub enum FeatureNode {
     Attribute {
         name: usize,
-        type_dec: ReturnType,
+        type_dec: Type,
         init: Option<Box<ExprNode>>,
     },
     Method {
         name: usize,
         params: Vec<FormalNode>,
-        return_type: ReturnType,
+        return_type: Type,
         body: Box<ExprNode>,
     },
 }
 
 impl FeatureNode {
-    pub fn attribute(name: usize, type_dec: ReturnType, init: Option<Box<ExprNode>>) -> Self {
+    pub fn attribute(name: usize, type_dec: Type, init: Option<Box<ExprNode>>) -> Self {
         Self::Attribute {
             name,
             type_dec,
@@ -74,11 +74,11 @@ pub struct FormalNode {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ExprNode {
     pub kind: ExprKind,
-    pub ty: ReturnType,
+    pub ty: Type,
 }
 
 impl ExprNode {
-    pub fn new(kind: ExprKind, ty: ReturnType) -> Self {
+    pub fn new(kind: ExprKind, ty: Type) -> Self {
         Self { kind, ty }
     }
 }
@@ -131,7 +131,7 @@ pub enum ExprKind {
 
     Let {
         name: usize,
-        type_dec: ReturnType,
+        type_dec: Type,
         init: Option<Box<ExprNode>>,
         body: Box<ExprNode>,
     },
@@ -141,7 +141,7 @@ pub enum ExprKind {
         branches: Vec<CaseBranchNode>,
     },
 
-    New(ReturnType),
+    New(Type),
 
     IsVoid(Box<ExprNode>),
 

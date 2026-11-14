@@ -1,5 +1,6 @@
 use lalrpop_util::lalrpop_mod;
 
+pub mod builtins;
 pub mod codegen;
 pub mod diagnostic;
 pub mod inheritance_tree;

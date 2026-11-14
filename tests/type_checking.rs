@@ -1,9 +1,9 @@
 mod succeeds_type_check {
+    use coolc::builtins::{BOOL_ID, INT_ID, STRING_ID};
     use coolc::inheritance_tree::InheritanceTree;
     use coolc::semantic_analysis::ast;
-    use coolc::semantic_analysis::builtins::{BOOL_ID, INT_ID, STRING_ID};
     use coolc::semantic_analysis::method_table::MethodTable;
-    use coolc::utils::ReturnType;
+    use coolc::utils::Type;
     use coolc::{semantic_analysis::SemanticAnalyzer, utils::parse_program};
     use core::panic;
     use std::{assert_eq, vec};
@@ -53,26 +53,26 @@ mod succeeds_type_check {
                 features: vec![
                     ast::FeatureNode::Attribute {
                         name: s_table.lookup("x").unwrap(),
-                        type_dec: ReturnType::Type(INT_ID),
+                        type_dec: Type::Fixed(INT_ID),
                         init: Some(Box::new(ast::ExprNode {
                             kind: ast::ExprKind::IntConstant(1),
-                            ty: ReturnType::Type(INT_ID),
+                            ty: Type::Fixed(INT_ID),
                         })),
                     },
                     ast::FeatureNode::Attribute {
                         name: s_table.lookup("y").unwrap(),
-                        type_dec: ReturnType::Type(BOOL_ID),
+                        type_dec: Type::Fixed(BOOL_ID),
                         init: Some(Box::new(ast::ExprNode {
                             kind: ast::ExprKind::BoolConstant(true),
-                            ty: ReturnType::Type(BOOL_ID),
+                            ty: Type::Fixed(BOOL_ID),
                         })),
                     },
                     ast::FeatureNode::Attribute {
                         name: s_table.lookup("z").unwrap(),
-                        type_dec: ReturnType::Type(STRING_ID),
+                        type_dec: Type::Fixed(STRING_ID),
                         init: Some(Box::new(ast::ExprNode {
                             kind: ast::ExprKind::StringConstant(s_table.lookup("String").unwrap()),
-                            ty: ReturnType::Type(STRING_ID),
+                            ty: Type::Fixed(STRING_ID),
                         })),
                     },
                 ],
@@ -122,26 +122,26 @@ mod succeeds_type_check {
         let expected = vec![
             ast::FeatureNode::Attribute {
                 name: x_id,
-                type_dec: ReturnType::Type(INT_ID),
+                type_dec: Type::Fixed(INT_ID),
                 init: Some(Box::new(ast::ExprNode {
                     kind: ast::ExprKind::IntConstant(1),
-                    ty: ReturnType::Type(INT_ID),
+                    ty: Type::Fixed(INT_ID),
                 })),
             },
             ast::FeatureNode::Attribute {
                 name: y_id,
-                type_dec: ReturnType::Type(BOOL_ID),
+                type_dec: Type::Fixed(BOOL_ID),
                 init: Some(Box::new(ast::ExprNode {
                     kind: ast::ExprKind::BoolConstant(true),
-                    ty: ReturnType::Type(BOOL_ID),
+                    ty: Type::Fixed(BOOL_ID),
                 })),
             },
             ast::FeatureNode::Attribute {
                 name: z_id,
-                type_dec: ReturnType::Type(STRING_ID),
+                type_dec: Type::Fixed(STRING_ID),
                 init: Some(Box::new(ast::ExprNode {
                     kind: ast::ExprKind::StringConstant(s_table.lookup("hello").unwrap()),
-                    ty: ReturnType::Type(STRING_ID),
+                    ty: Type::Fixed(STRING_ID),
                 })),
             },
         ];
@@ -173,6 +173,7 @@ mod succeeds_type_check {
     #[test_case(include_str!("../examples/self_type.cl"); "self_type")]
     #[test_case(include_str!("../examples/inheritance.cl"); "inheritance")]
     #[test_case(include_str!("../examples/activations.cl"); "activations")]
+    #[test_case(include_str!("../examples/simple.cl"); "simple")]
     fn type_check_examples(input: &str) {
         let (s_table, program) = parse_program(input);
         let i = InheritanceTree::build(&program).unwrap();

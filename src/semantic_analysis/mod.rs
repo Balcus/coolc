@@ -1,8 +1,8 @@
+use crate::builtins::{BOOL_ID, INT_ID, OBJECT_ID, STRING_ID};
 use crate::inheritance_tree::InheritanceTree;
 use crate::semantic_analysis::SemanticErrorKind::{InvalidBlockConstruct, WrongOverrideSignature};
 use crate::semantic_analysis::ast::{ExprKind, ExprNode};
-use crate::semantic_analysis::builtins::{BOOL_ID, INT_ID, OBJECT_ID, STRING_ID};
-use crate::utils::{ReturnType, Span};
+use crate::utils::{Span, Type};
 use crate::{
     parse_tree,
     semantic_analysis::{
@@ -17,7 +17,6 @@ use std::unreachable;
 // can we NOT USE UNREACHABLE ????
 
 pub mod ast;
-pub mod builtins;
 pub mod method_table;
 pub mod symbol_table;
 
@@ -52,56 +51,26 @@ impl SemanticError {
 pub enum SemanticErrorKind {
     // Class related
     InheritanceCycle,
-    DuplicateClass {
-        name: usize,
-    },
-    UndefinedClass {
-        name: usize,
-    },
+    DuplicateClass { name: usize },
+    UndefinedClass { name: usize },
 
     // Method related
-    RedefinedMethod {
-        class: usize,
-        method: usize,
-    },
-    WrongOverrideSignature {
-        class: usize,
-        method: usize,
-    },
-    UndefinedMethod {
-        class: usize,
-        method: usize,
-    },
+    RedefinedMethod { class: usize, method: usize },
+    WrongOverrideSignature { class: usize, method: usize },
+    UndefinedMethod { class: usize, method: usize },
 
     // Attribute related
-    AttributeMismatch {
-        attribute: usize,
-        found: ReturnType,
-    },
+    AttributeMismatch { attribute: usize, found: Type },
 
     // Expr related
     AssignmentToSelf,
-    UndeclaredIdentifier {
-        name: usize,
-    },
+    UndeclaredIdentifier { name: usize },
 
-    InvalidArithmeticOperandType {
-        found: ReturnType,
-    },
-    InvalidNegationType {
-        found: ReturnType,
-    },
-    TypeMismatch {
-        expected: ReturnType,
-        found: ReturnType,
-    },
-    WrongNumberOfArguments {
-        expected: usize,
-        found: usize,
-    },
-    DuplicateCaseBranchType {
-        ty: usize,
-    },
+    InvalidArithmeticOperandType { found: Type },
+    InvalidNegationType { found: Type },
+    TypeMismatch { expected: Type, found: Type },
+    WrongNumberOfArguments { expected: usize, found: usize },
+    DuplicateCaseBranchType { ty: usize },
     InvalidBlockConstruct,
 }
 
@@ -115,12 +84,12 @@ pub enum ObjKind {
 
 #[derive(Debug)]
 pub struct ObjInfo {
-    ty: ReturnType,
+    ty: Type,
     _kind: ObjKind,
 }
 
 impl ObjInfo {
-    pub fn new(ty: ReturnType, kind: ObjKind) -> Self {
+    pub fn new(ty: Type, kind: ObjKind) -> Self {
         Self { ty, _kind: kind }
     }
 }
@@ -311,7 +280,7 @@ impl<'a> SemanticAnalyzer<'a> {
         for formal in &formals {
             obj_env.add_id(
                 formal.name,
-                ObjInfo::new(ReturnType::Type(formal.type_dec), ObjKind::Formal),
+                ObjInfo::new(Type::Fixed(formal.type_dec), ObjKind::Formal),
             );
         }
 
@@ -376,13 +345,13 @@ impl<'a> SemanticAnalyzer<'a> {
         &mut self,
         current_class: usize,
         name: usize,
-        type_dec: ReturnType,
+        type_dec: Type,
         init: &Box<parse_tree::Expr>,
         obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, SemanticError> {
         let expr = self.type_check_expr(current_class, init, obj_env)?;
 
-        if !self.is_subtype(current_class, &expr.ty, &ReturnType::from(type_dec)) {
+        if !self.is_subtype(current_class, &expr.ty, &Type::from(type_dec)) {
             return Err(SemanticError {
                 kind: SemanticErrorKind::AttributeMismatch {
                     attribute: name,
@@ -403,19 +372,16 @@ impl<'a> SemanticAnalyzer<'a> {
     ) -> Result<ast::ExprNode, SemanticError> {
         let expr_node: ExprNode = match &expr.kind {
             parse_tree::ExprKind::BoolConstant(value) => {
-                ExprNode::new(ExprKind::BoolConstant(*value), ReturnType::Type(BOOL_ID))
+                ExprNode::new(ExprKind::BoolConstant(*value), Type::Fixed(BOOL_ID))
             }
             parse_tree::ExprKind::IntConstant(value) => {
-                ExprNode::new(ExprKind::IntConstant(*value), ReturnType::Type(INT_ID))
+                ExprNode::new(ExprKind::IntConstant(*value), Type::Fixed(INT_ID))
             }
-            parse_tree::ExprKind::StringConstant(value) => ExprNode::new(
-                ExprKind::StringConstant(*value),
-                ReturnType::Type(STRING_ID),
-            ),
+            parse_tree::ExprKind::StringConstant(value) => {
+                ExprNode::new(ExprKind::StringConstant(*value), Type::Fixed(STRING_ID))
+            }
             parse_tree::ExprKind::Object(name) => self.type_check_object(*name, obj_env)?,
-            parse_tree::ExprKind::SelfExpr => {
-                ExprNode::new(ExprKind::SelfExpr, ReturnType::SelfType)
-            }
+            parse_tree::ExprKind::SelfExpr => ExprNode::new(ExprKind::SelfExpr, Type::SelfType),
             parse_tree::ExprKind::Assignment { var, expr } => {
                 self.type_check_expr_assignment(class_id, var, expr, obj_env)?
             }
@@ -501,10 +467,10 @@ impl<'a> SemanticAnalyzer<'a> {
     ) -> Result<ast::ExprNode, SemanticError> {
         let typed_cond = self.type_check_expr(current_class, expr, obj_env)?;
 
-        if !self.is_subtype(current_class, &typed_cond.ty, &ReturnType::Type(BOOL_ID)) {
+        if !self.is_subtype(current_class, &typed_cond.ty, &Type::Fixed(BOOL_ID)) {
             return Err(SemanticError {
                 kind: SemanticErrorKind::TypeMismatch {
-                    expected: ReturnType::Type(BOOL_ID),
+                    expected: Type::Fixed(BOOL_ID),
                     found: typed_cond.ty,
                 },
                 span: Some(expr.span.clone()),
@@ -518,7 +484,7 @@ impl<'a> SemanticAnalyzer<'a> {
                 cond: Box::new(typed_cond),
                 body: Box::new(body),
             },
-            ReturnType::Type(OBJECT_ID),
+            Type::Fixed(OBJECT_ID),
         ))
     }
 
@@ -532,10 +498,10 @@ impl<'a> SemanticAnalyzer<'a> {
         let typed_expr1 = self.type_check_expr(current_class, expr1, obj_env)?;
         let typed_expr2 = self.type_check_expr(current_class, expr2, obj_env)?;
 
-        let is_primitive = |ty: &ReturnType| {
-            *ty == ReturnType::Type(INT_ID)
-                || *ty == ReturnType::Type(STRING_ID)
-                || *ty == ReturnType::Type(BOOL_ID)
+        let is_primitive = |ty: &Type| {
+            *ty == Type::Fixed(INT_ID)
+                || *ty == Type::Fixed(STRING_ID)
+                || *ty == Type::Fixed(BOOL_ID)
         };
 
         if is_primitive(&typed_expr1.ty) || is_primitive(&typed_expr2.ty) {
@@ -552,7 +518,7 @@ impl<'a> SemanticAnalyzer<'a> {
 
         Ok(ExprNode::new(
             ExprKind::Eq(Box::new(typed_expr1), Box::new(typed_expr2)),
-            ReturnType::Type(BOOL_ID),
+            Type::Fixed(BOOL_ID),
         ))
     }
 
@@ -564,10 +530,10 @@ impl<'a> SemanticAnalyzer<'a> {
     ) -> Result<ast::ExprNode, SemanticError> {
         let typed_expr = self.type_check_expr(current_class, expr, obj_env)?;
 
-        if !self.is_subtype(current_class, &typed_expr.ty, &ReturnType::Type(BOOL_ID)) {
+        if !self.is_subtype(current_class, &typed_expr.ty, &Type::Fixed(BOOL_ID)) {
             return Err(SemanticError {
                 kind: SemanticErrorKind::TypeMismatch {
-                    expected: ReturnType::Type(BOOL_ID),
+                    expected: Type::Fixed(BOOL_ID),
                     found: typed_expr.ty,
                 },
                 span: Some(expr.span.clone()),
@@ -576,7 +542,7 @@ impl<'a> SemanticAnalyzer<'a> {
 
         Ok(ExprNode::new(
             ExprKind::Not(Box::new(typed_expr)),
-            ReturnType::Type(BOOL_ID),
+            Type::Fixed(BOOL_ID),
         ))
     }
 
@@ -590,7 +556,7 @@ impl<'a> SemanticAnalyzer<'a> {
 
         Ok(ExprNode::new(
             ExprKind::IsVoid(Box::new(e)),
-            ReturnType::Type(BOOL_ID),
+            Type::Fixed(BOOL_ID),
         ))
     }
 
@@ -598,7 +564,7 @@ impl<'a> SemanticAnalyzer<'a> {
         &mut self,
         class_id: usize,
         var_name: usize,
-        type_dec: &ReturnType,
+        type_dec: &Type,
         init: &Box<parse_tree::Expr>,
         body: &Box<parse_tree::Expr>,
         obj_env: &mut SymbolTable<usize, ObjInfo>,
@@ -646,7 +612,7 @@ impl<'a> SemanticAnalyzer<'a> {
         &mut self,
         class_id: usize,
         var_name: usize,
-        type_dec: &ReturnType,
+        type_dec: &Type,
         body: &Box<parse_tree::Expr>,
         obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, SemanticError> {
@@ -688,14 +654,10 @@ impl<'a> SemanticAnalyzer<'a> {
     ) -> Result<ast::ExprNode, SemanticError> {
         let typed_predicate = self.type_check_expr(current_class, predicate, obj_env)?;
 
-        if !self.is_subtype(
-            current_class,
-            &typed_predicate.ty,
-            &ReturnType::Type(BOOL_ID),
-        ) {
+        if !self.is_subtype(current_class, &typed_predicate.ty, &Type::Fixed(BOOL_ID)) {
             return Err(SemanticError {
                 kind: SemanticErrorKind::TypeMismatch {
-                    expected: ReturnType::Type(BOOL_ID),
+                    expected: Type::Fixed(BOOL_ID),
                     found: typed_predicate.ty,
                 },
                 span: Some(predicate.span.clone()),
@@ -754,7 +716,7 @@ impl<'a> SemanticAnalyzer<'a> {
         let rt = self.check_method_call(
             current_class,
             current_class,
-            &ReturnType::SelfType,
+            &Type::SelfType,
             method_name,
             &typed_args,
         )?;
@@ -780,10 +742,10 @@ impl<'a> SemanticAnalyzer<'a> {
     ) -> Result<ast::ExprNode, SemanticError> {
         let e0 = self.type_check_expr(current_class, &expr, obj_env)?;
 
-        if !self.is_subtype(current_class, &e0.ty, &ReturnType::Type(t)) {
+        if !self.is_subtype(current_class, &e0.ty, &Type::Fixed(t)) {
             return Err(SemanticError {
                 kind: SemanticErrorKind::TypeMismatch {
-                    expected: ReturnType::Type(t),
+                    expected: Type::Fixed(t),
                     found: e0.ty,
                 },
                 span: Some(expr.span.clone()),
@@ -811,10 +773,10 @@ impl<'a> SemanticAnalyzer<'a> {
         &mut self,
         current_class: usize,
         t0: usize,
-        self_ty: &ReturnType,
+        self_ty: &Type,
         name: usize,
         args: &[ast::ExprNode],
-    ) -> Result<ReturnType, SemanticError> {
+    ) -> Result<Type, SemanticError> {
         let method_info = self
             .method_table
             .lookup(&self.inheritance_tree, t0, name)
@@ -839,10 +801,10 @@ impl<'a> SemanticAnalyzer<'a> {
         }
 
         for (formal, arg) in formals.iter().zip(args.iter()) {
-            if !self.is_subtype(current_class, &arg.ty, &ReturnType::Type(formal.ty())) {
+            if !self.is_subtype(current_class, &arg.ty, &Type::Fixed(formal.ty())) {
                 return Err(SemanticError {
                     kind: SemanticErrorKind::TypeMismatch {
-                        expected: ReturnType::Type(formal.ty()),
+                        expected: Type::Fixed(formal.ty()),
                         found: arg.ty.clone(),
                     },
                     span: None,
@@ -851,7 +813,7 @@ impl<'a> SemanticAnalyzer<'a> {
         }
 
         Ok(match method_info.rt() {
-            ReturnType::SelfType => self_ty.clone(),
+            Type::SelfType => self_ty.clone(),
             ty => ty.clone(),
         })
     }
@@ -877,10 +839,10 @@ impl<'a> SemanticAnalyzer<'a> {
         obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ExprNode, SemanticError> {
         let typed_expr = self.type_check_expr(current_class, expr, obj_env)?;
-        if !self.is_subtype(current_class, &typed_expr.ty, &ReturnType::Type(INT_ID)) {
+        if !self.is_subtype(current_class, &typed_expr.ty, &Type::Fixed(INT_ID)) {
             return Err(SemanticError {
                 kind: SemanticErrorKind::TypeMismatch {
-                    expected: ReturnType::Type(INT_ID),
+                    expected: Type::Fixed(INT_ID),
                     found: typed_expr.ty,
                 },
                 span: Some(expr.span.clone()),
@@ -889,7 +851,7 @@ impl<'a> SemanticAnalyzer<'a> {
 
         Ok(ExprNode::new(
             ExprKind::Neg(Box::new(typed_expr)),
-            ReturnType::Type(INT_ID),
+            Type::Fixed(INT_ID),
         ))
     }
 
@@ -953,19 +915,19 @@ impl<'a> SemanticAnalyzer<'a> {
         let a = self.type_check_expr(current_class, &expr1, obj_env)?;
         let b = self.type_check_expr(current_class, &expr2, obj_env)?;
 
-        if !self.is_subtype(current_class, &a.ty, &ReturnType::Type(INT_ID)) {
+        if !self.is_subtype(current_class, &a.ty, &Type::Fixed(INT_ID)) {
             return Err(SemanticError {
                 kind: SemanticErrorKind::TypeMismatch {
-                    expected: ReturnType::Type(INT_ID),
+                    expected: Type::Fixed(INT_ID),
                     found: a.ty,
                 },
                 span: Some(expr1.span.clone()),
             });
         }
-        if !self.is_subtype(current_class, &b.ty, &ReturnType::Type(INT_ID)) {
+        if !self.is_subtype(current_class, &b.ty, &Type::Fixed(INT_ID)) {
             return Err(SemanticError {
                 kind: SemanticErrorKind::TypeMismatch {
-                    expected: ReturnType::Type(INT_ID),
+                    expected: Type::Fixed(INT_ID),
                     found: b.ty,
                 },
                 span: Some(expr2.span.clone()),
@@ -975,19 +937,19 @@ impl<'a> SemanticAnalyzer<'a> {
         match op {
             ArithOp::Add => Ok(ExprNode::new(
                 ExprKind::Add(Box::new(a), Box::new(b)),
-                ReturnType::Type(INT_ID),
+                Type::Fixed(INT_ID),
             )),
             ArithOp::Sub => Ok(ExprNode::new(
                 ExprKind::Sub(Box::new(a), Box::new(b)),
-                ReturnType::Type(INT_ID),
+                Type::Fixed(INT_ID),
             )),
             ArithOp::Mul => Ok(ExprNode::new(
                 ExprKind::Mul(Box::new(a), Box::new(b)),
-                ReturnType::Type(INT_ID),
+                Type::Fixed(INT_ID),
             )),
             ArithOp::Div => Ok(ExprNode::new(
                 ExprKind::Div(Box::new(a), Box::new(b)),
-                ReturnType::Type(INT_ID),
+                Type::Fixed(INT_ID),
             )),
         }
     }
@@ -1002,10 +964,10 @@ impl<'a> SemanticAnalyzer<'a> {
     ) -> Result<ExprNode, SemanticError> {
         let e1 = self.type_check_expr(current_class, &expr1, obj_env)?;
 
-        if !self.is_subtype(current_class, &e1.ty, &ReturnType::Type(INT_ID)) {
+        if !self.is_subtype(current_class, &e1.ty, &Type::Fixed(INT_ID)) {
             return Err(SemanticError {
                 kind: SemanticErrorKind::TypeMismatch {
-                    expected: ReturnType::Type(INT_ID),
+                    expected: Type::Fixed(INT_ID),
                     found: e1.ty,
                 },
                 span: Some(expr1.span.clone()),
@@ -1014,10 +976,10 @@ impl<'a> SemanticAnalyzer<'a> {
 
         let e2 = self.type_check_expr(current_class, expr2, obj_env)?;
 
-        if !self.is_subtype(current_class, &e2.ty, &ReturnType::Type(INT_ID)) {
+        if !self.is_subtype(current_class, &e2.ty, &Type::Fixed(INT_ID)) {
             return Err(SemanticError {
                 kind: SemanticErrorKind::TypeMismatch {
-                    expected: ReturnType::Type(INT_ID),
+                    expected: Type::Fixed(INT_ID),
                     found: e2.ty,
                 },
                 span: Some(expr2.span.clone()),
@@ -1027,11 +989,11 @@ impl<'a> SemanticAnalyzer<'a> {
         match op {
             CompOp::Lt => Ok(ast::ExprNode::new(
                 ExprKind::Lt(Box::new(e1), Box::new(e2)),
-                ReturnType::Type(BOOL_ID),
+                Type::Fixed(BOOL_ID),
             )),
             CompOp::Le => Ok(ast::ExprNode::new(
                 ExprKind::Le(Box::new(e1), Box::new(e2)),
-                ReturnType::Type(BOOL_ID),
+                Type::Fixed(BOOL_ID),
             )),
         }
     }
@@ -1047,8 +1009,8 @@ impl<'a> SemanticAnalyzer<'a> {
         let e0 = self.type_check_expr(current_class, e0, obj_env)?;
 
         let t0 = match &e0.ty {
-            ReturnType::SelfType => current_class,
-            ReturnType::Type(id) => *id,
+            Type::SelfType => current_class,
+            Type::Fixed(id) => *id,
         };
 
         let typed_args: Vec<_> = args
@@ -1095,7 +1057,7 @@ impl<'a> SemanticAnalyzer<'a> {
             obj_env.enter_scope();
             obj_env.add_id(
                 branch.name,
-                ObjInfo::new(ReturnType::Type(branch.type_dec), ObjKind::Local),
+                ObjInfo::new(Type::Fixed(branch.type_dec), ObjKind::Local),
             );
 
             let res = self.type_check_expr(current_class, &branch.body, obj_env);
@@ -1185,37 +1147,32 @@ impl<'a> SemanticAnalyzer<'a> {
         return Ok(());
     }
 
-    fn is_subtype(&self, current_class: usize, sub: &ReturnType, sup: &ReturnType) -> bool {
+    fn is_subtype(&self, current_class: usize, sub: &Type, sup: &Type) -> bool {
         match (sub, sup) {
-            (ReturnType::SelfType, ReturnType::SelfType) => true,
-            (ReturnType::SelfType, ReturnType::Type(t)) => {
-                self.inheritance_tree.is_subtype(current_class, *t)
-            }
-            (ReturnType::Type(_), ReturnType::SelfType) => false,
-            (ReturnType::Type(s), ReturnType::Type(t)) => self.inheritance_tree.is_subtype(*s, *t),
+            (Type::SelfType, Type::SelfType) => true,
+            (Type::SelfType, Type::Fixed(t)) => self.inheritance_tree.is_subtype(current_class, *t),
+            (Type::Fixed(_), Type::SelfType) => false,
+            (Type::Fixed(s), Type::Fixed(t)) => self.inheritance_tree.is_subtype(*s, *t),
         }
     }
 
-    fn lub(&self, current_class: usize, a: &ReturnType, b: &ReturnType) -> ReturnType {
+    fn lub(&self, current_class: usize, a: &Type, b: &Type) -> Type {
         let lhs = match a {
-            ReturnType::SelfType => current_class,
-            ReturnType::Type(id) => *id,
+            Type::SelfType => current_class,
+            Type::Fixed(id) => *id,
         };
 
         let rhs = match b {
-            ReturnType::SelfType => current_class,
-            ReturnType::Type(id) => *id,
+            Type::SelfType => current_class,
+            Type::Fixed(id) => *id,
         };
 
         let lub = self.inheritance_tree.lub(lhs, rhs);
 
-        if lub == current_class
-            && matches!(a, ReturnType::SelfType)
-            && matches!(b, ReturnType::SelfType)
-        {
-            ReturnType::SelfType
+        if lub == current_class && matches!(a, Type::SelfType) && matches!(b, Type::SelfType) {
+            Type::SelfType
         } else {
-            ReturnType::Type(lub)
+            Type::Fixed(lub)
         }
     }
 }

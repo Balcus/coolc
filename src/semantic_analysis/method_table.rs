@@ -1,17 +1,17 @@
+use crate::builtins::BUILTINS;
 use crate::inheritance_tree::InheritanceTree;
-use crate::semantic_analysis::builtins::BUILTINS;
-use crate::utils::ReturnType;
+use crate::utils::Type;
 use crate::{parse_tree, semantic_analysis::SemanticError};
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct MethodInfo {
     formal_info: Vec<FormalInfo>,
-    rt: ReturnType,
+    rt: Type,
 }
 
 impl MethodInfo {
-    pub fn new(formal_info: Vec<FormalInfo>, rt: ReturnType) -> Self {
+    pub fn new(formal_info: Vec<FormalInfo>, rt: Type) -> Self {
         Self { formal_info, rt }
     }
 
@@ -19,7 +19,7 @@ impl MethodInfo {
         &self.formal_info
     }
 
-    pub fn rt(&self) -> &ReturnType {
+    pub fn rt(&self) -> &Type {
         &self.rt
     }
 
@@ -170,13 +170,13 @@ impl MethodTable {
 
 #[cfg(test)]
 pub mod test {
-    use crate::semantic_analysis::builtins::{
+    use crate::builtins::{
         ABORT_ID, CONCAT_ID, COPY_ID, I_ID, IN_INT_ID, IN_STRING_ID, INT_ID, IO_ID, L_ID,
         LENGTH_ID, OBJECT_ID, OUT_INT_ID, OUT_STRING_ID, S_ID, STRING_ID, SUBSTR_ID, TYPE_NAME_ID,
         X_ID,
     };
     use crate::{
-        semantic_analysis::method_table::{FormalInfo, MethodInfo, MethodTable, ReturnType},
+        semantic_analysis::method_table::{FormalInfo, MethodInfo, MethodTable, Type},
         utils::parse_program,
     };
 
@@ -188,15 +188,15 @@ pub mod test {
         // Object
         assert_eq!(
             tbl.get(OBJECT_ID, ABORT_ID),
-            Some(&MethodInfo::new(vec![], ReturnType::Type(OBJECT_ID)))
+            Some(&MethodInfo::new(vec![], Type::Fixed(OBJECT_ID)))
         );
         assert_eq!(
             tbl.get(OBJECT_ID, TYPE_NAME_ID),
-            Some(&MethodInfo::new(vec![], ReturnType::Type(STRING_ID)))
+            Some(&MethodInfo::new(vec![], Type::Fixed(STRING_ID)))
         );
         assert_eq!(
             tbl.get(OBJECT_ID, COPY_ID),
-            Some(&MethodInfo::new(vec![], ReturnType::SelfType))
+            Some(&MethodInfo::new(vec![], Type::SelfType))
         );
 
         // IO
@@ -204,49 +204,49 @@ pub mod test {
             tbl.get(IO_ID, OUT_STRING_ID),
             Some(&MethodInfo::new(
                 vec![FormalInfo::new(X_ID, STRING_ID)],
-                ReturnType::SelfType
+                Type::SelfType
             ))
         );
         assert_eq!(
             tbl.get(IO_ID, OUT_INT_ID),
             Some(&MethodInfo::new(
                 vec![FormalInfo::new(X_ID, INT_ID)],
-                ReturnType::SelfType
+                Type::SelfType
             ))
         );
         assert_eq!(
             tbl.get(IO_ID, IN_STRING_ID),
-            Some(&MethodInfo::new(vec![], ReturnType::Type(STRING_ID)))
+            Some(&MethodInfo::new(vec![], Type::Fixed(STRING_ID)))
         );
         assert_eq!(
             tbl.get(IO_ID, IN_INT_ID),
-            Some(&MethodInfo::new(vec![], ReturnType::Type(INT_ID)))
+            Some(&MethodInfo::new(vec![], Type::Fixed(INT_ID)))
         );
 
         // String
         assert_eq!(
             tbl.get(STRING_ID, LENGTH_ID),
-            Some(&MethodInfo::new(vec![], ReturnType::Type(INT_ID)))
+            Some(&MethodInfo::new(vec![], Type::Fixed(INT_ID)))
         );
         assert_eq!(
             tbl.get(STRING_ID, CONCAT_ID),
             Some(&MethodInfo::new(
                 vec![FormalInfo::new(S_ID, STRING_ID)],
-                ReturnType::Type(STRING_ID)
+                Type::Fixed(STRING_ID)
             ))
         );
         assert_eq!(
             tbl.get(STRING_ID, SUBSTR_ID),
             Some(&MethodInfo::new(
                 vec![FormalInfo::new(I_ID, INT_ID), FormalInfo::new(L_ID, INT_ID)],
-                ReturnType::Type(STRING_ID)
+                Type::Fixed(STRING_ID)
             ))
         );
     }
 
     #[test]
     fn seeding_does_not_break_user_methods() {
-        use crate::semantic_analysis::builtins::OBJECT_ID;
+        use crate::builtins::OBJECT_ID;
 
         let (s_table, program) = parse_program(
             r#"
@@ -310,28 +310,28 @@ pub mod test {
 
         assert_eq!(
             tbl.get(a, foo),
-            Some(&MethodInfo::new(vec![], ReturnType::Type(int)))
+            Some(&MethodInfo::new(vec![], Type::Fixed(int)))
         );
         assert_eq!(
             tbl.get(b, foo),
-            Some(&MethodInfo::new(vec![], ReturnType::Type(boolean)))
+            Some(&MethodInfo::new(vec![], Type::Fixed(boolean)))
         );
         assert_eq!(
             tbl.get(c, foo),
             Some(&MethodInfo::new(
                 vec![FormalInfo::new(x, int), FormalInfo::new(y, boolean)],
-                ReturnType::Type(int)
+                Type::Fixed(int)
             ))
         );
         assert_eq!(
             tbl.get(d, foo),
-            Some(&MethodInfo::new(vec![], ReturnType::SelfType))
+            Some(&MethodInfo::new(vec![], Type::SelfType))
         );
         assert_eq!(
             tbl.get(e, add),
             Some(&MethodInfo::new(
                 vec![FormalInfo::new(x, int), FormalInfo::new(y, int)],
-                ReturnType::Type(int)
+                Type::Fixed(int)
             ))
         );
         assert!(tbl.get(a, add).is_none());

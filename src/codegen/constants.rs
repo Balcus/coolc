@@ -22,7 +22,7 @@ pub const TAG_OFFSET: i32 = 0;
 pub const SIZE_OFFSET: i32 = 4;
 pub const DISP_OFFSET: i32 = 8;
 pub const ATTR_OFFSET: i32 = 12;
-pub const HEADER_WORDS: i32 = 3;
+pub const HEADER_WORDS: usize = 3;
 
 pub const INT_SLOT: i32 = 12;
 pub const BOOL_SLOT: i32 = 12;
@@ -73,20 +73,15 @@ pub const EQUALITY_TEST: &str = "equality_test";
 pub const DISPATCH_ABORT: &str = "_dispatch_abort";
 pub const CASE_ABORT: &str = "_case_abort";
 pub const CASE_ABORT2: &str = "_case_abort2";
-
-pub const NOGC_INIT: &str = "_NoGC_Init";
-pub const NOGC_COLLECT: &str = "_NoGC_Collect";
-pub const GENGC_INIT: &str = "_GenGC_Init";
-pub const GENGC_COLLECT: &str = "_GenGC_Collect";
 pub const GENGC_ASSIGN: &str = "_GenGC_Assign";
 
 // --- Section: Symbols trap.handler expects (must be defined in codegen)  --- //
 
 pub const CLASS_NAME_TAB: &str = "class_nameTab";
 pub const CLASS_OBJ_TAB: &str = "class_objTab";
-pub const INT_TAG: &str = "_int_tag";
-pub const BOOL_TAG: &str = "_bool_tag";
-pub const STRING_TAG: &str = "_string_tag";
+pub const INT_TAG_LABEL: &str = "_int_tag";
+pub const BOOL_TAG_LABEL: &str = "_bool_tag";
+pub const STRING_TAG_LABEL: &str = "_string_tag";
 pub const BOOL_CONST0: &str = "bool_const0";
 pub const BOOL_CONST1: &str = "bool_const1";
 pub const HEAP_START: &str = "heap_start";
@@ -103,9 +98,9 @@ pub const REQUIRED_GLOBALS: &[&str] = &[
     "String_protObj",
     BOOL_CONST0,
     BOOL_CONST1,
-    INT_TAG,
-    BOOL_TAG,
-    STRING_TAG,
+    INT_TAG_LABEL,
+    BOOL_TAG_LABEL,
+    STRING_TAG_LABEL,
     HEAP_START,
     MEMMGR_INITIALIZER,
     MEMMGR_COLLECTOR,
@@ -116,35 +111,6 @@ pub const REQUIRED_GLOBALS: &[&str] = &[
     "String_init",
     "Main.main",
 ];
-
-// --- Section: GC  --- //
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum GcMode {
-    NoGc,
-    GenGc,
-    GenGcTest,
-}
-
-impl GcMode {
-    pub fn initializer(self) -> &'static str {
-        match self {
-            GcMode::NoGc => NOGC_INIT,
-            _ => GENGC_INIT,
-        }
-    }
-
-    pub fn collector(self) -> &'static str {
-        match self {
-            GcMode::NoGc => NOGC_COLLECT,
-            _ => GENGC_COLLECT,
-        }
-    }
-
-    pub fn test_flag(self) -> i32 {
-        matches!(self, GcMode::GenGcTest) as i32
-    }
-}
 
 // --- Section: Built-in class method lists in dispatch table order --- //
 

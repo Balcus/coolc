@@ -1,5 +1,5 @@
+use crate::builtins::{BUILTINS, OBJECT_ID};
 use crate::semantic_analysis::SemanticErrorKind::{self, InheritanceCycle};
-use crate::semantic_analysis::builtins::{BUILTINS, OBJECT_ID};
 use crate::{
     parse_tree::{Class, Program},
     semantic_analysis::SemanticError,
@@ -151,10 +151,10 @@ impl InheritanceTree {
 
 #[cfg(test)]
 mod test {
+    use crate::builtins::{BOOL_ID, INT_ID, IO_ID, OBJECT_ID, STRING_ID};
     use crate::inheritance_tree::InheritanceTree;
     use crate::inheritance_tree::SemanticError;
     use crate::inheritance_tree::SemanticErrorKind;
-    use crate::semantic_analysis::builtins::{BOOL_ID, INT_ID, IO_ID, OBJECT_ID, STRING_ID};
     use crate::utils::parse_program;
 
     #[test]

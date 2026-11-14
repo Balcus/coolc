@@ -1,4 +1,4 @@
-use crate::semantic_analysis::builtins::{
+use crate::builtins::{
     ABORT_ID, BOOL_ID, CONCAT_ID, COPY_ID, I_ID, IN_INT_ID, IN_STRING_ID, INT_ID, IO_ID, L_ID,
     LENGTH_ID, OBJECT_ID, OUT_INT_ID, OUT_STRING_ID, S_ID, STRING_ID, SUBSTR_ID, TYPE_NAME_ID,
     X_ID,

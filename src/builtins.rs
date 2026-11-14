@@ -1,4 +1,4 @@
-use crate::utils::ReturnType;
+use crate::utils::Type;
 
 // Builtin classes
 pub const OBJECT_ID: usize = 0;
@@ -27,7 +27,7 @@ pub const S_ID: usize = 18;
 
 pub struct BuiltinMethod {
     pub name: usize,
-    pub rt: ReturnType,
+    pub rt: Type,
     // array of tuples where each tuple represents a parameter with its type
     pub params: &'static [(usize, usize)],
 }
@@ -46,19 +46,19 @@ pub const BUILTINS: &'static [BuiltinClass] = &[
             // Halts program execution with an error message
             BuiltinMethod {
                 name: ABORT_ID,
-                rt: ReturnType::Type(OBJECT_ID),
+                rt: Type::Fixed(OBJECT_ID),
                 params: &[],
             },
             // Returns a string with the name of the class of the object
             BuiltinMethod {
                 name: TYPE_NAME_ID,
-                rt: ReturnType::Type(STRING_ID),
+                rt: Type::Fixed(STRING_ID),
                 params: &[],
             },
             // Produces a shallow copy of the object
             BuiltinMethod {
                 name: COPY_ID,
-                rt: ReturnType::SelfType,
+                rt: Type::SelfType,
                 params: &[],
             },
         ],
@@ -70,25 +70,25 @@ pub const BUILTINS: &'static [BuiltinClass] = &[
             // print argument, return their self parameter
             BuiltinMethod {
                 name: OUT_STRING_ID,
-                rt: ReturnType::SelfType,
+                rt: Type::SelfType,
                 params: &[(X_ID, STRING_ID)],
             },
             // print argument, return their self parameter
             BuiltinMethod {
                 name: OUT_INT_ID,
-                rt: ReturnType::SelfType,
+                rt: Type::SelfType,
                 params: &[(X_ID, INT_ID)],
             },
             // reads a string from the standard input, up to but not including a newline character
             BuiltinMethod {
                 name: IN_STRING_ID,
-                rt: ReturnType::Type(STRING_ID),
+                rt: Type::Fixed(STRING_ID),
                 params: &[],
             },
             // reads a single integer, which may be preceded by whitespace
             BuiltinMethod {
                 name: IN_INT_ID,
-                rt: ReturnType::Type(INT_ID),
+                rt: Type::Fixed(INT_ID),
                 params: &[],
             },
         ],
@@ -107,20 +107,20 @@ pub const BUILTINS: &'static [BuiltinClass] = &[
             // returns length of self parameter
             BuiltinMethod {
                 name: LENGTH_ID,
-                rt: ReturnType::Type(INT_ID),
+                rt: Type::Fixed(INT_ID),
                 params: &[],
             },
             // returns the string formed by concatenating s after self
             BuiltinMethod {
                 name: CONCAT_ID,
-                rt: ReturnType::Type(STRING_ID),
+                rt: Type::Fixed(STRING_ID),
                 params: &[(S_ID, STRING_ID)],
             },
             // substring of its self parameter beginning at position i with length l
             // a runtime error is generated if the specified substring is out of range
             BuiltinMethod {
                 name: SUBSTR_ID,
-                rt: ReturnType::Type(STRING_ID),
+                rt: Type::Fixed(STRING_ID),
                 params: &[(I_ID, INT_ID), (L_ID, INT_ID)],
             },
         ],

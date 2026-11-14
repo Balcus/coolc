@@ -45,7 +45,35 @@ pub fn parse_program(input: &str) -> (StringTable, Program) {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum ReturnType {
+pub enum Type {
     SelfType,
-    Type(usize),
+    Fixed(usize),
+}
+
+#[derive(Default)]
+pub struct TagGen {
+    next: usize,
+}
+
+impl TagGen {
+    pub fn get(&mut self) -> usize {
+        let tag = self.next;
+        self.next += 1;
+        tag
+    }
+}
+
+pub struct LabelGen {
+    next: usize,
+}
+
+impl LabelGen {
+    pub fn new() -> Self {
+        Self { next: 0 }
+    }
+    pub fn get(&mut self) -> String {
+        let l = format!("label{}", self.next);
+        self.next += 1;
+        l
+    }
 }

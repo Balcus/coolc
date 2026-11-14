@@ -3,7 +3,7 @@ use coolc::{
     lexer::{ErrorToken, LexerWrapper, Token},
     parse_tree::{self, ExprKind},
     string_table::StringTable,
-    utils::{ReturnType, Span},
+    utils::{Span, Type},
 };
 use lalrpop_util::{ErrorRecovery, ParseError};
 
@@ -63,7 +63,7 @@ mod succeeds_parsing {
                 parent: None,
                 features: vec![parse_tree::Feature::Attribute {
                     name: i(&mut s_table, "x"),
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     init: Some(b(ExprKind::IntConstant(10))),
                 }],
             }],
@@ -100,37 +100,37 @@ mod succeeds_parsing {
                 features: vec![
                     parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "x"),
-                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                        type_dec: Type::Fixed(i(&mut s_table, "Int")),
                         init: Some(b(ExprKind::IntConstant(10))),
                     },
                     parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "y"),
-                        type_dec: ReturnType::Type(i(&mut s_table, "String")),
+                        type_dec: Type::Fixed(i(&mut s_table, "String")),
                         init: Some(b(ExprKind::StringConstant(hello_world))),
                     },
                     parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "z"),
-                        type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                        type_dec: Type::Fixed(i(&mut s_table, "Bool")),
                         init: Some(b(ExprKind::BoolConstant(false))),
                     },
                     parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "a"),
-                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                        type_dec: Type::Fixed(i(&mut s_table, "Int")),
                         init: None,
                     },
                     parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "b"),
-                        type_dec: ReturnType::Type(i(&mut s_table, "String")),
+                        type_dec: Type::Fixed(i(&mut s_table, "String")),
                         init: None,
                     },
                     parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "c"),
-                        type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                        type_dec: Type::Fixed(i(&mut s_table, "Bool")),
                         init: None,
                     },
                     parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "d"),
-                        type_dec: ReturnType::Type(i(&mut s_table, "IO")),
+                        type_dec: Type::Fixed(i(&mut s_table, "IO")),
                         init: None,
                     },
                 ],
@@ -219,7 +219,7 @@ mod succeeds_parsing {
                     parent: None,
                     features: vec![parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "x"),
-                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                        type_dec: Type::Fixed(i(&mut s_table, "Int")),
                         init: Some(b(ExprKind::IntConstant(1))),
                     }],
                 },
@@ -228,7 +228,7 @@ mod succeeds_parsing {
                     parent: None,
                     features: vec![parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "y"),
-                        type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                        type_dec: Type::Fixed(i(&mut s_table, "Bool")),
                         init: Some(b(ExprKind::BoolConstant(true))),
                     }],
                 },
@@ -237,7 +237,7 @@ mod succeeds_parsing {
                     parent: None,
                     features: vec![parse_tree::Feature::Attribute {
                         name: i(&mut s_table, "z"),
-                        type_dec: ReturnType::Type(string_id),
+                        type_dec: Type::Fixed(string_id),
                         init: Some(b(ExprKind::StringConstant(string_id))),
                     }],
                 },
@@ -268,7 +268,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "doStuff"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::IntConstant(42)),
                 }],
             }],
@@ -301,7 +301,7 @@ mod succeeds_parsing {
                         name: i(&mut s_table, "o"),
                         type_dec: i(&mut s_table, "Object"),
                     }],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Bool")),
                     body: b(ExprKind::BoolConstant(false)),
                 }],
             }],
@@ -334,7 +334,7 @@ mod succeeds_parsing {
                         name: i(&mut s_table, "x"),
                         type_dec: i(&mut s_table, "Int"),
                     }],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::IntConstant(42)),
                 }],
             }],
@@ -374,7 +374,7 @@ mod succeeds_parsing {
                             type_dec: i(&mut s_table, "Int"),
                         },
                     ],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Assignment {
                         var: parse_tree::Var::Id(i(&mut s_table, "from")),
                         expr: b(ExprKind::Object(to_id)),
@@ -407,7 +407,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Conditional {
                         cond: b(ExprKind::BoolConstant(true)),
                         happy_path: b(ExprKind::IntConstant(1)),
@@ -441,7 +441,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Loop {
                         cond: b(ExprKind::BoolConstant(true)),
                         body: b(ExprKind::IntConstant(1)),
@@ -474,7 +474,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Block(vec![e(ExprKind::IntConstant(42))])),
                 }],
             }],
@@ -504,7 +504,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Block(vec![
                         e(ExprKind::IntConstant(1)),
                         e(ExprKind::IntConstant(2)),
@@ -538,8 +538,8 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Object")),
-                    body: b(ExprKind::New(ReturnType::Type(i(&mut s_table, "Object")))),
+                    type_dec: Type::Fixed(i(&mut s_table, "Object")),
+                    body: b(ExprKind::New(Type::Fixed(i(&mut s_table, "Object")))),
                 }],
             }],
         };
@@ -568,7 +568,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Bool")),
                     body: b(ExprKind::IsVoid(b(ExprKind::IntConstant(42)))),
                 }],
             }],
@@ -598,7 +598,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Neg(b(ExprKind::IntConstant(42)))),
                 }],
             }],
@@ -628,7 +628,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Bool")),
                     body: b(ExprKind::Not(b(ExprKind::BoolConstant(true)))),
                 }],
             }],
@@ -658,7 +658,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Add(
                         b(ExprKind::IntConstant(1)),
                         b(ExprKind::IntConstant(2)),
@@ -691,7 +691,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Sub(
                         b(ExprKind::IntConstant(5)),
                         b(ExprKind::IntConstant(3)),
@@ -724,7 +724,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Mul(
                         b(ExprKind::IntConstant(3)),
                         b(ExprKind::IntConstant(4)),
@@ -757,7 +757,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Div(
                         b(ExprKind::IntConstant(10)),
                         b(ExprKind::IntConstant(2)),
@@ -790,7 +790,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Bool")),
                     body: b(ExprKind::Lt(
                         b(ExprKind::IntConstant(1)),
                         b(ExprKind::IntConstant(2)),
@@ -823,7 +823,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Bool")),
                     body: b(ExprKind::Le(
                         b(ExprKind::IntConstant(1)),
                         b(ExprKind::IntConstant(2)),
@@ -858,7 +858,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: Vec::new(),
-                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Bool")),
                     body: b(ExprKind::Lt(
                         b(ExprKind::IntConstant(1)),
                         b(ExprKind::IntConstant(2)),
@@ -893,7 +893,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: Vec::new(),
-                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Bool")),
                     body: b(ExprKind::Le(
                         b(ExprKind::IntConstant(1)),
                         b(ExprKind::IntConstant(2)),
@@ -926,7 +926,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Bool")),
                     body: b(ExprKind::Eq(
                         b(ExprKind::IntConstant(1)),
                         b(ExprKind::IntConstant(1)),
@@ -959,7 +959,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Case {
                         cond: b(ExprKind::IntConstant(42)),
                         branches: vec![parse_tree::CaseBranch {
@@ -996,7 +996,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Case {
                         cond: b(ExprKind::IntConstant(42)),
                         branches: vec![
@@ -1040,7 +1040,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Add(
                         b(ExprKind::IntConstant(1)),
                         b(ExprKind::Mul(
@@ -1076,7 +1076,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "test"),
                     params: vec![],
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Mul(
                         b(ExprKind::Add(
                             b(ExprKind::IntConstant(1)),
@@ -1109,7 +1109,7 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "main"),
                     params: Vec::new(),
-                    type_dec: ReturnType::SelfType,
+                    type_dec: Type::SelfType,
                     body: b(ExprKind::SelfDispatch {
                         name: i(&mut s_table, "out_string"),
                         args: vec![e(ExprKind::StringConstant(i(
@@ -1156,7 +1156,7 @@ mod succeeds_parsing {
                     parse_tree::Feature::Method {
                         name: i(&mut s_table, "main"),
                         params: Vec::new(),
-                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                        type_dec: Type::Fixed(i(&mut s_table, "Int")),
                         body: b(ExprKind::SelfDispatch {
                             name: i(&mut s_table, "plus"),
                             args: vec![e(ExprKind::IntConstant(1)), e(ExprKind::IntConstant(2))],
@@ -1174,10 +1174,10 @@ mod succeeds_parsing {
                                 type_dec: i(&mut s_table, "Int"),
                             },
                         ],
-                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                        type_dec: Type::Fixed(i(&mut s_table, "Int")),
                         body: b(ExprKind::Let {
                             name: i(&mut s_table, "x"),
-                            type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                            type_dec: Type::Fixed(i(&mut s_table, "Int")),
                             init: None,
                             body: b(ExprKind::Block(vec![
                                 e(ExprKind::Assignment {
@@ -1225,18 +1225,18 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "main"),
                     params: Vec::new(),
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Let {
                         name: i(&mut s_table, "x"),
-                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                        type_dec: Type::Fixed(i(&mut s_table, "Int")),
                         init: None,
                         body: b(ExprKind::Let {
                             name: i(&mut s_table, "y"),
-                            type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                            type_dec: Type::Fixed(i(&mut s_table, "Int")),
                             init: Some(b(ExprKind::IntConstant(5))),
                             body: b(ExprKind::Let {
                                 name: i(&mut s_table, "z"),
-                                type_dec: ReturnType::Type(i(&mut s_table, "Bool")),
+                                type_dec: Type::Fixed(i(&mut s_table, "Bool")),
                                 init: None,
                                 body: b(ExprKind::Block(vec![
                                     e(ExprKind::Assignment {
@@ -1280,14 +1280,14 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "main"),
                     params: Vec::new(),
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Let {
                         name: i(&mut s_table, "x"),
-                        type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                        type_dec: Type::Fixed(i(&mut s_table, "Int")),
                         init: Some(b(ExprKind::IntConstant(1))),
                         body: b(ExprKind::Let {
                             name: i(&mut s_table, "y"),
-                            type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                            type_dec: Type::Fixed(i(&mut s_table, "Int")),
                             init: Some(b(ExprKind::IntConstant(2))),
                             body: b(ExprKind::Add(
                                 b(ExprKind::Object(i(&mut s_table, "x"))),
@@ -1330,15 +1330,15 @@ mod succeeds_parsing {
                 features: vec![parse_tree::Feature::Method {
                     name: i(&mut s_table, "main"),
                     params: Vec::new(),
-                    type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                    type_dec: Type::Fixed(i(&mut s_table, "Int")),
                     body: b(ExprKind::Block(vec![
                         e(ExprKind::Let {
                             name: i(&mut s_table, "x"),
-                            type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                            type_dec: Type::Fixed(i(&mut s_table, "Int")),
                             init: Some(b(ExprKind::IntConstant(1))),
                             body: b(ExprKind::Let {
                                 name: i(&mut s_table, "y"),
-                                type_dec: ReturnType::Type(i(&mut s_table, "Int")),
+                                type_dec: Type::Fixed(i(&mut s_table, "Int")),
                                 init: Some(b(ExprKind::IntConstant(2))),
                                 body: b(ExprKind::Add(
                                     b(ExprKind::Object(i(&mut s_table, "x"))),
@@ -1460,7 +1460,7 @@ mod succeeds_parsing {
                         name: i(&mut s_table, "position"),
                         type_dec: i(&mut s_table, "Int"),
                     }],
-                    type_dec: ReturnType::Type(i(&mut s_table, "String")),
+                    type_dec: Type::Fixed(i(&mut s_table, "String")),
                     body: b(ExprKind::Conditional {
                         cond: b(ExprKind::Eq(
                             b(ExprKind::Add(
@@ -1543,6 +1543,7 @@ mod succeeds_parsing {
     #[test_case(include_str!("../examples/sum.cl"); "sum")]
     #[test_case(include_str!("../examples/self_type.cl"); "self_type")]
     #[test_case(include_str!("../examples/activations.cl"); "activations")]
+    #[test_case(include_str!("../examples/simple.cl"); "simple")]
     fn parses_examples(input: &str) {
         let mut s_table = StringTable::new();
         let mut errors = Vec::new();

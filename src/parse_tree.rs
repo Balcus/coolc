@@ -1,4 +1,4 @@
-use crate::utils::{ReturnType, Span};
+use crate::utils::{Span, Type};
 
 pub type Id = usize;
 
@@ -27,14 +27,14 @@ pub enum Var {
 pub enum Feature {
     Attribute {
         name: Id,
-        type_dec: ReturnType,
+        type_dec: Type,
         init: Option<Box<Expr>>,
     },
 
     Method {
         name: Id,
         params: Vec<Formal>,
-        type_dec: ReturnType,
+        type_dec: Type,
         body: Box<Expr>,
     },
     Invalid,
@@ -120,7 +120,7 @@ pub enum ExprKind {
 
     Let {
         name: Id,
-        type_dec: ReturnType,
+        type_dec: Type,
         init: Option<Box<Expr>>,
         body: Box<Expr>,
     },
@@ -130,7 +130,7 @@ pub enum ExprKind {
         branches: Vec<CaseBranch>,
     },
 
-    New(ReturnType),
+    New(Type),
 
     IsVoid(Box<Expr>),
 

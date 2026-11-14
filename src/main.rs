@@ -1,13 +1,33 @@
-use clap::Parser;
-use coolc::codegen::codegen;
-use coolc::diagnostic::Diagnostic;
+use clap::{Parser, ValueEnum};
+use coolc::codegen::gc::GcMode;
 use coolc::inheritance_tree::InheritanceTree;
 use coolc::lexer::LexerWrapper;
 use coolc::parser;
 use coolc::semantic_analysis::SemanticAnalyzer;
 use coolc::semantic_analysis::method_table::MethodTable;
 use coolc::string_table::StringTable;
+use coolc::{codegen::CodeGen, diagnostic::Diagnostic};
 use std::{fs, println};
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, ValueEnum)]
+pub enum GcArg {
+    #[value(name = "none")]
+    NoGc,
+    #[value(name = "gen")]
+    GenGc,
+    #[value(name = "gentest")]
+    GenGcTest,
+}
+
+impl From<GcArg> for GcMode {
+    fn from(arg: GcArg) -> Self {
+        match arg {
+            GcArg::NoGc => GcMode::NoGc,
+            GcArg::GenGc => GcMode::GenGc,
+            GcArg::GenGcTest => GcMode::GenGcTest,
+        }
+    }
+}
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -26,6 +46,9 @@ struct Cli {
     /// Verbose lexer mode
     #[arg(short = 'v')]
     verbose: bool,
+
+    #[arg(long = "gc", value_enum, default_value = "none")]
+    garbage_collection: GcArg,
 }
 
 fn main() {
@@ -79,6 +102,6 @@ fn main() {
 
     println!("{} passed semantic checks", cli.path);
 
-    let res = codegen(ast_root, &method_table, &s_table);
+    let res = CodeGen::new(s_table, method_table, cli.garbage_collection.into()).codegen(ast_root);
     println!("{res}");
 }
