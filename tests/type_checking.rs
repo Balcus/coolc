@@ -52,7 +52,7 @@ mod succeeds_type_check {
                 parent: None,
                 features: vec![
                     ast::FeatureNode::Attribute {
-                        name: s_table.lookup("x").unwrap(),
+                        id: s_table.lookup("x").unwrap(),
                         type_dec: Type::Fixed(INT_ID),
                         init: Some(Box::new(ast::ExprNode {
                             kind: ast::ExprKind::IntConstant(1),
@@ -60,7 +60,7 @@ mod succeeds_type_check {
                         })),
                     },
                     ast::FeatureNode::Attribute {
-                        name: s_table.lookup("y").unwrap(),
+                        id: s_table.lookup("y").unwrap(),
                         type_dec: Type::Fixed(BOOL_ID),
                         init: Some(Box::new(ast::ExprNode {
                             kind: ast::ExprKind::BoolConstant(true),
@@ -68,7 +68,7 @@ mod succeeds_type_check {
                         })),
                     },
                     ast::FeatureNode::Attribute {
-                        name: s_table.lookup("z").unwrap(),
+                        id: s_table.lookup("z").unwrap(),
                         type_dec: Type::Fixed(STRING_ID),
                         init: Some(Box::new(ast::ExprNode {
                             kind: ast::ExprKind::StringConstant(s_table.lookup("String").unwrap()),
@@ -109,8 +109,6 @@ mod succeeds_type_check {
         };
 
         let class_id = s_table.lookup("Main").unwrap();
-        let x_id = s_table.lookup("x").unwrap();
-        let y_id = s_table.lookup("y").unwrap();
         let z_id = s_table.lookup("z").unwrap();
 
         let main_class = actual
@@ -119,37 +117,16 @@ mod succeeds_type_check {
             .find(|class| class.id == class_id)
             .expect("Main class should exist in AST");
 
-        let expected = vec![
-            ast::FeatureNode::Attribute {
-                name: x_id,
-                type_dec: Type::Fixed(INT_ID),
-                init: Some(Box::new(ast::ExprNode {
-                    kind: ast::ExprKind::IntConstant(1),
-                    ty: Type::Fixed(INT_ID),
-                })),
-            },
-            ast::FeatureNode::Attribute {
-                name: y_id,
-                type_dec: Type::Fixed(BOOL_ID),
-                init: Some(Box::new(ast::ExprNode {
-                    kind: ast::ExprKind::BoolConstant(true),
-                    ty: Type::Fixed(BOOL_ID),
-                })),
-            },
-            ast::FeatureNode::Attribute {
-                name: z_id,
-                type_dec: Type::Fixed(STRING_ID),
-                init: Some(Box::new(ast::ExprNode {
-                    kind: ast::ExprKind::StringConstant(s_table.lookup("hello").unwrap()),
-                    ty: Type::Fixed(STRING_ID),
-                })),
-            },
-        ];
+        let expected = vec![ast::FeatureNode::Attribute {
+            id: z_id,
+            type_dec: Type::Fixed(STRING_ID),
+            init: Some(Box::new(ast::ExprNode {
+                kind: ast::ExprKind::StringConstant(s_table.lookup("hello").unwrap()),
+                ty: Type::Fixed(STRING_ID),
+            })),
+        }];
 
-        assert_eq!(
-            main_class.features, expected,
-            "Main should contain its own attributes and all inherited attributes"
-        );
+        assert_eq!(main_class.features, expected,);
     }
 
     #[test_case(include_str!("../examples/arith.cl"); "arith")]

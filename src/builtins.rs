@@ -1,4 +1,4 @@
-use crate::utils::Type;
+use crate::{semantic_analysis::ast, utils::Type};
 
 // Builtin classes
 pub const OBJECT_ID: usize = 0;
@@ -36,6 +36,27 @@ pub struct BuiltinClass {
     pub id: usize,
     pub parent: Option<usize>,
     pub methods: &'static [BuiltinMethod],
+    pub size: usize,
+}
+
+impl From<&BuiltinClass> for ast::ClassNode {
+    fn from(b: &BuiltinClass) -> Self {
+        let features = b
+            .methods
+            .iter()
+            .map(|m| ast::FeatureNode::Method {
+                id: m.name,
+                params: m
+                    .params
+                    .iter()
+                    .map(|&(name, ty)| ast::FormalNode { name, type_dec: ty })
+                    .collect(),
+                return_type: m.rt.clone(),
+                body: Box::new(ast::ExprNode::new(ast::ExprKind::SelfExpr, Type::SelfType)),
+            })
+            .collect();
+        ast::ClassNode::new(b.id, b.parent, features)
+    }
 }
 
 pub const BUILTINS: &'static [BuiltinClass] = &[
@@ -62,6 +83,7 @@ pub const BUILTINS: &'static [BuiltinClass] = &[
                 params: &[],
             },
         ],
+        size: 3,
     },
     BuiltinClass {
         id: IO_ID,
@@ -92,12 +114,14 @@ pub const BUILTINS: &'static [BuiltinClass] = &[
                 params: &[],
             },
         ],
+        size: 3,
     },
     // Default initialization for variables of type Int is 0
     BuiltinClass {
         id: INT_ID,
         parent: Some(OBJECT_ID),
         methods: &[],
+        size: 4,
     },
     // Default initialization for variables of type String is ""
     BuiltinClass {
@@ -124,11 +148,13 @@ pub const BUILTINS: &'static [BuiltinClass] = &[
                 params: &[(I_ID, INT_ID), (L_ID, INT_ID)],
             },
         ],
+        size: 5,
     },
     // Default initialization is false
     BuiltinClass {
         id: BOOL_ID,
         parent: Some(OBJECT_ID),
         methods: &[],
+        size: 4,
     },
 ];

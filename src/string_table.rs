@@ -3,54 +3,76 @@ use crate::builtins::{
     LENGTH_ID, OBJECT_ID, OUT_INT_ID, OUT_STRING_ID, S_ID, STRING_ID, SUBSTR_ID, TYPE_NAME_ID,
     X_ID,
 };
+
 use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct StringTable {
     map: HashMap<String, usize>,
+    strings: Vec<String>,
 }
 
 impl StringTable {
     pub fn new() -> Self {
-        let mut map = HashMap::new();
+        let mut table = Self {
+            map: HashMap::new(),
+            strings: Vec::new(),
+        };
 
-        map.insert("Object".to_string(), OBJECT_ID);
-        map.insert("Int".to_string(), INT_ID);
-        map.insert("Bool".to_string(), BOOL_ID);
-        map.insert("String".to_string(), STRING_ID);
-        map.insert("IO".to_string(), IO_ID);
+        table.insert_at("Object", OBJECT_ID);
+        table.insert_at("Int", INT_ID);
+        table.insert_at("Bool", BOOL_ID);
+        table.insert_at("String", STRING_ID);
+        table.insert_at("IO", IO_ID);
 
-        map.insert("abort".to_string(), ABORT_ID);
-        map.insert("type_name".to_string(), TYPE_NAME_ID);
-        map.insert("copy".to_string(), COPY_ID);
-        map.insert("out_string".to_string(), OUT_STRING_ID);
-        map.insert("out_int".to_string(), OUT_INT_ID);
-        map.insert("in_string".to_string(), IN_STRING_ID);
-        map.insert("in_int".to_string(), IN_INT_ID);
-        map.insert("length".to_string(), LENGTH_ID);
-        map.insert("concat".to_string(), CONCAT_ID);
-        map.insert("substr".to_string(), SUBSTR_ID);
+        table.insert_at("abort", ABORT_ID);
+        table.insert_at("type_name", TYPE_NAME_ID);
+        table.insert_at("copy", COPY_ID);
+        table.insert_at("out_string", OUT_STRING_ID);
+        table.insert_at("out_int", OUT_INT_ID);
+        table.insert_at("in_string", IN_STRING_ID);
+        table.insert_at("in_int", IN_INT_ID);
+        table.insert_at("length", LENGTH_ID);
+        table.insert_at("concat", CONCAT_ID);
+        table.insert_at("substr", SUBSTR_ID);
 
-        map.insert("x".to_string(), X_ID);
-        map.insert("i".to_string(), I_ID);
-        map.insert("l".to_string(), L_ID);
-        map.insert("s".to_string(), S_ID);
+        table.insert_at("x", X_ID);
+        table.insert_at("i", I_ID);
+        table.insert_at("l", L_ID);
+        table.insert_at("s", S_ID);
 
-        Self { map }
+        table.insert(String::new());
+
+        table
+    }
+
+    fn insert_at(&mut self, name: &str, id: usize) {
+        if self.strings.len() <= id {
+            self.strings.resize(id + 1, String::new());
+        }
+        self.strings[id] = name.to_string();
+        self.map.insert(name.to_string(), id);
     }
 
     pub fn insert(&mut self, string: String) -> usize {
-        let next_id = self.map.len();
-        *self.map.entry(string).or_insert(next_id)
+        if let Some(&id) = self.map.get(&string) {
+            return id;
+        }
+        let id = self.strings.len();
+        self.strings.push(string.clone());
+        self.map.insert(string, id);
+        id
     }
 
-    /// Returns `id` given `name`
     pub fn lookup(&self, string: &str) -> Option<usize> {
         self.map.get(string).copied()
     }
 
-    /// Returns `name` given `id`
     pub fn string_from_id(&self, id: usize) -> Option<&String> {
-        self.map.iter().find(|(_, v)| *v == &id).map(|(k, _)| k)
+        self.strings.get(id)
+    }
+
+    pub fn len(&self) -> usize {
+        self.strings.len()
     }
 }

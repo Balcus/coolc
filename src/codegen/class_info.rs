@@ -1,22 +1,57 @@
 use std::format;
 
-use crate::{
-    builtins::{BOOL_ID, INT_ID, STRING_ID},
-    codegen::constants::{EYECATCHER, HEADER_WORDS},
-    utils::Type,
-};
+use crate::{codegen::constants::HEADER_WORDS, utils::Type};
 
+#[derive(Clone)]
 pub struct AttrInfo {
     name: String,
     ty: Type,
     offset: usize,
-    owner: usize,
+    owner_id: usize,
 }
 
+impl AttrInfo {
+    pub fn new(name: String, ty: Type, offset: usize, owner_id: usize) -> Self {
+        Self {
+            name,
+            ty,
+            offset,
+            owner_id,
+        }
+    }
+
+    pub fn ty(&self) -> &Type {
+        &self.ty
+    }
+}
+
+#[derive(Clone)]
 pub struct MethodInfo {
     name: usize,
     impl_class: usize,
     slot: usize,
+}
+
+impl MethodInfo {
+    pub fn new(name: usize, impl_class: usize, slot: usize) -> Self {
+        Self {
+            name,
+            impl_class,
+            slot,
+        }
+    }
+    pub fn name(&self) -> usize {
+        self.name
+    }
+    pub fn impl_class(&self) -> usize {
+        self.impl_class
+    }
+    pub fn slot(&self) -> usize {
+        self.slot
+    }
+    pub fn set_impl_class(&mut self, c: usize) {
+        self.impl_class = c;
+    }
 }
 
 pub struct ClassInfo {
@@ -26,6 +61,7 @@ pub struct ClassInfo {
     parent: Option<usize>,
     attrs: Vec<AttrInfo>,
     methods: Vec<MethodInfo>,
+    size: usize,
 }
 
 impl ClassInfo {
@@ -36,6 +72,7 @@ impl ClassInfo {
         parent: Option<usize>,
         attrs: Vec<AttrInfo>,
         methods: Vec<MethodInfo>,
+        size: usize,
     ) -> Self {
         Self {
             id,
@@ -44,6 +81,7 @@ impl ClassInfo {
             parent,
             attrs,
             methods,
+            size,
         }
     }
 
@@ -51,11 +89,11 @@ impl ClassInfo {
         HEADER_WORDS + self.attrs.len()
     }
 
-    fn disp_label(&self) -> String {
+    pub fn disp_label(&self) -> String {
         format!("{}_dispTab", self.name)
     }
 
-    fn proto_obj_label(&self) -> String {
+    pub fn proto_obj_label(&self) -> String {
         format!("{}_protObj", self.name)
     }
 
@@ -67,79 +105,15 @@ impl ClassInfo {
         self.tag
     }
 
-    pub fn genproto(&self) -> String {
-        let mut proto = format!(
-            concat!(
-                "        .word   {eyecatcher}\n",
-                "{label}:\n",
-                "        .word   {tag}\n",
-                "        .word   {size}\n",
-                "        .word   {disp}\n",
-            ),
-            eyecatcher = EYECATCHER,
-            label = self.proto_obj_label(),
-            tag = self.tag,
-            size = self.size(),
-            disp = self.disp_label(),
-        );
-
-        for attr in &self.attrs {
-            let default = match attr.ty {
-                Type::Fixed(id) if id == INT_ID => "int_const0",
-                Type::Fixed(id) if id == BOOL_ID => "bool_const0",
-                Type::Fixed(id) if id == STRING_ID => "str_const0",
-                Type::Fixed(_) | Type::SelfType => "0",
-            };
-            proto.push_str(&format!("        .word   {}\n", default));
-        }
-
-        proto
+    pub fn id(&self) -> usize {
+        self.id
     }
-}
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    use crate::builtins::OBJECT_ID;
+    pub fn attrs(&self) -> &Vec<AttrInfo> {
+        &self.attrs
+    }
 
-    // class Foo {
-    //     first : Object;
-    //     second : Object;
-    // };
-    #[test]
-    fn check_codegen_class() {
-        let foo = ClassInfo::from(
-            5,
-            String::from("Foo"),
-            5,
-            Some(OBJECT_ID),
-            vec![
-                AttrInfo {
-                    name: String::from("first"),
-                    ty: Type::Fixed(OBJECT_ID),
-                    offset: 12,
-                    owner: 5,
-                },
-                AttrInfo {
-                    name: String::from("second"),
-                    ty: Type::Fixed(OBJECT_ID),
-                    offset: 16,
-                    owner: 5,
-                },
-            ],
-            Vec::new(),
-        );
-
-        let expected = concat!(
-            "        .word   -1\n",
-            "Foo_protObj:\n",
-            "        .word   5\n",
-            "        .word   5\n",
-            "        .word   Foo_dispTab\n",
-            "        .word   0\n",
-            "        .word   0\n",
-        );
-
-        assert_eq!(foo.genproto(), expected);
+    pub fn methods(&self) -> &Vec<MethodInfo> {
+        &self.methods
     }
 }

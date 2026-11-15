@@ -102,6 +102,13 @@ fn main() {
 
     println!("{} passed semantic checks", cli.path);
 
-    let res = CodeGen::new(s_table, method_table, cli.garbage_collection.into()).codegen(ast_root);
+    let res = CodeGen::from(
+        ast_root,
+        s_table,
+        inheritance_tree,
+        method_table,
+        cli.garbage_collection.into(),
+    )
+    .codegen();
     println!("{res}");
 }

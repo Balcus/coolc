@@ -165,19 +165,20 @@ impl<'a> SemanticAnalyzer<'a> {
 
     // a class with no parent should by default have the parent Object
 
+    // a class with no parent should by default have the parent Object
     fn type_check_class(
         &mut self,
-        class: &mut parse_tree::Class,
+        class: &parse_tree::Class,
         class_map: &HashMap<usize, parse_tree::Class>,
         obj_env: &mut SymbolTable<usize, ObjInfo>,
     ) -> Result<ast::ClassNode, Vec<SemanticError>> {
         let mut errors = Vec::new();
         let mut ast_features = Vec::new();
 
-        // Open scope for current class
+        // Open scope for current class (Oc)
         obj_env.enter_scope();
 
-        let (class_id, parent, class_features) = match class {
+        let (class_name, parent, class_features) = match class {
             parse_tree::Class::Valid {
                 name,
                 parent,
@@ -187,42 +188,46 @@ impl<'a> SemanticAnalyzer<'a> {
             _ => unreachable!("Invalid classes should have been filtered out already!"),
         };
 
-        // Collect inherited attributes, starting with the farthest ancestor
-        let mut all_features = Vec::new();
+        // COOL class see every attribute of all its ancestors
+        // collect the ancestor chain, nearest parent first.
+        let mut ancestors = Vec::new();
+        let mut current = self.inheritance_tree.parent(class_name);
+        while let Some(ancestor) = current {
+            ancestors.push(ancestor);
+            current = self.inheritance_tree.parent(ancestor);
+        }
 
-        for ancestor in self.inheritance_tree.ancestors(class_id) {
+        // Bind attributes farthest first
+        // Builtin ancestors (Object, IO, ...) declare no attribute so skip them.
+        for ancestor in ancestors.into_iter().rev() {
             if let Some(parse_tree::Class::Valid { features, .. }) = class_map.get(&ancestor) {
                 for feature in features {
-                    if let parse_tree::Feature::Attribute { .. } = feature {
-                        all_features.push(feature.clone());
+                    if let parse_tree::Feature::Attribute { name, type_dec, .. } = feature {
+                        obj_env.add_id(*name, ObjInfo::new(type_dec.clone(), ObjKind::Attribute));
                     }
                 }
             }
         }
 
-        // Add current class features after the inherited attributes
-        all_features.extend(class_features.iter().cloned());
-
-        // first pass: bind all inherited and locally declared attributes to their types
-        // this allows attribute initializers and methods to reference any class attribute
+        // first pass: bind all of this class's own attributes to their type, this is already done for all methods when we call method_table::build
         // attributes cannot have SELF_TYPE as a type in COOL
-        for feature in &all_features {
+        for feature in class_features {
             if let parse_tree::Feature::Attribute { name, type_dec, .. } = feature {
                 obj_env.add_id(*name, ObjInfo::new(type_dec.clone(), ObjKind::Attribute));
             }
         }
 
-        // second pass: type check all inherited and locally declared attributes and methods
-        for feature in &all_features {
+        // second pass: check all attributes and methods for the given class
+        for feature in class_features {
             match feature {
                 parse_tree::Feature::Attribute { .. } => {
-                    match self.type_check_attribute(class_id, feature, obj_env) {
+                    match self.type_check_attribute(class_name, feature, obj_env) {
                         Ok(attribute) => ast_features.push(attribute),
                         Err(e) => errors.push(e),
                     }
                 }
                 parse_tree::Feature::Method { .. } => {
-                    match self.type_check_method(class_id, feature, obj_env) {
+                    match self.type_check_method(class_name, feature, obj_env) {
                         Ok(method) => ast_features.push(method),
                         Err(e) => errors.push(e),
                     }
@@ -240,7 +245,7 @@ impl<'a> SemanticAnalyzer<'a> {
             return Err(errors);
         }
 
-        Ok(ast::ClassNode::new(class_id, parent, ast_features))
+        Ok(ast::ClassNode::new(class_name, parent, ast_features))
     }
 
     fn type_check_method(
@@ -301,7 +306,7 @@ impl<'a> SemanticAnalyzer<'a> {
         }
 
         Ok(ast::FeatureNode::Method {
-            name: *method_name,
+            id: *method_name,
             params: formals,
             return_type: declared_rt,
             body: Box::new(typed_body),

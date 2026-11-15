@@ -43,12 +43,12 @@ impl ClassNode {
 #[derive(Debug, Clone, PartialEq)]
 pub enum FeatureNode {
     Attribute {
-        name: usize,
+        id: usize,
         type_dec: Type,
         init: Option<Box<ExprNode>>,
     },
     Method {
-        name: usize,
+        id: usize,
         params: Vec<FormalNode>,
         return_type: Type,
         body: Box<ExprNode>,
@@ -56,12 +56,8 @@ pub enum FeatureNode {
 }
 
 impl FeatureNode {
-    pub fn attribute(name: usize, type_dec: Type, init: Option<Box<ExprNode>>) -> Self {
-        Self::Attribute {
-            name,
-            type_dec,
-            init,
-        }
+    pub fn attribute(id: usize, type_dec: Type, init: Option<Box<ExprNode>>) -> Self {
+        Self::Attribute { id, type_dec, init }
     }
 }
 
